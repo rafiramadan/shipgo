@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ShipGo TMS — GPS Tracking Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --p50:#eef2ff;--p100:#e0e7ff;--p600:#4f46e5;--p700:#4338ca;--p800:#3730a3;
+  --sb:#1e1b4b;--sb2:#16134a;
+  --g50:#f8fafc;--g100:#f1f5f9;--g200:#e2e8f0;--g400:#94a3b8;--g500:#64748b;--g700:#334155;--g900:#0f172a;
+  --font:'Inter',sans-serif;
+}
+html,body{height:100%;font-family:var(--font);background:var(--g50);color:var(--g900)}
+.topbar{
+  height:60px;background:#fff;border-bottom:1px solid var(--g200);
+  display:flex;align-items:center;padding:0 32px;gap:14px;
+  box-shadow:0 1px 3px rgba(0,0,0,.06);
+}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-icon{width:34px;height:34px;border-radius:9px;background:var(--p700);display:flex;align-items:center;justify-content:center}
+.logo-icon i{color:#fff;font-size:16px}
+.logo-name{font-size:16px;font-weight:700;color:var(--g900);letter-spacing:-.3px}
+.logo-name span{color:var(--p700)}
+.logo-badge{font-size:10px;font-weight:600;background:var(--p100);color:var(--p700);padding:2px 8px;border-radius:10px;margin-left:6px}
+.tb-spacer{flex:1}
+.tb-user{display:flex;align-items:center;gap:10px;padding:6px 12px;border:1px solid var(--g200);border-radius:10px;cursor:pointer}
+.tb-avatar{width:30px;height:30px;border-radius:50%;background:var(--p100);display:flex;align-items:center;justify-content:center;color:var(--p700);font-size:12px;font-weight:700;position:relative}
+.tb-avatar .dot{position:absolute;bottom:0;right:0;width:9px;height:9px;border-radius:50%;background:#10b981;border:2px solid #fff}
+.tb-user-info{display:flex;flex-direction:column}
+.tb-name{font-size:13px;font-weight:600;color:var(--g900)}
+.tb-role{font-size:11px;color:var(--g500)}
+
+.hero{
+  max-width:960px;margin:0 auto;padding:60px 32px 40px;
+  display:flex;flex-direction:column;align-items:center;text-align:center;
+}
+.hero-eyebrow{
+  font-size:12px;font-weight:600;color:var(--p700);
+  background:var(--p100);padding:4px 14px;border-radius:20px;
+  letter-spacing:.5px;margin-bottom:20px;
+}
+.hero-title{font-size:38px;font-weight:700;color:var(--g900);line-height:1.2;margin-bottom:14px;letter-spacing:-.5px}
+.hero-title span{color:var(--p700)}
+.hero-sub{font-size:16px;color:var(--g500);max-width:520px;line-height:1.7;margin-bottom:40px}
+
+.modules{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;width:100%;max-width:960px;margin:0 auto;padding:0 32px 60px}
+.module-card{
+  background:#fff;border:1px solid var(--g200);border-radius:14px;
+  padding:24px;cursor:pointer;transition:all .2s;
+  display:flex;flex-direction:column;gap:0;
+  text-decoration:none;color:inherit;
+  box-shadow:0 1px 3px rgba(0,0,0,.05);
+}
+.module-card:hover{
+  border-color:var(--p600);transform:translateY(-3px);
+  box-shadow:0 8px 24px rgba(79,70,229,.12);
+}
+.module-icon{
+  width:48px;height:48px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;margin-bottom:14px;
+}
+.module-icon.indigo{background:var(--p100);color:var(--p700)}
+.module-icon.green{background:#dcfce7;color:#15803d}
+.module-icon.amber{background:#fef3c7;color:#92400e}
+.module-icon.blue{background:#dbeafe;color:#1d4ed8}
+.module-label{font-size:11px;font-weight:600;color:var(--g400);letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px}
+.module-title{font-size:17px;font-weight:700;color:var(--g900);margin-bottom:8px}
+.module-desc{font-size:13px;color:var(--g500);line-height:1.6;flex:1}
+.module-footer{
+  margin-top:16px;padding-top:14px;border-top:1px solid var(--g100);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.module-status{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:500}
+.status-dot{width:7px;height:7px;border-radius:50%}
+.module-arrow{color:var(--p600);font-size:13px;transition:transform .2s}
+.module-card:hover .module-arrow{transform:translateX(4px)}
+
+.features-row{
+  max-width:960px;margin:0 auto 60px;padding:0 32px;
+  display:flex;gap:10px;flex-wrap:wrap;justify-content:center;
+}
+.feat-chip{
+  display:flex;align-items:center;gap:7px;padding:7px 14px;
+  background:#fff;border:1px solid var(--g200);border-radius:20px;
+  font-size:12px;color:var(--g600);font-weight:500;
+}
+.feat-chip i{color:var(--p600);font-size:12px}
+
+footer{
+  text-align:center;padding:20px 32px;border-top:1px solid var(--g200);
+  font-size:12px;color:var(--g400);background:#fff;
+}
+footer b{color:var(--p700)}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-icon"><i class="fa-solid fa-map-location-dot"></i></div>
+    <div class="logo-name">ShipGo <span>TMS</span></div>
+    <span class="logo-badge">GPS Platform</span>
+  </div>
+  <div class="tb-spacer"></div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <div style="width:34px;height:34px;border-radius:8px;border:1px solid var(--g200);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--g500)"><i class="fa-regular fa-bell"></i></div>
+    <div class="tb-user">
+      <div class="tb-avatar">RR<div class="dot"></div></div>
+      <div class="tb-user-info">
+        <div class="tb-name">Rafi Ramadani</div>
+        <div class="tb-role">Dispatcher</div>
+      </div>
+      <i class="fa-solid fa-chevron-down" style="font-size:10px;color:var(--g400)"></i>
+    </div>
+  </div>
+</div>
+
+<div class="hero">
+  <div class="hero-eyebrow"><i class="fa-solid fa-satellite-dish" style="margin-right:6px"></i> PT Parama Global Inspira · DC Solo</div>
+  <h1 class="hero-title">GPS Tracking<br><span>Platform</span></h1>
+  <p class="hero-sub">Pantau armada kendaraan secara real-time, analisis riwayat perjalanan, dan kelola pengiriman dalam satu platform terintegrasi.</p>
+</div>
+
+<div class="features-row">
+  <div class="feat-chip"><i class="fa-solid fa-location-dot"></i> OpenStreetMap</div>
+  <div class="feat-chip"><i class="fa-solid fa-circle-dot"></i> Geofence Radius</div>
+  <div class="feat-chip"><i class="fa-solid fa-gauge-high"></i> Overspeed Alert</div>
+  <div class="feat-chip"><i class="fa-solid fa-car-burst"></i> Harsh Driving Detection</div>
+  <div class="feat-chip"><i class="fa-solid fa-circle-play"></i> Route Playback</div>
+  <div class="feat-chip"><i class="fa-solid fa-download"></i> Export CSV / PDF / Excel</div>
+  <div class="feat-chip"><i class="fa-solid fa-chart-line"></i> Driver Performance Score</div>
+</div>
+
+<div class="modules">
+
+  <a href="./live-tracking.html" class="module-card">
+    <div class="module-icon indigo"><i class="fa-solid fa-location-dot"></i></div>
+    <div class="module-label">Real-time</div>
+    <div class="module-title">Live Tracking</div>
+    <div class="module-desc">Pantau posisi semua kendaraan secara real-time di peta. Cluster otomatis, popup shipment & DO, tab Pesanan dan Peringatan.</div>
+    <div class="module-footer">
+      <div class="module-status"><div class="status-dot" style="background:#10b981"></div><span style="color:#065f46">Live</span></div>
+      <i class="fa-solid fa-arrow-right module-arrow"></i>
+    </div>
+  </a>
+
+  <a href="./history-tracking.html" class="module-card">
+    <div class="module-icon green"><i class="fa-solid fa-clock-rotate-left"></i></div>
+    <div class="module-label">Analytics</div>
+    <div class="module-title">History Tracking</div>
+    <div class="module-desc">Replay rute perjalanan, lihat geofence radius per drop point, event log, trip summary, dan driver performance score.</div>
+    <div class="module-footer">
+      <div class="module-status"><div class="status-dot" style="background:#4338ca"></div><span style="color:#4338ca">8 Trip tersedia</span></div>
+      <i class="fa-solid fa-arrow-right module-arrow"></i>
+    </div>
+  </a>
+
+  <a href="./shipment-planning.html" class="module-card">
+    <div class="module-icon amber"><i class="fa-solid fa-boxes-stacked"></i></div>
+    <div class="module-label">Order Management</div>
+    <div class="module-title">Shipment Planning</div>
+    <div class="module-desc">Buat dan kelola rencana pengiriman, assign driver & kendaraan, pilih route type Direct / Transit ke Cross-Dock.</div>
+    <div class="module-footer">
+      <div class="module-status"><div class="status-dot" style="background:#d97706"></div><span style="color:#92400e">Draft (4) · Planned (6)</span></div>
+      <i class="fa-solid fa-arrow-right module-arrow"></i>
+    </div>
+  </a>
+
+</div>
+
+<footer>
+  <b>ShipGo TMS</b> · GPS Tracking Platform · PT Parama Global Inspira · Prototype v1.0
+</footer>
+
+</body>
+</html>
