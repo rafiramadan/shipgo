@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Live Tracking — PT Parama Global Inspira</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  /* Indigo palette — from Shipment Planning reference */
+  --p50:#eef2ff;--p100:#e0e7ff;--p200:#c7d2fe;--p300:#a5b4fc;
+  --p400:#818cf8;--p500:#6366f1;--p600:#4f46e5;--p700:#4338ca;--p800:#3730a3;--p900:#312e81;
+  /* Sidebar deep indigo */
+  --sb:#1e1b4b;--sb2:#16134a;--sb3:rgba(255,255,255,.1);
+  /* Status */
+  --green:#16a34a;--red:#dc2626;--orange:#ea580c;--amber:#d97706;
+  /* Grays */
+  --g50:#f8fafc;--g100:#f1f5f9;--g150:#eef0f4;--g200:#e2e8f0;
+  --g300:#cbd5e1;--g400:#94a3b8;--g500:#64748b;--g700:#334155;--g900:#0f172a;
+  /* Layout */
+  --sw:56px;--th:60px;--pw:340px;--r:8px;--r2:12px;
+  --sh:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.04);
+  --shl:0 8px 24px rgba(0,0,0,.13);
+  --font:'Inter',sans-serif;
+}
+html,body{height:100%;font-family:var(--font);font-size:13px;color:var(--g900);overflow:hidden}
+
+/* ── TOP BAR ── */
+.topbar{
+  position:fixed;top:0;left:0;right:0;height:var(--th);
+  background:#fff;border-bottom:1px solid var(--g200);
+  display:flex;align-items:center;z-index:1000;padding:0 20px 0 0;
+  box-shadow:0 1px 0 var(--g200);
+}
+/* Logo block sits inside sidebar width */
+.tb-logo{
+  width:var(--sw);height:var(--th);background:var(--sb2);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  transition:width .25s cubic-bezier(.4,0,.2,1);overflow:hidden;
+}
+.sidebar:hover~.topbar .tb-logo,
+.sidebar:hover+.topbar .tb-logo{ width:220px; }
+.tb-logo-inner{display:flex;align-items:center;gap:10px;padding:0 16px;white-space:nowrap}
+.tb-logo-icon{width:32px;height:32px;border-radius:8px;background:var(--p600);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.tb-logo-icon i{color:#fff;font-size:15px}
+.tb-logo-text{font-size:14px;font-weight:700;color:#fff;opacity:0;transition:opacity .15s .1s;letter-spacing:-.3px}
+.sidebar:hover~.topbar .tb-logo-text,
+.sidebar:hover+.topbar .tb-logo-text{opacity:1}
+
+/* DC info */
+.tb-dc{display:flex;flex-direction:column;margin-left:16px}
+.tb-dc-label{font-size:10px;color:var(--g400);font-weight:500;letter-spacing:.3px;line-height:1.2}
+.tb-dc-val{display:flex;align-items:center;gap:5px;font-size:14px;font-weight:600;color:var(--g900);line-height:1.3}
+.tb-dc-val i{color:var(--p600);font-size:12px}
+
+/* Live badge */
+.live-badge{display:flex;align-items:center;gap:6px;margin-left:16px;background:#ecfdf5;border:1px solid #a7f3d0;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;color:#065f46;flex-shrink:0}
+.live-dot{width:8px;height:8px;border-radius:50%;background:#10b981;animation:livePulse 1.8s ease-in-out infinite}
+@keyframes livePulse{0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,.5)}50%{box-shadow:0 0 0 6px rgba(16,185,129,0)}}
+
+/* Alert */
+.tb-alert{flex:1;display:flex;align-items:center;justify-content:center}
+.alert-banner{background:#fef2f2;border:1px solid #fecaca;border-radius:6px;padding:5px 14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:500;color:#b91c1c;cursor:pointer;transition:background .15s}
+.alert-banner:hover{background:#fee2e2}
+
+/* Actions */
+.tb-actions{display:flex;align-items:center;gap:6px}
+.tb-icon{width:34px;height:34px;border-radius:var(--r);border:1px solid var(--g200);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--g500);font-size:14px;position:relative;background:#fff;transition:all .15s}
+.tb-icon:hover{background:var(--p50);border-color:var(--p200);color:var(--p600)}
+.tb-icon .bdg{position:absolute;top:4px;right:4px;width:8px;height:8px;background:var(--red);border-radius:50%;border:1.5px solid #fff}
+.tb-user{display:flex;align-items:center;gap:10px;padding:6px 12px;border:1px solid var(--g200);border-radius:var(--r2);cursor:pointer;background:#fff;margin-left:4px;transition:all .15s}
+.tb-user:hover{background:var(--p50);border-color:var(--p200)}
+.tb-avatar{width:28px;height:28px;border-radius:50%;background:var(--p100);display:flex;align-items:center;justify-content:center;color:var(--p700);font-size:11px;font-weight:700;position:relative;flex-shrink:0}
+.tb-avatar .online{position:absolute;bottom:0;right:0;width:9px;height:9px;border-radius:50%;background:#10b981;border:2px solid #fff}
+.tb-user-info{display:flex;flex-direction:column}
+.tb-name{font-size:13px;font-weight:600;color:var(--g900)}
+.tb-role{font-size:11px;color:var(--g500)}
+
+/* ── SIDEBAR — expand on hover ── */
+.sidebar{
+  position:fixed;top:var(--th);left:0;bottom:0;
+  width:var(--sw);background:var(--sb);
+  display:flex;flex-direction:column;
+  padding:10px 0;z-index:900;overflow:hidden;
+  transition:width .25s cubic-bezier(.4,0,.2,1);
+}
+.sidebar:hover{width:220px}
+
+.sb-section{
+  font-size:9px;font-weight:600;color:rgba(255,255,255,.25);
+  letter-spacing:.8px;padding:10px 18px 4px;
+  white-space:nowrap;overflow:hidden;
+  opacity:0;transition:opacity .12s .06s;
+}
+.sidebar:hover .sb-section{opacity:1}
+
+.si{
+  display:flex;align-items:center;gap:12px;
+  padding:0 18px;height:42px;
+  cursor:pointer;color:rgba(255,255,255,.45);
+  transition:all .15s;position:relative;
+  white-space:nowrap;overflow:hidden;text-decoration:none;
+}
+.si:hover{color:rgba(255,255,255,.9);background:rgba(255,255,255,.07)}
+.si.active{color:#fff;background:rgba(255,255,255,.12)}
+.si.active::before{
+  content:'';position:absolute;left:0;top:8px;bottom:8px;
+  width:3px;background:var(--p400);border-radius:0 3px 3px 0;
+}
+.si i{font-size:16px;flex-shrink:0;width:22px;text-align:center}
+.si-label{font-size:12px;font-weight:500;opacity:0;transition:opacity .12s .06s;pointer-events:none}
+.sidebar:hover .si-label{opacity:1}
+.si .dot{
+  position:absolute;top:10px;left:28px;
+  width:7px;height:7px;background:#f97316;
+  border-radius:50%;border:1.5px solid var(--sb);
+  transition:left .25s;
+}
+.sidebar:hover .si .dot{left:auto;right:16px;top:50%;transform:translateY(-50%)}
+.s-sp{flex:1}
+.sb-divider{height:1px;background:rgba(255,255,255,.08);margin:6px 0}
+
+/* MAP */
+#map{position:fixed;top:var(--th);left:var(--sw);right:var(--pw);bottom:0;z-index:1}
+
+/* Leaflet popup */
+.leaflet-popup-content-wrapper{border-radius:var(--r2)!important;padding:0!important;box-shadow:var(--shl)!important;border:1px solid var(--g200)!important;font-family:var(--font)!important}
+.leaflet-popup-content{margin:0!important;width:auto!important;min-width:260px}
+.leaflet-popup-tip{background:#fff!important}
+.leaflet-popup-close-button{top:8px!important;right:10px!important;color:var(--g400)!important;font-size:18px!important}
+
+/* POPUP CARD */
+.pc-head{display:flex;align-items:center;gap:10px;padding:12px 14px 10px;border-bottom:1px solid var(--g100)}
+.pc-plate{font-size:15px;font-weight:700;color:var(--g900)}
+.pc-type{font-size:11px;color:var(--g500);margin-top:1px}
+.pc-sbadge{padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;margin-left:auto}
+.pc-sbadge.berjalan{background:#dcfce7;color:#15803d}
+.pc-sbadge.parkir{background:#fef3c7;color:#92400e}
+.pc-sbadge.offline{background:var(--g100);color:var(--g500)}
+.pc-sbadge.diam{background:#fef9c3;color:#713f12}
+.pc-body{padding:10px 14px;display:flex;flex-direction:column;gap:7px}
+.pc-row{display:flex;align-items:flex-start;gap:8px;font-size:12px}
+.pc-row i{color:var(--p400);width:14px;margin-top:1px;font-size:11px;flex-shrink:0}
+.pc-lbl{color:var(--g500);flex-shrink:0;min-width:56px}
+.pc-val{color:var(--g900);font-weight:500}
+.pc-div{border:none;border-top:1px solid var(--g100);margin:2px 0}
+.pc-sh-head{font-size:10px;font-weight:600;color:var(--g400);letter-spacing:.5px;margin-bottom:4px}
+.pc-sh-item{background:var(--p50);border:1px solid var(--p200);border-radius:6px;padding:7px 10px;margin-bottom:5px}
+.pc-sh-num{font-size:12px;font-weight:700;color:var(--p700);margin-bottom:4px}
+.pc-do-tag{display:inline-block;font-size:10px;font-weight:600;background:var(--p100);color:var(--p700);border:1px solid var(--p200);border-radius:3px;padding:1px 5px;margin-right:3px;margin-bottom:2px}
+.pc-foot{padding:8px 14px;border-top:1px solid var(--g100);display:flex;gap:6px}
+.pc-btn{flex:1;padding:6px 8px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;border:none;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:4px;transition:all .15s}
+.pc-btn.p{background:var(--p700);color:#fff}
+.pc-btn.p:hover{background:var(--p800)}
+.pc-btn.s{background:var(--g100);color:var(--g700);border:1px solid var(--g200)}
+.pc-btn.s:hover{background:var(--p50);color:var(--p700);border-color:var(--p300)}
+
+/* MAP OVERLAY */
+.map-top{position:fixed;top:calc(var(--th) + 10px);left:calc(var(--sw) + 10px);right:calc(var(--pw) + 10px);display:flex;align-items:center;gap:8px;z-index:500;pointer-events:none}
+.map-top>*{pointer-events:auto}
+.co-sel{background:var(--sb);color:#fff;border:none;border-radius:var(--r);padding:8px 14px;font-size:12px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:8px;box-shadow:var(--shl);white-space:nowrap;font-family:var(--font);transition:background .15s}
+.co-sel:hover{background:var(--sb2)}
+.srch-wrap{position:relative;flex:1}
+.srch-wrap i{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--g400);font-size:13px}
+.srch-input{width:100%;background:#fff;border:1px solid var(--g200);border-radius:var(--r);padding:8px 12px 8px 32px;font-size:12px;color:var(--g700);box-shadow:var(--sh);outline:none;font-family:var(--font);transition:border-color .15s}
+.srch-input:focus{border-color:var(--p400);box-shadow:0 0 0 3px rgba(99,102,241,.1),var(--sh)}
+.srch-input::placeholder{color:var(--g400)}
+.srch-res{position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1px solid var(--g200);border-radius:var(--r);box-shadow:var(--shl);z-index:600;display:none;max-height:220px;overflow-y:auto}
+.srch-res.show{display:block}
+.sr-item{padding:8px 12px;cursor:pointer;font-size:12px;color:var(--g700);border-bottom:1px solid var(--g100);display:flex;align-items:center;gap:8px}
+.sr-item:hover{background:var(--p50)}
+.sr-plate{font-weight:600;color:var(--g900)}
+.sr-sub{font-size:11px;color:var(--g500)}
+
+/* STATS BAR */
+.stats-bar{position:fixed;bottom:16px;left:calc(var(--sw) + 10px);z-index:500;display:flex;gap:6px}
+.s-chip{background:#fff;border:1px solid var(--g200);border-radius:20px;padding:5px 12px;font-size:11px;font-weight:500;display:flex;align-items:center;gap:6px;box-shadow:var(--sh);color:var(--g700);cursor:pointer;transition:all .15s}
+.s-chip:hover{border-color:var(--p400);color:var(--p700);background:var(--p50)}
+.s-chip .d{width:8px;height:8px;border-radius:50%}
+
+/* Cluster — indigo tones */
+.marker-cluster-small{background-color:rgba(99,102,241,.15)!important}
+.marker-cluster-small div{background-color:rgba(99,102,241,.82)!important;color:#fff!important;font-weight:700!important;font-family:var(--font)!important}
+.marker-cluster-medium{background-color:rgba(79,70,229,.15)!important}
+.marker-cluster-medium div{background-color:rgba(79,70,229,.84)!important;color:#fff!important;font-weight:700!important;font-family:var(--font)!important}
+.marker-cluster-large{background-color:rgba(67,56,202,.15)!important}
+.marker-cluster-large div{background-color:rgba(67,56,202,.9)!important;color:#fff!important;font-weight:700!important;font-family:var(--font)!important}
+
+.leaflet-tooltip{background:var(--sb)!important;color:#fff!important;border:none!important;border-radius:6px!important;font-family:var(--font)!important;font-size:11px!important;font-weight:500!important;padding:4px 9px!important;box-shadow:var(--sh)!important;white-space:nowrap}
+.leaflet-tooltip::before{display:none}
+
+/* RIGHT PANEL */
+.rp{position:fixed;top:var(--th);right:0;width:var(--pw);bottom:0;background:#fff;border-left:1px solid var(--g200);display:flex;flex-direction:column;z-index:900;overflow:hidden;box-shadow:-2px 0 8px rgba(0,0,0,.04)}
+.rp-tabs{display:flex;border-bottom:1px solid var(--g200);flex-shrink:0}
+.rp-tab{flex:1;padding:12px 8px;text-align:center;font-size:13px;font-weight:500;color:var(--g500);cursor:pointer;border:none;background:none;font-family:var(--font);border-bottom:2px solid transparent;transition:all .15s;position:relative;bottom:-1px}
+.rp-tab.active{color:var(--p700);border-bottom-color:var(--p600)}
+.rp-tab:hover:not(.active){color:var(--g700);background:var(--g50)}
+.rp-acts{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px 12px;border-bottom:1px solid var(--g200);flex-shrink:0}
+.rp-btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 12px;border-radius:var(--r);font-size:12px;font-weight:500;cursor:pointer;border:none;font-family:var(--font);transition:all .15s}
+.rp-btn.p{background:var(--p700);color:#fff}
+.rp-btn.p:hover{background:var(--p800)}
+.rp-btn.s{background:#fff;color:var(--p700);border:1.5px solid var(--p600)}
+.rp-btn.s:hover{background:var(--p50)}
+.sub-tabs{display:flex;border-bottom:1px solid var(--g200);flex-shrink:0}
+.sub-tab{flex:1;padding:8px;text-align:center;font-size:12px;font-weight:500;color:var(--g500);cursor:pointer;border:none;background:none;font-family:var(--font);border-bottom:2px solid transparent;transition:all .15s;position:relative;bottom:-1px}
+.sub-tab.active{color:var(--p700);border-bottom-color:var(--p600)}
+.fp{padding:8px 12px 6px;border-bottom:1px solid var(--g200);flex-shrink:0}
+.fpills{display:flex;gap:4px;overflow-x:auto;padding-bottom:2px}
+.fpills::-webkit-scrollbar{height:0}
+.pill{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:500;cursor:pointer;white-space:nowrap;border:1px solid var(--g200);background:#fff;color:var(--g600);transition:all .15s}
+.pill.active{background:var(--p700);color:#fff;border-color:var(--p700)}
+.pill:hover:not(.active){border-color:var(--p300);color:var(--p700);background:var(--p50)}
+.sl{padding:6px 12px;font-size:11px;color:var(--g500);border-bottom:1px solid var(--g200);flex-shrink:0;line-height:1.6}
+.sl b{color:var(--g700)}
+.sort-bar{padding:6px 12px;border-bottom:1px solid var(--g200);flex-shrink:0;display:flex;align-items:center;gap:8px}
+.sort-bar span{font-size:11px;color:var(--g500)}
+.srt-sel{font-size:11px;color:var(--g700);border:1px solid var(--g200);border-radius:4px;padding:2px 6px;background:#fff;font-family:var(--font)}
+.vlist{flex:1;overflow-y:auto}
+.vlist::-webkit-scrollbar{width:3px}
+.vlist::-webkit-scrollbar-thumb{background:var(--p200);border-radius:2px}
+
+/* VEHICLE CARD */
+.vcard{padding:10px 12px;border-bottom:1px solid var(--g100);cursor:pointer;transition:background .12s}
+.vcard:hover{background:var(--p50)}
+.vcard.selected{background:var(--p50);border-left:3px solid var(--p600);padding-left:9px}
+.vc-top{display:flex;align-items:center;gap:6px;margin-bottom:5px}
+.vc-icon{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.vc-icon.g{background:#dcfce7;color:#15803d}
+.vc-icon.y{background:#fef9c3;color:#92400e}
+.vc-icon.gr{background:var(--g100);color:var(--g500)}
+.vc-plate{font-size:14px;font-weight:700;color:var(--g900);flex:1;letter-spacing:.3px}
+.sbadge{padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600;text-transform:uppercase}
+.sbadge.berjalan{background:#dcfce7;color:#15803d}
+.sbadge.parkir{background:#fef3c7;color:#92400e}
+.sbadge.offline{background:var(--g100);color:var(--g500)}
+.sbadge.diam{background:#fef9c3;color:#713f12}
+.vc-acts{display:flex;gap:3px}
+.vc-act{width:24px;height:24px;border-radius:4px;border:1px solid var(--g200);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--g500);font-size:10px;background:#fff;transition:all .12s}
+.vc-act:hover{background:var(--p50);color:var(--p700);border-color:var(--p300)}
+
+/* Shipment section in card */
+.vc-ship{margin-top:5px}
+.vc-ship-hd{font-size:10px;color:var(--g400);font-weight:500;margin-bottom:4px;letter-spacing:.3px}
+.vc-ship-item{background:var(--p50);border:1px solid var(--p200);border-radius:5px;padding:5px 8px;margin-bottom:3px}
+.vc-ship-num{font-size:11px;font-weight:600;color:var(--p700);display:flex;align-items:center;gap:4px;margin-bottom:3px}
+.vc-ship-num i{font-size:10px}
+.vc-do-wrap{display:flex;flex-wrap:wrap;gap:3px}
+.vc-do{font-size:10px;background:var(--p100);color:var(--p700);border:1px solid var(--p200);border-radius:3px;padding:1px 5px;font-weight:600}
+.vc-do.done{background:#f0fdf4;color:#15803d;border-color:#bbf7d0}
+.vc-meta{display:flex;align-items:center;gap:10px;font-size:11px;color:var(--g500);margin-top:5px}
+.vc-meta i{font-size:10px;margin-right:2px}
+.vc-drv{font-size:11px;color:var(--g500);display:flex;align-items:center;gap:3px;margin-left:auto}
+
+/* DETAIL PANEL */
+.dp{position:fixed;top:var(--th);right:var(--pw);width:300px;bottom:0;background:#fff;border-left:1px solid var(--g200);z-index:850;transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;overflow:hidden}
+.dp.open{transform:translateX(0)}
+.dp-head{padding:14px 16px;border-bottom:1px solid var(--g200);display:flex;align-items:center;gap:10px;flex-shrink:0}
+.dp-close{width:28px;height:28px;border-radius:6px;border:1px solid var(--g200);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--g500);font-size:12px;background:#fff;margin-left:auto}
+.dp-body{flex:1;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:12px}
+.dp-body::-webkit-scrollbar{width:3px}
+.dp-body::-webkit-scrollbar-thumb{background:var(--g200);border-radius:2px}
+.dp-stitle{font-size:10px;font-weight:600;color:var(--g400);letter-spacing:.8px;margin-bottom:8px;text-transform:uppercase}
+.dp-row{display:flex;gap:10px;font-size:12px;margin-bottom:6px}
+.dp-k{color:var(--g500);min-width:80px;flex-shrink:0}
+.dp-v{color:var(--g900);font-weight:500}
+.dp-v.ac{color:var(--p700)}
+.dp-sh-card{border:1px solid var(--p200);border-radius:var(--r);overflow:hidden;margin-bottom:8px}
+.dp-sh-head{background:var(--p50);padding:8px 12px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--p200)}
+.dp-sh-num{font-size:13px;font-weight:700;color:var(--p700);flex:1}
+.dp-sh-badge{font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px}
+.dp-sh-badge.planned{background:var(--p100);color:var(--p800)}
+.dp-sh-badge.ondel{background:#fef3c7;color:#92400e}
+.dp-close:hover{background:var(--p50);border-color:var(--p300);color:var(--p700)}
+.dp-do-list{padding:8px 12px;display:flex;flex-direction:column;gap:6px}
+.dp-do-item{display:flex;align-items:center;gap:8px;font-size:12px}
+.dp-do-num{font-weight:600;color:var(--g900);min-width:90px}
+.dp-do-dest{color:var(--g500);flex:1;font-size:11px}
+.dp-do-st{font-size:10px;font-weight:600;padding:1px 6px;border-radius:3px}
+.dp-do-st.pickup{background:#fef9c3;color:#92400e}
+.dp-do-st.delivered{background:#dcfce7;color:#15803d}
+.dp-do-st.otw{background:var(--p100);color:var(--p700)}
+
+/* HELP */
+.help-btn{position:fixed;bottom:16px;right:calc(var(--pw) + 12px);background:var(--p700);color:#fff;border-radius:24px;padding:9px 16px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:7px;z-index:600;box-shadow:0 4px 14px rgba(79,70,229,.35);border:none;font-family:var(--font);transition:all .15s}
+.help-btn:hover{transform:translateY(-2px);background:var(--p800);box-shadow:0 6px 18px rgba(79,70,229,.45)}
+
+@keyframes mPulse{0%,100%{box-shadow:0 3px 10px rgba(0,0,0,.2),0 0 0 0 rgba(22,163,74,.4)}50%{box-shadow:0 3px 10px rgba(0,0,0,.2),0 0 0 8px rgba(22,163,74,0)}}
+@keyframes mRipple{0%{transform:translateX(-50%) scale(1);opacity:.3}100%{transform:translateX(-50%) scale(3);opacity:0}}
+
+/* ── TAB COUNT BADGES ── */
+.tab-count{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:16px;padding:0 4px;border-radius:8px;font-size:9px;font-weight:700;background:var(--p100);color:var(--p700);margin-left:4px;vertical-align:middle}
+.tab-count.urgent{background:#fee2e2;color:#b91c1c}
+.rp-tab.active .tab-count{background:var(--p200);color:var(--p800)}
+.rp-tab.active .tab-count.urgent{background:#fecaca;color:#991b1b}
+
+/* ── TAB / SUB-CONTENT SWITCHING ── */
+.tab-content{display:flex;flex-direction:column;flex:1;overflow:hidden}
+.sub-content{display:flex;flex-direction:column;flex:1;overflow:hidden}
+
+/* ── SUB-STATS STRIP ── */
+.sub-stats{display:flex;align-items:center;padding:8px 14px;border-bottom:1px solid var(--g200);gap:0;flex-shrink:0;background:var(--g50)}
+.ss-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--g600);font-weight:500}
+.ss-item span{font-weight:700;color:var(--g900)}
+.ss-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.ss-sep{width:1px;height:14px;background:var(--g200);margin:0 10px}
+
+/* ── CABANG HEADER ── */
+.cabang-header{padding:10px 12px;border-bottom:1px solid var(--g200);display:flex;align-items:center;gap:10px;flex-shrink:0;background:#fff}
+.cabang-info{display:flex;align-items:center;gap:8px;flex:1;min-width:0}
+
+/* ── PESANAN TAB ── */
+.order-card{padding:11px 14px;border-bottom:1px solid var(--g100);cursor:pointer;transition:background .12s}
+.order-card:hover{background:var(--p50)}
+.order-card.selected{background:var(--p50);border-left:3px solid var(--p600);padding-left:11px}
+.oc-head{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.oc-num{font-size:13px;font-weight:700;color:var(--p700);flex:1}
+.oc-badge{padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600}
+.oc-badge.ondel{background:#fef3c7;color:#92400e}
+.oc-badge.planned{background:var(--p100);color:var(--p700)}
+.oc-badge.selesai{background:#dcfce7;color:#15803d}
+.oc-driver{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--g500);margin-bottom:6px;flex-wrap:wrap}
+.oc-driver i{color:var(--p400);font-size:10px}
+.oc-driver b{color:var(--g800)}
+.oc-plate-tag{background:var(--g100);border-radius:3px;padding:1px 5px;font-size:10px;font-weight:600;color:var(--g700)}
+.oc-do-row{display:flex;flex-direction:column;gap:3px}
+.oc-do-item{display:flex;align-items:center;gap:6px;font-size:11px;padding:4px 8px;background:var(--g50);border-radius:5px;border:1px solid var(--g200)}
+.oc-do-num{font-weight:600;color:var(--g800);min-width:82px;flex-shrink:0;font-size:11px}
+.oc-do-dest{color:var(--g500);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:10px}
+.oc-do-st{font-size:10px;font-weight:600;padding:1px 6px;border-radius:3px;flex-shrink:0;white-space:nowrap}
+.oc-do-st.pickup{background:#fef9c3;color:#92400e}
+.oc-do-st.delivered{background:#dcfce7;color:#15803d}
+.oc-do-st.otw{background:var(--p100);color:var(--p700)}
+.oc-progress{margin-top:7px}
+.oc-progress-top{display:flex;justify-content:space-between;font-size:10px;color:var(--g500);margin-bottom:3px}
+.oc-progress-bar{height:4px;background:var(--g200);border-radius:2px;overflow:hidden}
+.oc-progress-fill{height:100%;border-radius:2px;transition:width .4s ease;background:var(--p600)}
+.oc-progress-fill.done{background:#16a34a}
+
+/* ── PERINGATAN TAB ── */
+.alert-card{padding:11px 14px;border-bottom:1px solid var(--g100);cursor:pointer;transition:background .12s;display:flex;gap:10px;align-items:flex-start}
+.alert-card:hover{background:var(--g50)}
+.alert-card.unread{border-left:3px solid transparent;padding-left:11px}
+.alert-card.unread.kritis{border-left-color:#dc2626;background:#fff5f5}
+.alert-card.unread.peringatan{border-left-color:#f59e0b;background:#fffbeb}
+.alert-card.unread.info{border-left-color:var(--p500);background:var(--p50)}
+.al-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.al-icon.kritis{background:#fee2e2;color:#dc2626}
+.al-icon.peringatan{background:#fef3c7;color:#d97706}
+.al-icon.info{background:var(--p100);color:var(--p600)}
+.al-icon.geofence{background:#f0fdf4;color:#16a34a}
+.al-body{flex:1;min-width:0}
+.al-title{font-size:12px;font-weight:600;color:var(--g900);margin-bottom:2px;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.al-udot{width:6px;height:6px;border-radius:50%;background:var(--red);flex-shrink:0;animation:livePulse 1.8s ease-in-out infinite}
+.al-plate{display:inline-block;font-size:10px;font-weight:700;background:var(--g100);border-radius:3px;padding:1px 5px;color:var(--g700)}
+.al-sub{font-size:11px;color:var(--g500);line-height:1.5;margin-bottom:4px}
+.al-meta{display:flex;align-items:center;gap:8px;font-size:10px;color:var(--g400);flex-wrap:wrap}
+.al-sev{font-size:9px;font-weight:700;padding:1px 7px;border-radius:10px;text-transform:uppercase;letter-spacing:.4px}
+.al-sev.kritis{background:#fee2e2;color:#dc2626}
+.al-sev.peringatan{background:#fef3c7;color:#b45309}
+.al-sev.info{background:var(--p100);color:var(--p700)}
+.al-act{flex-shrink:0;width:26px;height:26px;border-radius:6px;border:1px solid var(--g200);background:#fff;color:var(--g500);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:10px;transition:all .15s}
+.al-act:hover{background:var(--p50);border-color:var(--p300);color:var(--p700)}
+
+/* Empty state */
+.tab-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 24px;gap:10px;flex:1}
+.tab-empty i{font-size:32px;color:var(--p200)}
+.tab-empty-title{font-size:14px;font-weight:600;color:var(--g700)}
+.tab-empty-sub{font-size:12px;color:var(--g400);text-align:center;line-height:1.5}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <!-- Logo — inside sidebar column width -->
+  <div class="tb-logo">
+    <div class="tb-logo-inner">
+      <div class="tb-logo-icon"><i class="fa-solid fa-map-location-dot"></i></div>
+      <span class="tb-logo-text">FleetTrack TMS</span>
+    </div>
+  </div>
+  <!-- DC info -->
+  <div class="tb-dc">
+    <div class="tb-dc-label">Company</div>
+    <div class="tb-dc-val"><i class="fa-solid fa-building"></i> PT Parama Global Inspira</div>
+  </div>
+  <!-- Live badge -->
+  <div class="live-badge"><div class="live-dot"></div> LIVE</div>
+  <!-- Alert -->
+  <div class="tb-alert">
+    <div class="alert-banner"><i class="fa-solid fa-triangle-exclamation"></i> B 9433 PCS, Masuk Geolokasi PRAMA</div>
+  </div>
+  <!-- Actions -->
+  <div class="tb-actions">
+    <div class="tb-icon"><i class="fa-regular fa-bell"></i><span class="bdg"></span></div>
+    <div class="tb-icon"><i class="fa-regular fa-bullhorn"></i></div>
+    <div class="tb-icon"><i class="fa-regular fa-comment-dots"></i></div>
+    <div class="tb-user">
+      <div class="tb-avatar">RR<div class="online"></div></div>
+      <div class="tb-user-info">
+        <div class="tb-name">Rafi Ramadani</div>
+        <div class="tb-role">Dispatcher</div>
+      </div>
+      <i class="fa-solid fa-chevron-down" style="font-size:10px;color:var(--g400);margin-left:2px"></i>
+    </div>
+  </div>
+</header>
+
+<nav class="sidebar">
+  <!-- MAIN section -->
+  <div class="sb-section">MAIN</div>
+  <div class="si" onclick="window.location.href='./index.html'"><i class="fa-solid fa-grip"></i><span class="si-label">Dashboard</span></div>
+  <div class="si active"><i class="fa-solid fa-location-dot"></i><span class="si-label">Live Tracking</span></div>
+
+  <!-- ORDER section -->
+  <div class="sb-section">ORDER</div>
+  <div class="si" onclick="window.location.href='./shipment-planning.html'"><i class="fa-solid fa-boxes-stacked"></i><span class="si-label">Shipment Planning</span></div>
+  <div class="si"><i class="fa-solid fa-clipboard-list"></i><span class="si-label">Order Assignment</span></div>
+  <div class="si"><i class="fa-solid fa-route"></i><span class="si-label">Route Planning</span></div>
+
+  <!-- ANALYTICS section -->
+  <div class="sb-section">ANALYTICS</div>
+  <div class="si" onclick="window.location.href='./history-tracking.html'"><i class="fa-solid fa-clock-rotate-left"></i><span class="si-label">History Tracking</span></div>
+  <div class="si"><i class="fa-solid fa-chart-line"></i><span class="si-label">Laporan Perjalanan</span></div>
+  <div class="si"><i class="fa-solid fa-chart-mixed"></i><span class="si-label">Analytics</span></div>
+  <div class="si"><i class="fa-regular fa-bell"></i><span class="si-label">Peringatan</span><span class="dot"></span></div>
+
+  <!-- FLEET section -->
+  <div class="sb-section">FLEET</div>
+  <div class="si"><i class="fa-solid fa-truck"></i><span class="si-label">Kendaraan</span></div>
+  <div class="si"><i class="fa-regular fa-circle-user"></i><span class="si-label">Driver</span></div>
+  <div class="si"><i class="fa-solid fa-video"></i><span class="si-label">Kamera</span></div>
+
+  <div class="s-sp"></div>
+  <div class="sb-divider"></div>
+  <div class="si"><i class="fa-solid fa-gear"></i><span class="si-label">Settings</span></div>
+  <div class="si"><i class="fa-regular fa-circle-question"></i><span class="si-label">Bantuan</span></div>
+</nav>
+
+<div class="map-top">
+  <button class="co-sel"><i class="fa-solid fa-building" style="font-size:11px;opacity:.7"></i> PT Parama Global Inspira <i class="fa-solid fa-chevron-down" style="font-size:10px;opacity:.6"></i></button>
+  <div class="srch-wrap">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <input class="srch-input" id="srch" type="text" placeholder="Cari Nopol, Shipment, DO, Pengemudi..." oninput="doSearch(this.value)" onfocus="showRes()" onblur="setTimeout(hideRes,200)">
+    <div class="srch-res" id="srchRes"></div>
+  </div>
+</div>
+
+<div id="map"></div>
+<div class="stats-bar" id="statsBar"></div>
+
+<aside class="rp">
+  <!-- ── MAIN TABS ── -->
+  <div class="rp-tabs">
+    <button class="rp-tab active" data-tab="kendaraan" onclick="setTab(this,'kendaraan')">
+      Kendaraan
+    </button>
+    <button class="rp-tab" data-tab="pesanan" onclick="setTab(this,'pesanan')">
+      Pesanan <span class="tab-count" id="cnt-pesanan">12</span>
+    </button>
+    <button class="rp-tab" data-tab="peringatan" onclick="setTab(this,'peringatan')">
+      Peringatan <span class="tab-count urgent" id="cnt-peringatan">3</span>
+    </button>
+  </div>
+
+  <!-- ══════════════════════════════
+       TAB: KENDARAAN
+  ══════════════════════════════ -->
+  <div id="tab-kendaraan" class="tab-content">
+    <div class="rp-acts">
+      <button class="rp-btn p"><i class="fa-solid fa-list"></i> Daftar Kendaraan</button>
+      <button class="rp-btn s"><i class="fa-solid fa-map-pin"></i> Daftar Geolokasi</button>
+    </div>
+    <!-- Sub-tabs: Induk / Cabang -->
+    <div class="sub-tabs">
+      <button class="sub-tab active" data-sub="induk" onclick="setSub(this,'induk')">Distribution Center</button>
+      <button class="sub-tab" data-sub="cabang" onclick="setSub(this,'cabang')">Shipping Point</button>
+    </div>
+
+    <!-- SUB: INDUK -->
+    <div id="sub-induk" class="sub-content">
+      <!-- Stats strip -->
+      <div class="sub-stats">
+        <div class="ss-item"><div class="ss-dot" style="background:#16a34a"></div><span id="si-bj">—</span> Berjalan</div>
+        <div class="ss-sep"></div>
+        <div class="ss-item"><div class="ss-dot" style="background:#ca8a04"></div><span id="si-dm">—</span> Diam</div>
+        <div class="ss-sep"></div>
+        <div class="ss-item"><div class="ss-dot" style="background:#d97706"></div><span id="si-pk">—</span> Parkir</div>
+        <div class="ss-sep"></div>
+        <div class="ss-item"><div class="ss-dot" style="background:#94a3b8"></div><span id="si-of">—</span> Offline</div>
+      </div>
+      <!-- Filter pills -->
+      <div class="fp">
+        <div class="fpills">
+          <div class="pill active" onclick="setPill(this,'Semua')">Semua</div>
+          <div class="pill" onclick="setPill(this,'berjalan')">Berjalan</div>
+          <div class="pill" onclick="setPill(this,'diam')">Diam</div>
+          <div class="pill" onclick="setPill(this,'parkir')">Parkir</div>
+          <div class="pill" onclick="setPill(this,'offline')">Offline</div>
+        </div>
+      </div>
+      <div class="sl" id="statsLine"></div>
+      <div class="sort-bar">
+        <span>Urutkan:</span>
+        <select class="srt-sel" onchange="renderList()">
+          <option>Terbaru update</option>
+          <option>Nopol A–Z</option>
+          <option>Kecepatan tertinggi</option>
+        </select>
+        <div style="margin-left:auto;display:flex;gap:4px">
+          <div class="vc-act" title="Refresh" onclick="simMove()"><i class="fa-solid fa-rotate"></i></div>
+          <div class="vc-act" title="Filter lanjutan"><i class="fa-solid fa-sliders"></i></div>
+        </div>
+      </div>
+      <div class="vlist" id="vlist"></div>
+    </div>
+
+    <!-- SUB: CABANG -->
+    <div id="sub-cabang" class="sub-content" style="display:none">
+      <!-- Cabang summary header -->
+      <div class="cabang-header">
+        <div class="cabang-info">
+          <i class="fa-solid fa-code-branch" style="color:var(--p500);font-size:13px"></i>
+          <div>
+            <div style="font-size:12px;font-weight:600;color:var(--g900)">Depo Jakarta Selatan</div>
+            <div style="font-size:11px;color:var(--g500)">Aktif sejak 08:00 · 6 kendaraan</div>
+          </div>
+        </div>
+        <select class="srt-sel" onchange="renderCabang(this.value)" style="font-size:11px">
+          <option value="jaksel">Depo Jakarta Selatan</option>
+          <option value="bekasi">Depo Bekasi</option>
+          <option value="bogor">Depo Bogor</option>
+          <option value="tangerang">Depo Tangerang</option>
+          <option value="banten">DC Banten</option>
+          <option value="jakartadc">Depo Jakarta</option>
+        </select>
+      </div>
+      <!-- Stats strip cabang -->
+      <div class="sub-stats" id="cabang-stats-strip">
+        <div class="ss-item"><div class="ss-dot" style="background:#16a34a"></div><span id="cb-bj">4</span> Berjalan</div>
+        <div class="ss-sep"></div>
+        <div class="ss-item"><div class="ss-dot" style="background:#d97706"></div><span id="cb-pk">1</span> Parkir</div>
+        <div class="ss-sep"></div>
+        <div class="ss-item"><div class="ss-dot" style="background:#94a3b8"></div><span id="cb-of">1</span> Offline</div>
+      </div>
+      <!-- Filter pills cabang -->
+      <div class="fp">
+        <div class="fpills">
+          <div class="pill active" onclick="setPillCabang(this,'Semua')">Semua</div>
+          <div class="pill" onclick="setPillCabang(this,'berjalan')">Berjalan</div>
+          <div class="pill" onclick="setPillCabang(this,'parkir')">Parkir</div>
+          <div class="pill" onclick="setPillCabang(this,'offline')">Offline</div>
+        </div>
+      </div>
+      <div class="vlist" id="vlist-cabang"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       TAB: PESANAN
+  ══════════════════════════════ -->
+  <div id="tab-pesanan" class="tab-content" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+    <!-- Sub-tabs: Active / Selesai / Semua -->
+    <div class="sub-tabs">
+      <button class="sub-tab active" data-sub="p-active" onclick="setSubPesanan(this,'p-active')">On Delivery</button>
+      <button class="sub-tab" data-sub="p-planned" onclick="setSubPesanan(this,'p-planned')">Planned</button>
+      <button class="sub-tab" data-sub="p-done" onclick="setSubPesanan(this,'p-done')">Selesai</button>
+    </div>
+    <!-- Search pesanan -->
+    <div style="padding:8px 12px;border-bottom:1px solid var(--g200);flex-shrink:0">
+      <div class="srch-wrap" style="position:relative">
+        <i class="fa-solid fa-magnifying-glass" style="position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--g400);font-size:12px"></i>
+        <input style="width:100%;border:1px solid var(--g200);border-radius:var(--r);padding:6px 10px 6px 28px;font-size:12px;outline:none;font-family:var(--font);color:var(--g700);background:var(--g50)" placeholder="Cari shipment, DO, driver..." oninput="filterPesanan(this.value)">
+      </div>
+    </div>
+    <div class="sl" id="pesanan-count-line">Menampilkan <b id="po-count">—</b> shipment</div>
+    <div class="vlist" id="pesanan-list"></div>
+  </div>
+
+  <!-- ══════════════════════════════
+       TAB: PERINGATAN
+  ══════════════════════════════ -->
+  <div id="tab-peringatan" class="tab-content" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+    <!-- Sub-tabs: Aktif / Riwayat -->
+    <div class="sub-tabs">
+      <button class="sub-tab active" data-sub="a-active" onclick="setSubAlert(this,'a-active')">Aktif <span class="tab-count urgent" style="font-size:9px">3</span></button>
+      <button class="sub-tab" data-sub="a-history" onclick="setSubAlert(this,'a-history')">Riwayat</button>
+    </div>
+    <!-- Filter severity -->
+    <div class="fp" style="border-bottom:1px solid var(--g200)">
+      <div class="fpills">
+        <div class="pill active" onclick="setAlertPill(this,'semua')">Semua</div>
+        <div class="pill" onclick="setAlertPill(this,'kritis')"><i class="fa-solid fa-circle-xmark" style="color:#ef4444;font-size:10px"></i> Kritis</div>
+        <div class="pill" onclick="setAlertPill(this,'peringatan')"><i class="fa-solid fa-triangle-exclamation" style="color:#f59e0b;font-size:10px"></i> Peringatan</div>
+        <div class="pill" onclick="setAlertPill(this,'info')"><i class="fa-solid fa-circle-info" style="color:var(--p500);font-size:10px"></i> Info</div>
+      </div>
+    </div>
+    <div class="vlist" id="alert-list"></div>
+  </div>
+</aside>
+
+<!-- Detail slide panel -->
+<div class="dp" id="dp">
+  <div class="dp-head">
+    <div id="dpIcon" class="vc-icon g"><i class="fa-solid fa-truck"></i></div>
+    <div>
+      <div id="dpPlate" style="font-size:15px;font-weight:700;color:var(--g900)"></div>
+      <div id="dpDrv" style="font-size:11px;color:var(--g500);margin-top:1px"></div>
+    </div>
+    <span id="dpBadge" class="sbadge" style="margin-left:8px"></span>
+    <div class="dp-close" onclick="closeDP()"><i class="fa-solid fa-xmark"></i></div>
+  </div>
+  <div class="dp-body" id="dpBody"></div>
+</div>
+
+<button class="help-btn"><i class="fa-regular fa-circle-question"></i> Butuh Bantuan?</button>
+
+<script>
+const VEH=[
+  {id:1,plate:'B 2407 PZP',status:'parkir',speed:0,time:'1 Menit',type:'MPV',driver:'—',lat:-6.208,lng:106.845,dist:'0.00 L',shipments:[{num:'SHP-2024-0112',status:'planned',dos:[{num:'DO-PM5501',dest:'Grosir Makmur, Bekasi',status:'pickup'},{num:'DO-PM5502',dest:'Toko Sejahtera, Depok',status:'pickup'}]}]},
+  {id:2,plate:'B 5645 TCF',status:'berjalan',speed:19,time:null,type:'Motorcycle',driver:'Tri Febrianto',lat:-6.195,lng:106.820,dist:null,shipments:[{num:'SHP-2024-0098',status:'ondel',dos:[{num:'DO-PM5488',dest:'Warung Pak Slamet, Tangerang',status:'delivered'},{num:'DO-PM5489',dest:'Minimarket Berkah, Tangerang',status:'otw'}]}]},
+  {id:3,plate:'B 5670 TCF',status:'offline',speed:0,time:'19 Jam+',type:'Motorcycle',driver:'Irsan Nur Hakim',lat:-6.230,lng:106.870,dist:null,shipments:[{num:'SHP-2024-0087',status:'planned',dos:[{num:'DO-PM5460',dest:'Toko Maju, Jakarta Timur',status:'pickup'}]}]},
+  {id:4,plate:'B 5706 TCG',status:'offline',speed:0,time:'33 Menit',type:'Motorcycle',driver:'—',lat:-6.180,lng:106.905,dist:null,shipments:[]},
+  {id:5,plate:'B 5884 TAS',status:'berjalan',speed:32,time:null,type:'Motorcycle',driver:'Rudi Hartono',lat:-6.255,lng:106.800,dist:null,shipments:[{num:'SHP-2024-0101',status:'ondel',dos:[{num:'DO-PM5491',dest:'Sembako Jaya, Depok',status:'otw'},{num:'DO-PM5492',dest:'Toko Berkah, Depok',status:'otw'},{num:'DO-PM5493',dest:'Warung Bu Ani, Depok',status:'otw'}]}]},
+  {id:6,plate:'B 9035 PXB',status:'berjalan',speed:28,time:null,type:'Motorcycle',driver:'Andi Kurniawan',lat:-6.170,lng:106.790,dist:null,shipments:[{num:'SHP-2024-0103',status:'ondel',dos:[{num:'DO-PM5510',dest:'Apotek Sehat, Tangerang',status:'delivered'},{num:'DO-PM5511',dest:'Indomaret Ciledug',status:'otw'}]}]},
+  {id:7,plate:'B 9156 PCS',status:'berjalan',speed:45,time:null,type:'Truck',driver:'Faisal Amran',lat:-6.190,lng:106.760,dist:null,shipments:[{num:'SHP-2024-0105',status:'ondel',dos:[{num:'DO-PM5520',dest:'Gudang Utama, Cengkareng',status:'otw'},{num:'DO-PM5521',dest:'DC Barat, Kalideres',status:'pickup'}]}]},
+  {id:8,plate:'B 9277 PCS',status:'berjalan',speed:38,time:null,type:'Truck',driver:'Alamsyah Satrio Aji',lat:-6.175,lng:106.835,dist:null,shipments:[{num:'SHP-2024-0106',status:'ondel',dos:[{num:'DO-PM5530',dest:'Pasar Senen, Jakarta Pusat',status:'otw'}]}]},
+  {id:9,plate:'B 9354 PCS',status:'berjalan',speed:62,time:null,type:'Truck',driver:'M. Fadhli Salam',lat:-6.165,lng:106.870,dist:null,shipments:[{num:'SHP-2024-0107',status:'ondel',dos:[{num:'DO-PM5535',dest:'Toko Agung, Kemayoran',status:'otw'},{num:'DO-PM5536',dest:'Pasar Baru DC',status:'pickup'},{num:'DO-PM5537',dest:'Grosir Nusantara, Tanjung Priok',status:'pickup'}]}]},
+  {id:10,plate:'B 9374 PCS',status:'diam',speed:0,time:'5 Menit',type:'Motorcycle',driver:'Riski Rahmat Harlan',lat:-6.320,lng:106.830,dist:'0.00 L',shipments:[{num:'SHP-2024-0088',status:'planned',dos:[{num:'DO-PM5461',dest:'Alfamart Cinere',status:'pickup'},{num:'DO-PM5462',dest:'Toko Mulia, Sawangan',status:'pickup'}]}]},
+  {id:11,plate:'B 9432 PCS',status:'berjalan',speed:41,time:null,type:'Truck',driver:'Farraz Nanang Fauzan',lat:-6.188,lng:106.856,dist:null,shipments:[{num:'SHP-2024-0108',status:'ondel',dos:[{num:'DO-PM5540',dest:'DC Timur, Klender',status:'delivered'},{num:'DO-PM5541',dest:'Pasar Jatinegara DC',status:'otw'}]}]},
+  {id:12,plate:'B 9437 PCS',status:'berjalan',speed:30,time:null,type:'Truck',driver:'Faisal Amran',lat:-6.178,lng:106.798,dist:null,shipments:[{num:'SHP-2024-0109',status:'ondel',dos:[{num:'DO-PM5545',dest:'Hub Barat, Daan Mogot',status:'otw'}]}]},
+  {id:13,plate:'B 9440 PCS',status:'parkir',speed:0,time:'12 Menit',type:'Truck',driver:'Alfian Sanjaya',lat:-6.395,lng:106.763,dist:'0.00 L',shipments:[{num:'SHP-2024-0090',status:'planned',dos:[{num:'DO-PM5470',dest:'Bogor DC Selatan',status:'pickup'},{num:'DO-PM5471',dest:'Toko Harapan, Bogor',status:'pickup'}]}]},
+  {id:14,plate:'B 9449 PCS',status:'berjalan',speed:55,time:null,type:'Truck',driver:'M. Iqbal Kurniawan',lat:-6.360,lng:106.815,dist:null,shipments:[{num:'SHP-2024-0110',status:'ondel',dos:[{num:'DO-PM5550',dest:'Pasar Parung, Bogor',status:'otw'},{num:'DO-PM5551',dest:'Indomaret Citayam',status:'otw'}]}]},
+  {id:15,plate:'B 9453 PCS',status:'berjalan',speed:22,time:null,type:'Truck',driver:'Abdullah Harmaen',lat:-6.272,lng:106.810,dist:null,shipments:[{num:'SHP-2024-0111',status:'ondel',dos:[{num:'DO-PM5555',dest:'Toko Mandiri, Kebayoran',status:'delivered'},{num:'DO-PM5556',dest:'Grosir Selatan, Cilandak',status:'otw'}]}]},
+  {id:16,plate:'B 9455 PCS',status:'parkir',speed:0,time:'8 Menit',type:'Truck',driver:'Deni Setiawan',lat:-6.468,lng:106.833,dist:'0.00 L',shipments:[{num:'SHP-2024-0091',status:'planned',dos:[{num:'DO-PM5475',dest:'Gudang Depok Timur',status:'pickup'}]}]},
+  {id:17,plate:'B 9457 PCS',status:'berjalan',speed:35,time:null,type:'Truck',driver:'Rizky Sugiarta',lat:-6.432,lng:106.850,dist:null,shipments:[{num:'SHP-2024-0113',status:'ondel',dos:[{num:'DO-PM5560',dest:'Pasar Cimanggis DC',status:'otw'},{num:'DO-PM5561',dest:'Alfamart Cilodong',status:'otw'}]}]},
+  {id:18,plate:'B 9560 PCS',status:'berjalan',speed:48,time:null,type:'Motorcycle',driver:'Tio Sugiatna',lat:-6.262,lng:106.785,dist:null,shipments:[{num:'SHP-2024-0114',status:'ondel',dos:[{num:'DO-PM5563',dest:'Warung Makan Padang, Kebayoran Lama',status:'delivered'}]}]},
+  {id:19,plate:'B 9382 PCS',status:'offline',speed:0,time:'2 Jam+',type:'Motorcycle',driver:'Aripin',lat:-6.200,lng:106.895,dist:null,shipments:[{num:'SHP-2024-0093',status:'planned',dos:[{num:'DO-PM5480',dest:'Toko Berkah Timur, Bekasi',status:'pickup'}]}]},
+  {id:20,plate:'D 4411 MHN',status:'berjalan',speed:70,time:null,type:'Truck',driver:'Citra Mulyono',lat:-6.215,lng:106.844,dist:null,shipments:[{num:'SHP-2024-0115',status:'ondel',dos:[{num:'DO-PM5570',dest:'Gudang Pusat, Cilincing',status:'otw'},{num:'DO-PM5571',dest:'DC Utara Tanjung Priok',status:'pickup'},{num:'DO-PM5572',dest:'Pelabuhan DC',status:'pickup'}]}]},
+];
+const TI={MPV:'fa-solid fa-car',Motorcycle:'fa-solid fa-motorcycle',Truck:'fa-solid fa-truck'};
+const IC={berjalan:'g',parkir:'y',offline:'gr',diam:'y'};
+const DSL={pickup:'Menunggu Pickup',delivered:'Terkirim',otw:'Dalam Perjalanan'};
+let AF='Semua',selId=null,mkrs={},cluster,map;
+
+function initMap(){
+  map=L.map('map',{zoomControl:false,attributionControl:true}).setView([-6.22,106.82],12);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',maxZoom:19}).addTo(map);
+  L.control.zoom({position:'bottomright'}).addTo(map);
+  cluster=L.markerClusterGroup({maxClusterRadius:60,iconCreateFunction:function(c){
+    const n=c.getChildCount();
+    const cl=n<10?'marker-cluster-small':n<50?'marker-cluster-medium':'marker-cluster-large';
+    return L.divIcon({html:'<div><span>'+n+'</span></div>',className:'marker-cluster '+cl,iconSize:[40,40]});
+  },spiderfyOnMaxZoom:true,showCoverageOnHover:false,zoomToBoundsOnClick:true});
+  VEH.forEach(v=>addMkr(v));
+  map.addLayer(cluster);
+  renderStats();renderList();renderStatsBar();
+  renderPesanan();renderAlerts();
+  // init pesanan count badge
+  const pc=document.getElementById('cnt-pesanan');if(pc)pc.textContent=ORDERS.length+ORDERS_DONE.length;
+  const ac=document.getElementById('cnt-peringatan');if(ac){const u=ALERTS.filter(a=>a.unread).length;ac.textContent=u;}
+}
+
+function mkIcon(v){
+  const C={berjalan:{bg:'#16a34a',ring:'#dcfce7',arrow:'#14532d'},parkir:{bg:'#d97706',ring:'#fef3c7',arrow:'#78350f'},offline:{bg:'#64748b',ring:'#f1f5f9',arrow:'#1e293b'},diam:{bg:'#ca8a04',ring:'#fef9c3',arrow:'#713f12'}};
+  const c=C[v.status]||C.offline;
+  const mv=v.status==='berjalan';
+  const inner=mv?`<polygon points="12,3 20,20 12,15 4,20" fill="${c.arrow}" opacity=".9"/>`:`<rect x="7" y="7" width="10" height="10" rx="2" fill="${c.arrow}" opacity=".8"/>`;
+  const html=`<div style="position:relative">
+    <div style="width:36px;height:36px;border-radius:50%;background:${c.ring};border:3px solid ${c.bg};display:flex;align-items:center;justify-content:center;box-shadow:0 3px 10px rgba(0,0,0,.22);${mv?'animation:mPulse 2s ease-in-out infinite':''}">
+      <svg width="24" height="24" viewBox="0 0 24 24">${inner}</svg>
+    </div>
+    <div style="position:absolute;top:-2px;right:-2px;width:10px;height:10px;border-radius:50%;background:${c.bg};border:2px solid #fff"></div>
+    ${mv?`<div style="position:absolute;bottom:-3px;left:50%;transform:translateX(-50%);width:10px;height:10px;border-radius:50%;background:${c.bg};opacity:.25;animation:mRipple 2s ease-out infinite"></div>`:''}
+  </div>`;
+  return L.divIcon({html,className:'',iconSize:[36,36],iconAnchor:[18,18],popupAnchor:[0,-22]});
+}
+
+function buildPopup(v){
+  const sH=v.shipments.length===0?`<p style="font-size:12px;color:var(--g400);font-style:italic;padding:4px 0">Tidak ada shipment aktif</p>`:v.shipments.map(s=>`
+    <div class="pc-sh-item">
+      <div class="pc-sh-num"><i class="fa-solid fa-boxes-stacked" style="font-size:10px;margin-right:4px"></i>${s.num}
+        <span style="float:right;font-size:10px;font-weight:600;padding:1px 6px;border-radius:3px;background:${s.status==='ondel'?'#fef3c7':'var(--p100)'};color:${s.status==='ondel'?'#92400e':'var(--p800)'}">${s.status==='ondel'?'On Delivery':'Planned'}</span>
+      </div>
+      <div>${s.dos.map(d=>`<span class="pc-do-tag">${d.num}</span>`).join('')}</div>
+    </div>`).join('');
+  const spd=v.speed>0?`<span style="color:#16a34a;font-weight:600">${v.speed} km/h</span>`:`<span style="color:var(--g500)">0 km/h · ${v.time}</span>`;
+  return `<div>
+    <div class="pc-head">
+      <div style="width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;background:${v.status==='berjalan'?'#dcfce7':v.status==='offline'?'var(--g100)':'#fef3c7'};color:${v.status==='berjalan'?'#15803d':v.status==='offline'?'var(--g500)':'#92400e'}">
+        <i class="${TI[v.type]||'fa-solid fa-truck'}"></i>
+      </div>
+      <div><div class="pc-plate">${v.plate}</div><div class="pc-type">${v.type}</div></div>
+      <span class="pc-sbadge ${v.status}">${cap(v.status)}</span>
+    </div>
+    <div class="pc-body">
+      <div class="pc-row"><i class="fa-regular fa-user"></i><span class="pc-lbl">Pengemudi</span><span class="pc-val">${v.driver}</span></div>
+      <div class="pc-row"><i class="fa-solid fa-gauge-high"></i><span class="pc-lbl">Kecepatan</span><span class="pc-val">${spd}</span></div>
+      <div class="pc-row"><i class="fa-regular fa-clock"></i><span class="pc-lbl">Update</span><span class="pc-val">${v.time||'Baru saja'}</span></div>
+      <hr class="pc-div">
+      <div class="pc-sh-head">SHIPMENT & DELIVERY ORDER</div>
+      ${sH}
+    </div>
+    <div class="pc-foot">
+      <button class="pc-btn s" onclick="focusV(${v.id})"><i class="fa-solid fa-crosshairs"></i> Fokus</button>
+      <button class="pc-btn p" onclick="openDP(${v.id})"><i class="fa-solid fa-circle-info"></i> Detail</button>
+    </div>
+  </div>`;
+}
+
+function addMkr(v){
+  const m=L.marker([v.lat,v.lng],{icon:mkIcon(v)});
+  m.bindTooltip(`<b>${v.plate}</b> · ${v.driver!=='—'?v.driver:'Tanpa pengemudi'}`,{direction:'top',offset:[0,-20]});
+  m.bindPopup(buildPopup(v),{maxWidth:285,minWidth:260});
+  m.on('click',()=>selV(v.id));
+  mkrs[v.id]=m;cluster.addLayer(m);
+}
+
+function selV(id){
+  selId=id;
+  document.querySelectorAll('.vcard').forEach(c=>c.classList.toggle('selected',parseInt(c.dataset.id)===id));
+  const card=document.querySelector(`.vcard[data-id="${id}"]`);
+  if(card)card.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function focusV(id){
+  const v=VEH.find(x=>x.id===id);if(!v)return;
+  cluster.zoomToShowLayer(mkrs[id],()=>mkrs[id].openPopup());
+  map.flyTo([v.lat,v.lng],15,{animate:true,duration:0.9});
+  selV(id);
+}
+
+function openDP(id){
+  const v=VEH.find(x=>x.id===id);if(!v)return;
+  selV(id);
+  document.getElementById('dpPlate').textContent=v.plate;
+  document.getElementById('dpDrv').textContent=v.driver!=='—'?v.driver:'Tanpa pengemudi';
+  const b=document.getElementById('dpBadge');b.textContent=cap(v.status);b.className='sbadge '+v.status;
+  const ic=document.getElementById('dpIcon');ic.className='vc-icon '+IC[v.status];ic.innerHTML=`<i class="${TI[v.type]||'fa-solid fa-truck'}"></i>`;
+  const sH=v.shipments.length===0?`<p style="color:var(--g400);font-size:12px;font-style:italic">Tidak ada shipment aktif</p>`:v.shipments.map(s=>`
+    <div class="dp-sh-card">
+      <div class="dp-sh-head"><div class="dp-sh-num"><i class="fa-solid fa-boxes-stacked" style="font-size:11px"></i> ${s.num}</div><span class="dp-sh-badge ${s.status}">${s.status==='ondel'?'On Delivery':'Planned'}</span></div>
+      <div class="dp-do-list">${s.dos.map(d=>`<div class="dp-do-item"><div class="dp-do-num">${d.num}</div><div class="dp-do-dest">${d.dest}</div><span class="dp-do-st ${d.status}">${DSL[d.status]||d.status}</span></div>`).join('')}</div>
+    </div>`).join('');
+  document.getElementById('dpBody').innerHTML=`
+    <div><div class="dp-stitle">Informasi Kendaraan</div>
+      <div class="dp-row"><span class="dp-k">Nopol</span><span class="dp-v ac">${v.plate}</span></div>
+      <div class="dp-row"><span class="dp-k">Tipe</span><span class="dp-v">${v.type}</span></div>
+      <div class="dp-row"><span class="dp-k">Pengemudi</span><span class="dp-v">${v.driver}</span></div>
+      <div class="dp-row"><span class="dp-k">Status</span><span class="dp-v">${cap(v.status)}</span></div>
+      <div class="dp-row"><span class="dp-k">Kecepatan</span><span class="dp-v">${v.speed>0?v.speed+' km/h':'0 km/h'}</span></div>
+      <div class="dp-row"><span class="dp-k">Update</span><span class="dp-v">${v.time||'Baru saja'}</span></div>
+      <div class="dp-row"><span class="dp-k">Koordinat</span><span class="dp-v" style="font-size:11px">${v.lat.toFixed(4)}, ${v.lng.toFixed(4)}</span></div>
+    </div>
+    <div><div class="dp-stitle">Shipment & Delivery Order</div>${sH}</div>`;
+  document.getElementById('dp').classList.add('open');
+}
+
+function closeDP(){document.getElementById('dp').classList.remove('open')}
+
+function renderList(){
+  const fil=VEH.filter(v=>AF==='Semua'||v.status===AF);
+  document.getElementById('vlist').innerHTML=fil.map(v=>`
+    <div class="vcard${v.id===selId?' selected':''}" data-id="${v.id}" onclick="cardClick(${v.id})">
+      <div class="vc-top">
+        <div class="vc-icon ${IC[v.status]}"><i class="${TI[v.type]||'fa-solid fa-truck'}"></i></div>
+        <span class="vc-plate">${v.plate}</span>
+        <span class="sbadge ${v.status}">${cap(v.status)}</span>
+        <div class="vc-acts">
+          <div class="vc-act" title="Fokus di peta" onclick="event.stopPropagation();focusV(${v.id})"><i class="fa-solid fa-crosshairs"></i></div>
+          <div class="vc-act" title="Detail" onclick="event.stopPropagation();openDP(${v.id})"><i class="fa-solid fa-circle-info"></i></div>
+        </div>
+      </div>
+      ${v.shipments.length>0?`<div class="vc-ship"><div class="vc-ship-hd">SHIPMENT & DO</div>${v.shipments.slice(0,1).map(s=>`
+        <div class="vc-ship-item">
+          <div class="vc-ship-num"><i class="fa-solid fa-boxes-stacked"></i>${s.num}</div>
+          <div class="vc-do-wrap">${s.dos.map(d=>`<span class="vc-do${d.status==='delivered'?' done':''}">${d.num}</span>`).join('')}</div>
+        </div>`).join('')}${v.shipments.length>1?`<div style="font-size:10px;color:var(--g400);padding:2px 0">+${v.shipments.length-1} shipment lainnya</div>`:''}</div>`:''}
+      <div class="vc-meta">
+        ${v.speed>0?`<span><i class="fa-solid fa-gauge-high"></i>${v.speed} km/h</span>`:`<span><i class="fa-regular fa-clock"></i>${v.time}</span>`}
+        <span><i class="${TI[v.type]||'fa-solid fa-car'}"></i>${v.type}</span>
+        ${v.dist?`<span><i class="fa-solid fa-droplet"></i>${v.dist}</span>`:''}
+        <div class="vc-drv"><i class="fa-regular fa-circle-user" style="${v.driver==='—'?'opacity:.3':''}"></i>${v.driver!=='—'?v.driver:''}</div>
+      </div>
+    </div>`).join('');
+  renderStats();
+}
+
+function cardClick(id){
+  selV(id);
+  const v=VEH.find(x=>x.id===id);if(!v)return;
+  cluster.zoomToShowLayer(mkrs[id],()=>mkrs[id].openPopup());
+  map.flyTo([v.lat,v.lng],15,{animate:true,duration:.8});
+}
+
+function renderStats(){
+  const tot=VEH.length,bj=VEH.filter(v=>v.status==='berjalan').length,dm=VEH.filter(v=>v.status==='diam').length,pk=VEH.filter(v=>v.status==='parkir').length,of=VEH.filter(v=>v.status==='offline').length;
+  const show=AF==='Semua'?tot:VEH.filter(v=>v.status===AF).length;
+  const sl=document.getElementById('statsLine');
+  if(sl)sl.innerHTML=`Menampilkan <b>${show}</b> dari <b>${tot}</b> kendaraan. <b>${bj}</b> Berjalan · <b>${dm}</b> Diam · <b>${pk}</b> Parkir · <b>${of}</b> Offline.`;
+  // update sub-stats strip (induk)
+  ['bj','dm','pk','of'].forEach((k,i)=>{const el=document.getElementById('si-'+k);if(el)el.textContent=[bj,dm,pk,of][i];});
+}
+
+function renderStatsBar(){
+  const bj=VEH.filter(v=>v.status==='berjalan').length,dm=VEH.filter(v=>v.status==='diam').length,pk=VEH.filter(v=>v.status==='parkir').length,of=VEH.filter(v=>v.status==='offline').length;
+  document.getElementById('statsBar').innerHTML=`
+    <div class="s-chip" onclick="qFilter('berjalan')"><div class="d" style="background:#16a34a"></div>${bj} Berjalan</div>
+    <div class="s-chip" onclick="qFilter('diam')"><div class="d" style="background:#ca8a04"></div>${dm} Diam</div>
+    <div class="s-chip" onclick="qFilter('parkir')"><div class="d" style="background:#d97706"></div>${pk} Parkir</div>
+    <div class="s-chip" onclick="qFilter('offline')"><div class="d" style="background:#94a3b8"></div>${of} Offline</div>`;
+}
+
+function setTab(el,tab){
+  document.querySelectorAll('.rp-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.tab-content').forEach(c=>c.style.display='none');
+  const tc=document.getElementById('tab-'+tab);
+  if(tc){tc.style.display='flex';}
+  if(tab==='pesanan') renderPesanan();
+  if(tab==='peringatan') renderAlerts();
+}
+function setSub(el,sub){
+  document.querySelectorAll('#tab-kendaraan .sub-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('#tab-kendaraan .sub-content').forEach(c=>c.style.display='none');
+  const sc=document.getElementById('sub-'+sub);
+  if(sc){sc.style.display='flex';}
+  if(sub==='cabang') renderCabang('jaksel');
+  if(sub==='induk') renderList();
+}
+function setSubPesanan(el,sub){
+  document.querySelectorAll('#tab-pesanan .sub-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderPesanan(sub);
+}
+function setSubAlert(el,sub){
+  document.querySelectorAll('#tab-peringatan .sub-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderAlerts(sub);
+}
+function setPill(el,f){
+  document.querySelectorAll('#sub-induk .pill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');AF=f;renderList();
+}
+function setPillCabang(el,f){
+  document.querySelectorAll('#sub-cabang .pill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  renderCabang(document.querySelector('#sub-cabang select').value, f);
+}
+function setAlertPill(el,f){
+  document.querySelectorAll('#tab-peringatan .pill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');renderAlerts(null,f);
+}
+function qFilter(f){AF=f;document.querySelectorAll('#sub-induk .pill').forEach(p=>p.classList.toggle('active',p.textContent.trim().toLowerCase()===f));renderList()}
+
+function doSearch(q){
+  const res=document.getElementById('srchRes');
+  if(!q||q.length<2){res.classList.remove('show');return}
+  const lq=q.toLowerCase();
+  const m=VEH.filter(v=>v.plate.toLowerCase().includes(lq)||v.driver.toLowerCase().includes(lq)||v.shipments.some(s=>s.num.toLowerCase().includes(lq)||s.dos.some(d=>d.num.toLowerCase().includes(lq)))).slice(0,6);
+  if(!m.length){res.classList.remove('show');return}
+  res.innerHTML=m.map(v=>{
+    const s=v.shipments[0];
+    const dm=s&&s.dos.find(d=>d.num.toLowerCase().includes(lq));
+    const sub=dm?`${s.num} · ${dm.num}`:s?s.num:v.type;
+    return `<div class="sr-item" onclick="focusV(${v.id});hideRes()">
+      <div style="width:28px;height:28px;border-radius:6px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;background:${v.status==='berjalan'?'#dcfce7':v.status==='offline'?'#f1f5f9':'#fef3c7'};color:${v.status==='berjalan'?'#15803d':v.status==='offline'?'#64748b':'#92400e'}">
+        <i class="${TI[v.type]||'fa-solid fa-truck'}"></i>
+      </div>
+      <div><div class="sr-plate">${v.plate} <span class="sbadge ${v.status}" style="font-size:9px">${v.status}</span></div><div class="sr-sub">${sub}</div></div>
+    </div>`;
+  }).join('');
+  res.classList.add('show');
+}
+function showRes(){if(document.getElementById('srch').value.length>=2)document.getElementById('srchRes').classList.add('show')}
+function hideRes(){document.getElementById('srchRes').classList.remove('show')}
+
+// ─── PESANAN DATA ───
+const ORDERS=VEH.flatMap(v=>v.shipments.map(s=>({
+  ...s, driver:v.driver, plate:v.plate, vtype:v.type, veh_id:v.id
+})));
+const ORDERS_DONE=[
+  {num:'SHP-2024-0080',status:'selesai',driver:'Budi Santoso',plate:'B 3321 PCS',vtype:'Truck',veh_id:null,dos:[{num:'DO-PM5400',dest:'Pasar Induk Kramat Jati',status:'delivered'},{num:'DO-PM5401',dest:'Grosir Cipinang, Jakarta Timur',status:'delivered'}]},
+  {num:'SHP-2024-0081',status:'selesai',driver:'Hendra W.',plate:'D 1122 MHN',vtype:'Truck',veh_id:null,dos:[{num:'DO-PM5410',dest:'DC Pusat Tanah Abang',status:'delivered'},{num:'DO-PM5411',dest:'Toko Makmur, Gambir',status:'delivered'},{num:'DO-PM5412',dest:'Pasar Baru Lama',status:'delivered'}]},
+  {num:'SHP-2024-0082',status:'selesai',driver:'Tri Febrianto',plate:'B 5645 TCF',vtype:'Motorcycle',veh_id:2,dos:[{num:'DO-PM5420',dest:'Warung Makan Bu Sari, Kebayoran',status:'delivered'}]},
+];
+let pesananFilter='p-active', pesananSearch='';
+
+function renderPesanan(sub,search){
+  if(sub) pesananFilter=sub;
+  if(search!==undefined) pesananSearch=search;
+  let list;
+  if(pesananFilter==='p-active') list=ORDERS.filter(o=>o.status==='ondel');
+  else if(pesananFilter==='p-planned') list=ORDERS.filter(o=>o.status==='planned');
+  else list=ORDERS_DONE;
+  if(pesananSearch){const lq=pesananSearch.toLowerCase();list=list.filter(o=>o.num.toLowerCase().includes(lq)||o.driver.toLowerCase().includes(lq)||o.plate.toLowerCase().includes(lq)||o.dos.some(d=>d.num.toLowerCase().includes(lq)));}
+  const el=document.getElementById('pesanan-list');
+  const cnt=document.getElementById('po-count');if(cnt)cnt.textContent=list.length;
+  if(!list.length){el.innerHTML=`<div class="tab-empty"><i class="fa-solid fa-box-open"></i><div class="tab-empty-title">Tidak ada data</div><div class="tab-empty-sub">Tidak ada shipment ${pesananFilter==='p-active'?'on delivery':pesananFilter==='p-planned'?'planned':'selesai'} saat ini.</div></div>`;return;}
+  el.innerHTML=list.map(o=>{
+    const done=o.dos.filter(d=>d.status==='delivered').length;
+    const pct=Math.round(done/o.dos.length*100);
+    const fillCls=pct===100?'done':'';
+    return `<div class="order-card" onclick="focusByShipment('${o.num}')">
+      <div class="oc-head">
+        <div class="oc-num"><i class="fa-solid fa-boxes-stacked" style="font-size:11px;margin-right:4px;color:var(--p400)"></i>${o.num}</div>
+        <span class="oc-badge ${o.status}">${o.status==='ondel'?'On Delivery':o.status==='planned'?'Planned':'Selesai'}</span>
+      </div>
+      <div class="oc-driver">
+        <i class="fa-regular fa-circle-user"></i><b>${o.driver}</b>
+        <span class="oc-plate-tag">${o.plate}</span>
+        <span style="margin-left:2px;color:var(--g400)">·</span>
+        <i class="fa-solid fa-truck" style="font-size:10px;color:var(--g400)"></i>
+        <span style="font-size:10px;color:var(--g500)">${o.vtype}</span>
+      </div>
+      <div class="oc-do-row">
+        ${o.dos.map(d=>`<div class="oc-do-item">
+          <div class="oc-do-num">${d.num}</div>
+          <div class="oc-do-dest" title="${d.dest}">${d.dest}</div>
+          <span class="oc-do-st ${d.status}">${d.status==='pickup'?'Pickup':d.status==='delivered'?'Terkirim':'Dalam Jalan'}</span>
+        </div>`).join('')}
+      </div>
+      ${o.status!=='planned'?`<div class="oc-progress">
+        <div class="oc-progress-top"><span>${done} dari ${o.dos.length} DO selesai</span><span style="font-weight:600;color:var(--p700)">${pct}%</span></div>
+        <div class="oc-progress-bar"><div class="oc-progress-fill ${fillCls}" style="width:${pct}%"></div></div>
+      </div>`:''}
+    </div>`;
+  }).join('');
+}
+function filterPesanan(v){renderPesanan(null,v)}
+function focusByShipment(num){
+  const v=VEH.find(x=>x.shipments.some(s=>s.num===num));
+  if(v)cardClick(v.id);
+}
+
+// ─── PERINGATAN DATA ───
+const ALERTS=[
+  {id:1,sev:'kritis',type:'kritis',title:'Overspeed Terdeteksi',plate:'B 9354 PCS',sub:'Kecepatan 62 km/h melebihi batas 50 km/h di Jl. Kemayoran. Segera hubungi pengemudi.',time:'2 menit lalu',loc:'Jl. Kemayoran, Jakarta Pusat',unread:true,driver:'M. Fadhli Salam'},
+  {id:2,sev:'peringatan',type:'peringatan',title:'Harsh Braking',plate:'B 9449 PCS',sub:'Pengereman mendadak terdeteksi pada koordinat -6.360, 106.815. Indikasi kondisi jalan atau kelalaian pengemudi.',time:'5 menit lalu',loc:'Jl. Parung, Bogor',unread:true,driver:'M. Iqbal Kurniawan'},
+  {id:3,sev:'kritis',type:'kritis',title:'Masuk Geolokasi Terlarang',plate:'B 9433 PCS',sub:'Kendaraan memasuki zona geolokasi PRAMA yang tidak diizinkan.',time:'8 menit lalu',loc:'Kawasan PRAMA, Jakarta',unread:true,driver:'Ahmad Rifai'},
+  {id:4,sev:'info',type:'geofence',title:'Keluar Zona Pengiriman',plate:'D 4411 MHN',sub:'Kendaraan keluar dari area pengiriman yang telah ditentukan untuk rute SHP-2024-0115.',time:'14 menit lalu',loc:'Jl. Cilincing, Jakarta Utara',unread:false,driver:'Citra Mulyono'},
+  {id:5,sev:'peringatan',type:'peringatan',title:'Mesin Menyala Lama',plate:'B 9374 PCS',sub:'Kendaraan dalam kondisi diam selama >5 menit dengan mesin menyala. Potensi pemborosan BBM.',time:'22 menit lalu',loc:'Jl. Sawangan, Depok',unread:false,driver:'Riski Rahmat Harlan'},
+  {id:6,sev:'info',type:'info',title:'Kendaraan Offline',plate:'B 5670 TCF',sub:'Sinyal GPS terputus selama >19 jam. Periksa perangkat GPS atau koneksi jaringan kendaraan.',time:'19 jam lalu',loc:'Terakhir: Jakarta Timur',unread:false,driver:'Irsan Nur Hakim'},
+  {id:7,sev:'info',type:'info',title:'Kendaraan Offline',plate:'B 5706 TCG',sub:'Sinyal GPS terputus. Tidak ada update posisi dalam 33 menit terakhir.',time:'33 menit lalu',loc:'Terakhir: Jakarta Timur',unread:false,driver:'—'},
+];
+const ALERTS_HIST=[
+  {id:101,sev:'kritis',type:'kritis',title:'Overspeed',plate:'B 9277 PCS',sub:'Kecepatan 80 km/h di Jl. Gatot Subroto. Sudah diselesaikan.',time:'2 jam lalu',loc:'Jl. Gatot Subroto, Jakarta',unread:false,driver:'Alamsyah Satrio Aji'},
+  {id:102,sev:'peringatan',type:'peringatan',title:'Harsh Cornering',plate:'B 5884 TAS',sub:'Tikungan tajam terdeteksi. Sudah diselesaikan.',time:'3 jam lalu',loc:'Jl. Sawangan, Depok',unread:false,driver:'Rudi Hartono'},
+  {id:103,sev:'info',type:'geofence',title:'Masuk Zona Pengiriman',plate:'B 9432 PCS',sub:'Kendaraan tiba di area tujuan pengiriman.',time:'4 jam lalu',loc:'DC Timur, Klender',unread:false,driver:'Farraz Nanang Fauzan'},
+];
+let alertSubFilter='a-active', alertSevFilter='semua';
+const sevIcon={kritis:'fa-solid fa-circle-xmark',peringatan:'fa-solid fa-triangle-exclamation',info:'fa-solid fa-circle-info',geofence:'fa-solid fa-location-dot'};
+
+function renderAlerts(sub,sev){
+  if(sub) alertSubFilter=sub;
+  if(sev) alertSevFilter=sev;
+  let list=alertSubFilter==='a-active'?ALERTS:ALERTS_HIST;
+  if(alertSevFilter!=='semua') list=list.filter(a=>a.sev===alertSevFilter);
+  const el=document.getElementById('alert-list');
+  if(!list.length){el.innerHTML=`<div class="tab-empty"><i class="fa-solid fa-bell-slash"></i><div class="tab-empty-title">Tidak ada peringatan</div><div class="tab-empty-sub">Semua kondisi kendaraan normal.</div></div>`;return;}
+  el.innerHTML=list.map(a=>`
+    <div class="alert-card ${a.unread?'unread '+a.sev:''}">
+      <div class="al-icon ${a.type}"><i class="${sevIcon[a.type]||sevIcon.info}"></i></div>
+      <div class="al-body">
+        <div class="al-title">
+          ${a.unread?'<span class="al-udot"></span>':''}
+          <span class="al-plate">${a.plate}</span>
+          ${a.title}
+        </div>
+        <div class="al-sub">${a.sub}</div>
+        <div class="al-meta">
+          <span class="al-sev ${a.sev}">${a.sev.toUpperCase()}</span>
+          <span><i class="fa-regular fa-clock"></i> ${a.time}</span>
+          <span><i class="fa-solid fa-location-dot"></i> ${a.loc}</span>
+        </div>
+      </div>
+      <div class="al-act" title="Tandai selesai" onclick="event.stopPropagation();markAlertDone(${a.id})">
+        <i class="fa-solid fa-check"></i>
+      </div>
+    </div>`).join('');
+}
+function markAlertDone(id){
+  const idx=ALERTS.findIndex(a=>a.id===id);
+  if(idx>-1){ALERTS[idx].unread=false;renderAlerts();}
+  const cnt=ALERTS.filter(a=>a.unread).length;
+  const badge=document.getElementById('cnt-peringatan');
+  if(badge){badge.textContent=cnt;badge.className='tab-count'+(cnt>0?' urgent':'');}
+}
+
+// ─── CABANG DATA ───
+const CABANG_DATA={
+  jaksel:{name:'Depo Jakarta Selatan',vehs:[2,5,6,10,15,18]},
+  bekasi:{name:'Depo Bekasi',vehs:[1,3,4,19]},
+  bogor:{name:'Depo Bogor',vehs:[13,14,16,17]},
+  tangerang:{name:'Depo Tangerang',vehs:[7,8,12]},
+  banten:{name:'DC Banten',vehs:[6,7,8,12]},
+  jakartadc:{name:'Depo Jakarta',vehs:[9,11,15,20]},
+};
+let cabangSevFilter='Semua';
+
+function renderCabang(key, fil){
+  if(fil) cabangSevFilter=fil;
+  const cab=CABANG_DATA[key]||CABANG_DATA.jaksel;
+  const vehs=VEH.filter(v=>cab.vehs.includes(v.id));
+  const filtered=cabangSevFilter==='Semua'?vehs:vehs.filter(v=>v.status===cabangSevFilter);
+  // Update header
+  document.querySelector('.cabang-info div div:first-child').textContent=cab.name;
+  document.querySelector('.cabang-info div div:last-child').textContent=`${vehs.length} kendaraan terdaftar`;
+  // Update stats
+  document.getElementById('cb-bj').textContent=vehs.filter(v=>v.status==='berjalan').length;
+  document.getElementById('cb-pk').textContent=vehs.filter(v=>v.status==='parkir').length;
+  document.getElementById('cb-of').textContent=vehs.filter(v=>v.status==='offline').length;
+  // Render list
+  const el=document.getElementById('vlist-cabang');
+  if(!filtered.length){el.innerHTML=`<div class="tab-empty"><i class="fa-solid fa-truck"></i><div class="tab-empty-title">Tidak ada kendaraan</div><div class="tab-empty-sub">Tidak ada kendaraan dengan filter ini di cabang ini.</div></div>`;return;}
+  el.innerHTML=filtered.map(v=>`
+    <div class="vcard${v.id===selId?' selected':''}" data-id="${v.id}" onclick="cardClick(${v.id})">
+      <div class="vc-top">
+        <div class="vc-icon ${IC[v.status]}"><i class="${TI[v.type]||'fa-solid fa-truck'}"></i></div>
+        <span class="vc-plate">${v.plate}</span>
+        <span class="sbadge ${v.status}">${cap(v.status)}</span>
+        <div class="vc-acts">
+          <div class="vc-act" title="Fokus" onclick="event.stopPropagation();focusV(${v.id})"><i class="fa-solid fa-crosshairs"></i></div>
+          <div class="vc-act" title="Detail" onclick="event.stopPropagation();openDP(${v.id})"><i class="fa-solid fa-circle-info"></i></div>
+        </div>
+      </div>
+      <div class="vc-meta">
+        ${v.speed>0?`<span><i class="fa-solid fa-gauge-high"></i>${v.speed} km/h</span>`:`<span><i class="fa-regular fa-clock"></i>${v.time}</span>`}
+        <span><i class="${TI[v.type]||'fa-solid fa-car'}"></i>${v.type}</span>
+        <div class="vc-drv"><i class="fa-regular fa-circle-user" style="${v.driver==='—'?'opacity:.3':''}"></i>${v.driver!=='—'?v.driver:''}</div>
+      </div>
+    </div>`).join('');
+}
+
+function simMove(){
+  VEH.forEach(v=>{if(v.status==='berjalan'){v.lat+=(Math.random()-.5)*.002;v.lng+=(Math.random()-.5)*.002;mkrs[v.id].setLatLng([v.lat,v.lng]);mkrs[v.id].setIcon(mkIcon(v));mkrs[v.id].setPopupContent(buildPopup(v));}});
+}
+setInterval(simMove,8000);
+
+function cap(s){return s.charAt(0).toUpperCase()+s.slice(1)}
+document.addEventListener('DOMContentLoaded',initMap);
+</script>
+</body>
+</html>

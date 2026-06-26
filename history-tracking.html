@@ -1,0 +1,1443 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>History Tracking — PT Parama Global Inspira</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --p50:#eef2ff;--p100:#e0e7ff;--p200:#c7d2fe;--p300:#a5b4fc;
+  --p400:#818cf8;--p500:#6366f1;--p600:#4f46e5;--p700:#4338ca;--p800:#3730a3;--p900:#312e81;
+  --sb:#1e1b4b;--sb2:#16134a;
+  --green:#16a34a;--red:#dc2626;--orange:#ea580c;--amber:#d97706;
+  --g50:#f8fafc;--g100:#f1f5f9;--g150:#eef0f4;--g200:#e2e8f0;
+  --g300:#cbd5e1;--g400:#94a3b8;--g500:#64748b;--g700:#334155;--g900:#0f172a;
+  --sw:56px;--th:60px;--r:8px;--r2:12px;
+  --sh:0 1px 3px rgba(0,0,0,.08);--shl:0 8px 24px rgba(0,0,0,.13);
+  --font:'Inter',sans-serif;
+}
+html,body{height:100%;font-family:var(--font);font-size:13px;color:var(--g900);overflow:hidden;background:var(--g100)}
+
+/* ── TOPBAR ── */
+.topbar{position:fixed;top:0;left:0;right:0;height:var(--th);background:#fff;border-bottom:1px solid var(--g200);display:flex;align-items:center;z-index:1000;padding:0 20px 0 0;box-shadow:0 1px 0 var(--g200)}
+.tb-logo{width:var(--sw);height:var(--th);background:var(--sb2);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;transition:width .25s cubic-bezier(.4,0,.2,1)}
+.sidebar:hover~.topbar .tb-logo{width:220px}
+.tb-logo-inner{display:flex;align-items:center;gap:10px;padding:0 16px;white-space:nowrap}
+.tb-logo-icon{width:32px;height:32px;border-radius:8px;background:var(--p600);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.tb-logo-icon i{color:#fff;font-size:15px}
+.tb-logo-text{font-size:14px;font-weight:700;color:#fff;opacity:0;transition:opacity .15s .1s;letter-spacing:-.3px}
+.sidebar:hover~.topbar .tb-logo-text{opacity:1}
+.tb-dc{display:flex;flex-direction:column;margin-left:16px}
+.tb-dc-label{font-size:10px;color:var(--g400);font-weight:500;letter-spacing:.3px}
+.tb-dc-val{display:flex;align-items:center;gap:5px;font-size:14px;font-weight:600;color:var(--g900)}
+.tb-dc-val i{color:var(--p600);font-size:12px}
+.tb-spacer{flex:1}
+.tb-actions{display:flex;align-items:center;gap:6px}
+.tb-icon{width:34px;height:34px;border-radius:var(--r);border:1px solid var(--g200);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--g500);font-size:14px;position:relative;background:#fff;transition:all .15s}
+.tb-icon:hover{background:var(--p50);border-color:var(--p200);color:var(--p600)}
+.tb-icon .bdg{position:absolute;top:4px;right:4px;width:8px;height:8px;background:var(--red);border-radius:50%;border:1.5px solid #fff}
+.tb-user{display:flex;align-items:center;gap:10px;padding:6px 12px;border:1px solid var(--g200);border-radius:var(--r2);cursor:pointer;background:#fff;margin-left:4px;transition:all .15s}
+.tb-user:hover{background:var(--p50);border-color:var(--p200)}
+.tb-avatar{width:28px;height:28px;border-radius:50%;background:var(--p100);display:flex;align-items:center;justify-content:center;color:var(--p700);font-size:11px;font-weight:700;position:relative;flex-shrink:0}
+.tb-avatar .online{position:absolute;bottom:0;right:0;width:9px;height:9px;border-radius:50%;background:#10b981;border:2px solid #fff}
+.tb-user-info{display:flex;flex-direction:column}
+.tb-name{font-size:13px;font-weight:600;color:var(--g900)}
+.tb-role{font-size:11px;color:var(--g500)}
+
+/* ── SIDEBAR ── */
+.sidebar{position:fixed;top:var(--th);left:0;bottom:0;width:var(--sw);background:var(--sb);display:flex;flex-direction:column;padding:10px 0;z-index:900;overflow:hidden;transition:width .25s cubic-bezier(.4,0,.2,1)}
+.sidebar:hover{width:220px}
+.sb-section{font-size:9px;font-weight:600;color:rgba(255,255,255,.25);letter-spacing:.8px;padding:10px 18px 4px;white-space:nowrap;overflow:hidden;opacity:0;transition:opacity .12s .06s}
+.sidebar:hover .sb-section{opacity:1}
+.si{display:flex;align-items:center;gap:12px;padding:0 18px;height:42px;cursor:pointer;color:rgba(255,255,255,.45);transition:all .15s;position:relative;white-space:nowrap;overflow:hidden;text-decoration:none}
+.si:hover{color:rgba(255,255,255,.9);background:rgba(255,255,255,.07)}
+.si.active{color:#fff;background:rgba(255,255,255,.12)}
+.si.active::before{content:'';position:absolute;left:0;top:8px;bottom:8px;width:3px;background:var(--p400);border-radius:0 3px 3px 0}
+.si i{font-size:16px;flex-shrink:0;width:22px;text-align:center}
+.si-label{font-size:12px;font-weight:500;opacity:0;transition:opacity .12s .06s;pointer-events:none}
+.sidebar:hover .si-label{opacity:1}
+.s-sp{flex:1}
+.sb-divider{height:1px;background:rgba(255,255,255,.08);margin:6px 0}
+
+/* ── MAIN LAYOUT ── */
+.main{
+  position:fixed;top:var(--th);left:var(--sw);right:0;bottom:0;
+  display:flex;flex-direction:column;overflow:hidden;
+}
+
+/* ── PAGE HEADER ── */
+.page-hdr{
+  background:#fff;border-bottom:1px solid var(--g200);
+  padding:12px 24px;flex-shrink:0;display:flex;align-items:center;gap:12px;
+}
+.page-hdr-left{display:flex;flex-direction:column;gap:2px}
+.page-breadcrumb{font-size:11px;color:var(--g400);font-weight:500}
+.page-title{font-size:20px;font-weight:700;color:var(--g900)}
+.hdr-spacer{flex:1}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--r);font-size:12px;font-weight:500;cursor:pointer;border:none;font-family:var(--font);transition:all .15s;white-space:nowrap}
+.btn-outline{background:#fff;color:var(--g700);border:1px solid var(--g200)}
+.btn-outline:hover{background:var(--g50);border-color:var(--p300);color:var(--p700)}
+.btn-primary{background:var(--p700);color:#fff}
+.btn-primary:hover{background:var(--p800)}
+.btn-ghost{background:transparent;color:var(--g600);border:1px solid var(--g200);font-size:11px}
+.btn-ghost:hover{background:var(--g50)}
+
+/* ── FILTER BAR ── */
+.filter-bar{
+  background:#fff;border-bottom:1px solid var(--g200);
+  padding:8px 24px;flex-shrink:0;display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+}
+.filter-group{display:flex;align-items:center;gap:6px}
+.filter-label{font-size:11px;color:var(--g500);font-weight:500;white-space:nowrap}
+.preset-pills{display:flex;gap:4px}
+.ppill{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:500;cursor:pointer;border:1px solid var(--g200);background:#fff;color:var(--g600);transition:all .15s;white-space:nowrap}
+.ppill.active{background:var(--p700);color:#fff;border-color:var(--p700)}
+.ppill:hover:not(.active){border-color:var(--p300);color:var(--p700);background:var(--p50)}
+.filter-input{border:1px solid var(--g200);border-radius:var(--r);padding:5px 10px;font-size:12px;color:var(--g700);outline:none;font-family:var(--font);background:#fff;transition:border-color .15s}
+.filter-input:focus{border-color:var(--p400)}
+.filter-select{border:1px solid var(--g200);border-radius:var(--r);padding:5px 28px 5px 10px;font-size:12px;color:var(--g700);background:#fff;outline:none;font-family:var(--font);cursor:pointer;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%2364748b' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center}
+.filter-sep{width:1px;height:20px;background:var(--g200)}
+
+/* ── BODY SPLIT ── */
+.body-wrap{flex:1;display:flex;overflow:hidden;min-height:0}
+
+/* ── TRIP LIST PANEL ── */
+.trip-panel{width:400px;flex-shrink:0;background:#fff;border-right:1px solid var(--g200);display:flex;flex-direction:column;overflow:hidden;min-height:0}
+.tp-meta{padding:10px 16px;border-bottom:1px solid var(--g200);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.tp-meta-txt{font-size:12px;color:var(--g500)}
+.tp-meta-txt b{color:var(--g900)}
+.sort-wrap{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--g500)}
+.trip-list{flex:1;overflow-y:auto}
+.trip-list::-webkit-scrollbar{width:3px}
+.trip-list::-webkit-scrollbar-thumb{background:var(--p200);border-radius:2px}
+
+/* Trip card */
+.trip-card{padding:12px 16px;border-bottom:1px solid var(--g100);cursor:pointer;transition:background .12s;position:relative}
+.trip-card:hover{background:var(--p50)}
+.trip-card.selected{background:var(--p50);border-left:3px solid var(--p600);padding-left:13px}
+.tc-head{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.tc-date{font-size:12px;font-weight:600;color:var(--g900);flex:1}
+.tc-status{padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600}
+.tc-status.completed{background:#dcfce7;color:#15803d}
+.tc-status.inprogress{background:var(--p100);color:var(--p700)}
+.tc-status.cancelled{background:var(--g100);color:var(--g500)}
+.tc-vehicle{display:flex;align-items:center;gap:6px;margin-bottom:4px;font-size:12px}
+.tc-plate{font-weight:700;color:var(--g900);background:var(--g100);border-radius:4px;padding:1px 6px;font-size:11px}
+.tc-driver{color:var(--g500);display:flex;align-items:center;gap:4px}
+.tc-driver i{font-size:11px;color:var(--g400)}
+.tc-stats{display:flex;gap:14px;margin-top:6px}
+.tc-stat{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--g500)}
+.tc-stat i{font-size:11px;color:var(--p400)}
+.tc-stat b{color:var(--g800);font-weight:600}
+.tc-events{display:flex;gap:4px;margin-top:5px;flex-wrap:wrap}
+.ev-tag{display:flex;align-items:center;gap:3px;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600}
+.ev-tag.overspeed{background:#fee2e2;color:#dc2626}
+.ev-tag.braking{background:#fef3c7;color:#92400e}
+.ev-tag.cornering{background:#fef9c3;color:#713f12}
+.ev-tag.offline{background:var(--g100);color:var(--g500)}
+.ev-tag.geofence{background:#f0fdf4;color:#15803d}
+
+/* Pagination */
+.tp-pag{padding:10px 16px;border-top:1px solid var(--g200);display:flex;align-items:center;gap:6px;flex-shrink:0}
+.pag-btn{width:28px;height:28px;border-radius:6px;border:1px solid var(--g200);display:flex;align-items:center;justify-content:center;font-size:11px;cursor:pointer;color:var(--g500);transition:all .15s}
+.pag-btn:hover{border-color:var(--p300);color:var(--p700);background:var(--p50)}
+.pag-btn.active{background:var(--p700);color:#fff;border-color:var(--p700)}
+.pag-info{font-size:11px;color:var(--g400);margin-left:auto}
+
+/* ── MAP + DETAIL AREA ── */
+.map-area{
+  flex:1;position:relative;
+  display:flex;flex-direction:column;
+  overflow:hidden;min-height:0;min-width:0;
+}
+#hmap{
+  position:absolute;inset:0;
+  width:100%;height:100%;
+}
+
+/* Map toolbar overlay */
+.map-toolbar{position:absolute;top:12px;left:12px;right:12px;z-index:500;display:flex;align-items:center;gap:8px;pointer-events:none}
+.map-toolbar>*{pointer-events:auto}
+.map-chip{background:#fff;border:1px solid var(--g200);border-radius:var(--r);padding:6px 12px;font-size:12px;font-weight:500;display:flex;align-items:center;gap:6px;box-shadow:var(--sh);cursor:pointer;color:var(--g700);transition:all .15s;white-space:nowrap}
+.map-chip:hover{border-color:var(--p300);color:var(--p700);background:var(--p50)}
+.map-chip.active{background:var(--p700);color:#fff;border-color:var(--p700)}
+.map-chip i{font-size:12px}
+.chip-spacer{flex:1}
+.layer-toggle-wrap{display:flex;gap:4px}
+.layer-btn{background:#fff;border:1px solid var(--g200);border-radius:var(--r);padding:5px 10px;font-size:11px;font-weight:500;display:flex;align-items:center;gap:5px;box-shadow:var(--sh);cursor:pointer;color:var(--g700);transition:all .15s}
+.layer-btn.active{background:var(--p100);color:var(--p700);border-color:var(--p300)}
+.layer-btn i{font-size:11px}
+
+/* ── PLAYBACK CONTROLS ── */
+.playback-bar{position:absolute;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--g200);z-index:500;padding:10px 16px;box-shadow:0 -2px 12px rgba(0,0,0,.08);display:none;flex-direction:column;gap:8px}
+.playback-bar.visible{display:flex}
+.pb-top{display:flex;align-items:center;gap:10px}
+.pb-vehicle{display:flex;flex-direction:column}
+.pb-plate{font-size:14px;font-weight:700;color:var(--g900)}
+.pb-driver{font-size:11px;color:var(--g500)}
+.pb-time{font-size:12px;color:var(--g500);margin-left:auto;font-variant-numeric:tabular-nums}
+.pb-speed{font-size:14px;font-weight:700;color:var(--p700);min-width:58px;text-align:right}
+.pb-mid{display:flex;align-items:center;gap:8px}
+.pb-ctrl-btn{width:34px;height:34px;border-radius:8px;border:1px solid var(--g200);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--g700);font-size:14px;background:#fff;transition:all .15s;flex-shrink:0}
+.pb-ctrl-btn:hover{background:var(--p50);border-color:var(--p300);color:var(--p700)}
+.pb-ctrl-btn.primary{background:var(--p700);color:#fff;border-color:var(--p700);width:38px;height:38px;font-size:15px}
+.pb-ctrl-btn.primary:hover{background:var(--p800)}
+.pb-scrubber{flex:1;display:flex;flex-direction:column;gap:4px}
+.pb-timeline{width:100%;height:4px;-webkit-appearance:none;appearance:none;background:var(--g200);border-radius:2px;outline:none;cursor:pointer}
+.pb-timeline::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--p700);border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.pb-timeline-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--g400);font-variant-numeric:tabular-nums}
+.pb-speed-select{border:1px solid var(--g200);border-radius:6px;padding:4px 22px 4px 8px;font-size:11px;font-weight:600;color:var(--p700);background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24'%3E%3Cpath fill='%234338ca' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E") no-repeat right 4px center;-webkit-appearance:none;cursor:pointer;font-family:var(--font)}
+
+/* ── DETAIL DRAWER ── */
+.detail-drawer{position:absolute;right:0;top:0;bottom:0;width:360px;background:#fff;border-left:1px solid var(--g200);z-index:600;transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;overflow:hidden;box-shadow:-4px 0 20px rgba(0,0,0,.08)}
+.detail-drawer.open{transform:translateX(0)}
+.dd-head{padding:14px 16px;border-bottom:1px solid var(--g200);flex-shrink:0;display:flex;align-items:center;gap:10px}
+.dd-title{font-size:15px;font-weight:700;color:var(--g900);flex:1}
+.dd-close{width:28px;height:28px;border-radius:6px;border:1px solid var(--g200);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--g500);font-size:12px;background:#fff;transition:all .15s}
+.dd-close:hover{background:var(--p50);border-color:var(--p300);color:var(--p700)}
+
+/* Drawer tabs */
+.dd-tabs{display:flex;border-bottom:1px solid var(--g200);flex-shrink:0}
+.dd-tab{flex:1;padding:10px 8px;text-align:center;font-size:12px;font-weight:500;color:var(--g500);cursor:pointer;border:none;background:none;font-family:var(--font);border-bottom:2px solid transparent;transition:all .15s;position:relative;bottom:-1px}
+.dd-tab.active{color:var(--p700);border-bottom-color:var(--p600)}
+.dd-tab:hover:not(.active){background:var(--g50);color:var(--g700)}
+.dd-body{flex:1;overflow-y:auto;display:flex;flex-direction:column}
+.dd-body::-webkit-scrollbar{width:3px}
+.dd-body::-webkit-scrollbar-thumb{background:var(--p200);border-radius:2px}
+.dd-tab-content{display:none;flex:1;flex-direction:column}
+.dd-tab-content.active{display:flex}
+
+/* Trip summary section */
+.sum-section-title{padding:10px 16px 6px;font-size:10px;font-weight:600;color:var(--g400);letter-spacing:.8px;text-transform:uppercase;background:#fff}
+.sum-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--g200);border-top:1px solid var(--g200);border-bottom:1px solid var(--g200)}
+.sum-cell{background:#fff;padding:10px 14px;display:flex;flex-direction:column;gap:3px}
+.sum-cell-label{font-size:10px;color:var(--g500);font-weight:500}
+.sum-cell-val{font-size:18px;font-weight:700;color:var(--g900)}
+.sum-cell-unit{font-size:10px;color:var(--g400)}
+.sum-cell-val.good{color:var(--green)}
+.sum-cell-val.warn{color:var(--amber)}
+.sum-cell-val.danger{color:var(--red)}
+
+/* DO compliance list */
+.do-list{padding:0 16px 16px;display:flex;flex-direction:column;gap:6px;flex:1}
+.do-item{border:0.5px solid var(--g200);border-radius:var(--r2);padding:10px 12px;background:#fff;cursor:pointer;transition:background .12s}
+.do-item:hover{background:var(--p50)}
+.do-item-head{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.do-num{font-size:12px;font-weight:700;color:var(--p700)}
+.do-st{padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600;margin-left:auto}
+.do-st.delivered{background:#dcfce7;color:#15803d}
+.do-st.pickup{background:#fef9c3;color:#92400e}
+.do-st.skipped{background:var(--g100);color:var(--g500)}
+.do-dest{font-size:11px;color:var(--g500);margin-bottom:4px}
+.do-times{display:flex;gap:12px;font-size:11px}
+.do-time-item{display:flex;flex-direction:column;gap:1px}
+.do-time-label{font-size:9px;color:var(--g400);font-weight:500;text-transform:uppercase;letter-spacing:.4px}
+.do-time-val{font-size:11px;font-weight:600;color:var(--g800)}
+.do-compliance-flag{display:flex;align-items:center;gap:4px;font-size:10px;font-weight:600;padding:2px 7px;border-radius:10px;margin-top:4px;width:fit-content}
+.do-compliance-flag.ontime{background:#dcfce7;color:#15803d}
+.do-compliance-flag.late{background:#fee2e2;color:#dc2626}
+.do-compliance-flag.early{background:var(--p100);color:var(--p700)}
+
+/* Event log */
+.ev-filter-bar{padding:8px 16px;border-bottom:1px solid var(--g200);display:flex;gap:6px;flex-wrap:wrap;flex-shrink:0}
+.ev-pill{padding:3px 9px;border-radius:12px;font-size:11px;font-weight:500;cursor:pointer;border:1px solid var(--g200);background:#fff;color:var(--g600);transition:all .15s}
+.ev-pill.active{background:var(--p700);color:#fff;border-color:var(--p700)}
+.ev-log{flex:1;overflow-y:auto;display:flex;flex-direction:column}
+.ev-log::-webkit-scrollbar{width:3px}
+.ev-log::-webkit-scrollbar-thumb{background:var(--p200);border-radius:2px}
+.ev-entry{display:flex;gap:10px;padding:10px 16px;border-bottom:1px solid var(--g100);cursor:pointer;transition:background .12s;align-items:flex-start}
+.ev-entry:hover{background:var(--p50)}
+.ev-seq{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;background:var(--g100);color:var(--g500)}
+.ev-icon{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.ev-icon.overspeed{background:#fee2e2;color:#dc2626}
+.ev-icon.braking{background:#fef3c7;color:#92400e}
+.ev-icon.acceleration{background:#fef3c7;color:#b45309}
+.ev-icon.cornering{background:#fef9c3;color:#713f12}
+.ev-icon.geofence-in{background:#dcfce7;color:#15803d}
+.ev-icon.geofence-out{background:#f0fdf4;color:#15803d}
+.ev-icon.offline{background:var(--g100);color:var(--g500)}
+.ev-icon.online{background:var(--p100);color:var(--p700)}
+.ev-body{flex:1;min-width:0}
+.ev-type{font-size:12px;font-weight:600;color:var(--g900);margin-bottom:2px}
+.ev-detail{font-size:11px;color:var(--g500);line-height:1.5}
+.ev-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:3px}
+.ev-meta span{font-size:10px;color:var(--g400);display:flex;align-items:center;gap:3px}
+.ev-meta i{font-size:10px}
+.ev-speed-badge{font-size:10px;font-weight:700;padding:1px 6px;border-radius:8px;background:#fee2e2;color:#dc2626;flex-shrink:0}
+
+/* Empty state */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 24px;gap:10px;flex:1}
+.empty-state i{font-size:36px;color:var(--p200)}
+.empty-title{font-size:15px;font-weight:600;color:var(--g700)}
+.empty-sub{font-size:12px;color:var(--g400);text-align:center;line-height:1.6;max-width:260px}
+
+/* Leaflet */
+.leaflet-popup-content-wrapper{border-radius:var(--r2)!important;padding:0!important;box-shadow:var(--shl)!important;border:1px solid var(--g200)!important;font-family:var(--font)!important}
+.leaflet-popup-content{margin:0!important;width:auto!important;min-width:200px}
+.leaflet-popup-tip{background:#fff!important}
+.leaflet-popup-close-button{top:8px!important;right:10px!important;color:var(--g400)!important;font-size:18px!important}
+.leaflet-tooltip{background:var(--sb)!important;color:#fff!important;border:none!important;border-radius:6px!important;font-family:var(--font)!important;font-size:11px!important;font-weight:500!important;padding:4px 9px!important;box-shadow:var(--sh)!important}
+.leaflet-tooltip::before{display:none}
+
+/* Export modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:2000;display:none;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal{background:#fff;border-radius:var(--r2);padding:0;width:380px;overflow:hidden;box-shadow:var(--shl)}
+.modal-head{padding:16px 20px;border-bottom:1px solid var(--g200);display:flex;align-items:center;gap:10px}
+.modal-title{font-size:15px;font-weight:700;color:var(--g900);flex:1}
+.modal-close{width:28px;height:28px;border-radius:6px;border:1px solid var(--g200);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--g500);font-size:12px;background:#fff}
+.modal-close:hover{background:var(--g100)}
+.modal-body{padding:16px 20px;display:flex;flex-direction:column;gap:10px}
+.export-opt{border:1px solid var(--g200);border-radius:var(--r2);padding:12px 14px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:12px}
+.export-opt:hover{border-color:var(--p400);background:var(--p50)}
+.export-opt.selected{border-color:var(--p600);background:var(--p50)}
+.export-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.export-icon.csv{background:#dcfce7;color:#15803d}
+.export-icon.pdf{background:#fee2e2;color:#dc2626}
+.export-icon.xlsx{background:#dcfce7;color:#166534}
+.modal-foot{padding:12px 20px;border-top:1px solid var(--g200);display:flex;gap:8px;justify-content:flex-end}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="tb-logo">
+    <div class="tb-logo-inner">
+      <div class="tb-logo-icon"><i class="fa-solid fa-map-location-dot"></i></div>
+      <span class="tb-logo-text">FleetTrack TMS</span>
+    </div>
+  </div>
+  <div class="tb-dc">
+    <div class="tb-dc-label">Company</div>
+    <div class="tb-dc-val"><i class="fa-solid fa-building"></i> PT Parama Global Inspira</div>
+  </div>
+  <div class="tb-spacer"></div>
+  <div class="tb-actions">
+    <div class="tb-icon"><i class="fa-regular fa-bell"></i><span class="bdg"></span></div>
+    <div class="tb-icon"><i class="fa-regular fa-bullhorn"></i></div>
+    <div class="tb-user">
+      <div class="tb-avatar">RR<div class="online"></div></div>
+      <div class="tb-user-info">
+        <div class="tb-name">Rafi Ramadani</div>
+        <div class="tb-role">Dispatcher</div>
+      </div>
+      <i class="fa-solid fa-chevron-down" style="font-size:10px;color:var(--g400);margin-left:2px"></i>
+    </div>
+  </div>
+</header>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sb-section">MAIN</div>
+  <div class="si" onclick="window.location.href='./index.html'"><i class="fa-solid fa-grip"></i><span class="si-label">Dashboard</span></div>
+  <div class="si" onclick="goLive()"><i class="fa-solid fa-location-dot"></i><span class="si-label">Live Tracking</span></div>
+  <div class="sb-section">ORDER</div>
+  <div class="si" onclick="window.location.href='./shipment-planning.html'"><i class="fa-solid fa-boxes-stacked"></i><span class="si-label">Shipment Planning</span></div>
+  <div class="si"><i class="fa-solid fa-clipboard-list"></i><span class="si-label">Order Assignment</span></div>
+  <div class="si"><i class="fa-solid fa-route"></i><span class="si-label">Route Planning</span></div>
+  <div class="sb-section">ANALYTICS</div>
+  <div class="si active"><i class="fa-solid fa-clock-rotate-left"></i><span class="si-label">History Tracking</span></div>
+  <div class="si"><i class="fa-solid fa-chart-line"></i><span class="si-label">Laporan Perjalanan</span></div>
+  <div class="si"><i class="fa-solid fa-chart-mixed"></i><span class="si-label">Analytics</span></div>
+  <div class="sb-section">FLEET</div>
+  <div class="si"><i class="fa-solid fa-truck"></i><span class="si-label">Kendaraan</span></div>
+  <div class="si"><i class="fa-regular fa-circle-user"></i><span class="si-label">Driver</span></div>
+  <div class="s-sp"></div>
+  <div class="sb-divider"></div>
+  <div class="si"><i class="fa-solid fa-gear"></i><span class="si-label">Settings</span></div>
+</nav>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- Page header -->
+  <div class="page-hdr">
+    <div class="page-hdr-left">
+      <div class="page-breadcrumb">Analytics</div>
+      <div class="page-title">History Tracking</div>
+    </div>
+    <div class="hdr-spacer"></div>
+    <button class="btn btn-outline" onclick="showExportModal()"><i class="fa-solid fa-download"></i> Export</button>
+    <button class="btn btn-primary" onclick="goLive()"><i class="fa-solid fa-location-dot"></i> Live Tracking</button>
+  </div>
+
+  <!-- Filter bar -->
+  <div class="filter-bar">
+    <div class="filter-group">
+      <span class="filter-label">Periode:</span>
+      <div class="preset-pills">
+        <div class="ppill" onclick="setPreset(this,'today')">Hari ini</div>
+        <div class="ppill" onclick="setPreset(this,'yesterday')">Kemarin</div>
+        <div class="ppill active" onclick="setPreset(this,'7d')">7 Hari</div>
+        <div class="ppill" onclick="setPreset(this,'30d')">30 Hari</div>
+        <div class="ppill" onclick="setPreset(this,'month')">Bulan ini</div>
+        <div class="ppill" onclick="setPreset(this,'custom')">Custom</div>
+      </div>
+    </div>
+    <div id="custom-range" style="display:none;align-items:center;gap:6px">
+      <input class="filter-input" type="datetime-local" id="dt-start" style="font-size:11px">
+      <span style="font-size:11px;color:var(--g400)">—</span>
+      <input class="filter-input" type="datetime-local" id="dt-end" style="font-size:11px">
+      <button class="btn btn-outline" style="padding:4px 10px;font-size:11px" onclick="applyCustom()">Terapkan</button>
+    </div>
+    <div class="filter-sep"></div>
+    <div class="filter-group">
+      <span class="filter-label">Kendaraan:</span>
+      <select class="filter-select" onchange="filterTrips()" id="f-veh">
+        <option value="">Semua Kendaraan</option>
+        <option value="D 4411 MHN">D 4411 MHN — Citra Mulyono</option>
+        <option value="B 9354 PCS">B 9354 PCS — M. Fadhli Salam</option>
+        <option value="B 9449 PCS">B 9449 PCS — M. Iqbal Kurniawan</option>
+        <option value="B 5645 TCF">B 5645 TCF — Tri Febrianto</option>
+        <option value="B 9432 PCS">B 9432 PCS — Farraz Nanang F.</option>
+        <option value="B 9277 PCS">B 9277 PCS — Alamsyah Satrio</option>
+        <option value="B 9453 PCS">B 9453 PCS — Abdullah Harmaen</option>
+        <option value="B 9560 PCS">B 9560 PCS — Tio Sugiatna</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <span class="filter-label">Status:</span>
+      <select class="filter-select" onchange="filterTrips()" id="f-status">
+        <option value="">Semua</option>
+        <option value="completed">Completed</option>
+        <option value="inprogress">In Progress</option>
+      </select>
+    </div>
+    <div class="filter-group" style="margin-left:auto">
+      <div style="position:relative">
+        <i class="fa-solid fa-magnifying-glass" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);color:var(--g400);font-size:11px"></i>
+        <input class="filter-input" type="text" placeholder="Cari nopol, driver, DO..." style="padding-left:26px;width:200px" oninput="filterTrips()">
+      </div>
+    </div>
+  </div>
+
+  <!-- Body -->
+  <div class="body-wrap">
+
+    <!-- Trip list panel -->
+    <div class="trip-panel">
+      <div class="tp-meta">
+        <div class="tp-meta-txt">Menampilkan <b id="trip-count">8</b> perjalanan</div>
+        <div class="sort-wrap">
+          Urutkan:
+          <select class="filter-select" style="font-size:11px" onchange="filterTrips()">
+            <option>Terbaru</option>
+            <option>Terlama</option>
+            <option>Jarak terpanjang</option>
+          </select>
+        </div>
+      </div>
+      <div class="trip-list" id="tripList"></div>
+      <div class="tp-pag">
+        <div class="pag-btn active">1</div>
+        <div class="pag-btn">2</div>
+        <div class="pag-btn">3</div>
+        <div class="pag-info" id="pag-info">1–8 dari 24</div>
+      </div>
+    </div>
+
+    <!-- Map + drawer area -->
+    <div class="map-area">
+      <div id="hmap"></div>
+
+      <!-- Map toolbar -->
+      <div class="map-toolbar">
+        <div class="map-chip active" id="chip-route" onclick="toggleLayer('route')"><i class="fa-solid fa-route"></i> Rute</div>
+        <div class="map-chip active" id="chip-geofence" onclick="toggleLayer('geofence')"><i class="fa-solid fa-circle-dot"></i> Geofence</div>
+        <div class="map-chip active" id="chip-stops" onclick="toggleLayer('stops')"><i class="fa-solid fa-map-pin"></i> Stops</div>
+        <div class="map-chip active" id="chip-events" onclick="toggleLayer('events')"><i class="fa-solid fa-triangle-exclamation"></i> Events</div>
+        <div class="chip-spacer"></div>
+        <div class="map-chip" id="chip-playback" onclick="startPlayback()"><i class="fa-solid fa-circle-play"></i> Playback</div>
+        <div class="map-chip" onclick="openDetail()"><i class="fa-solid fa-list-ul"></i> Detail & Event Log</div>
+      </div>
+
+      <!-- Playback bar (Scenario 1) -->
+      <div class="playback-bar" id="playbackBar">
+        <div class="pb-top">
+          <div class="pb-vehicle">
+            <div class="pb-plate" id="pb-plate">—</div>
+            <div class="pb-driver" id="pb-driver">—</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;margin-left:auto">
+            <span style="font-size:11px;color:var(--g500)">Kecepatan:</span>
+            <span class="pb-speed" id="pb-speed-val">— km/h</span>
+            <span style="font-size:11px;color:var(--g400)">|</span>
+            <span class="pb-time" id="pb-timestamp">—</span>
+          </div>
+        </div>
+        <div class="pb-mid">
+          <div class="pb-ctrl-btn" onclick="stopPlayback()" title="Stop"><i class="fa-solid fa-stop"></i></div>
+          <div class="pb-ctrl-btn" onclick="prevStep()" title="Mundur"><i class="fa-solid fa-backward-step"></i></div>
+          <div class="pb-ctrl-btn primary" id="pb-play-btn" onclick="togglePlay()"><i class="fa-solid fa-play"></i></div>
+          <div class="pb-ctrl-btn" onclick="nextStep()" title="Maju"><i class="fa-solid fa-forward-step"></i></div>
+          <div class="pb-scrubber">
+            <input type="range" class="pb-timeline" id="pb-timeline" min="0" max="100" value="0" oninput="seekPlayback(this.value)">
+            <div class="pb-timeline-labels">
+              <span id="pb-t-start">—</span>
+              <span id="pb-t-mid">—</span>
+              <span id="pb-t-end">—</span>
+            </div>
+          </div>
+          <select class="pb-speed-select" id="pb-speed" onchange="changeSpeed(this.value)">
+            <option value="1">1×</option>
+            <option value="2">2×</option>
+            <option value="5" selected>5×</option>
+            <option value="10">10×</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Detail drawer -->
+      <div class="detail-drawer" id="detailDrawer">
+        <div class="dd-head">
+          <div class="dd-title" id="dd-title">Trip Detail</div>
+          <button class="btn btn-ghost" onclick="showExportModal()" style="padding:4px 10px"><i class="fa-solid fa-download"></i> Export</button>
+          <div class="dd-close" onclick="closeDetail()"><i class="fa-solid fa-xmark"></i></div>
+        </div>
+        <div class="dd-tabs">
+          <button class="dd-tab active" onclick="setDDTab(this,'summary')">Trip Summary</button>
+          <button class="dd-tab" onclick="setDDTab(this,'stops')">DO & Stops</button>
+          <button class="dd-tab" onclick="setDDTab(this,'events')">Event Log</button>
+        </div>
+        <div class="dd-body">
+          <!-- Summary tab -->
+          <div class="dd-tab-content active" id="ddt-summary">
+            <div class="sum-section-title">Ringkasan Perjalanan</div>
+            <div class="sum-grid" id="sum-grid"></div>
+            <div class="sum-section-title" style="margin-top:8px">Shipment</div>
+            <div style="padding:0 16px 8px;font-size:13px;color:var(--p700);font-weight:600" id="dd-shipment"></div>
+            <div class="sum-section-title">Pengemudi & Kendaraan</div>
+            <div style="padding:0 16px 12px;display:flex;flex-direction:column;gap:5px" id="dd-vehicle"></div>
+          </div>
+          <!-- Stops tab -->
+          <div class="dd-tab-content" id="ddt-stops">
+            <div style="padding:10px 16px 6px;font-size:10px;font-weight:600;color:var(--g400);letter-spacing:.8px;text-transform:uppercase">Delivery Orders</div>
+            <div class="do-list" id="do-list"></div>
+          </div>
+          <!-- Event log tab (Scenario 4) -->
+          <div class="dd-tab-content" id="ddt-events" style="overflow:hidden">
+            <div class="ev-filter-bar">
+              <div class="ev-pill active" onclick="filterEvLog(this,'all')">Semua</div>
+              <div class="ev-pill" onclick="filterEvLog(this,'overspeed')">Overspeed</div>
+              <div class="ev-pill" onclick="filterEvLog(this,'braking')">Harsh Braking</div>
+              <div class="ev-pill" onclick="filterEvLog(this,'geofence')">Geofence</div>
+              <div class="ev-pill" onclick="filterEvLog(this,'offline')">Offline</div>
+            </div>
+            <div class="ev-log" id="ev-log"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Export Modal -->
+<div class="modal-overlay" id="exportModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title"><i class="fa-solid fa-download" style="color:var(--p600);margin-right:6px"></i> Export History Data</div>
+      <div class="modal-close" onclick="hideExportModal()"><i class="fa-solid fa-xmark"></i></div>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:12px;color:var(--g500);margin-bottom:4px">Pilih format export. Scope ditentukan oleh filter aktif saat ini.</p>
+      <div class="export-opt selected" onclick="selExport(this,'csv')">
+        <div class="export-icon csv"><i class="fa-solid fa-file-csv"></i></div>
+        <div>
+          <div style="font-size:13px;font-weight:600;color:var(--g900)">CSV</div>
+          <div style="font-size:11px;color:var(--g500)">Raw GPS log: timestamp, lat, lng, speed, heading, event flags</div>
+        </div>
+      </div>
+      <div class="export-opt" onclick="selExport(this,'pdf')">
+        <div class="export-icon pdf"><i class="fa-solid fa-file-pdf"></i></div>
+        <div>
+          <div style="font-size:13px;font-weight:600;color:var(--g900)">PDF</div>
+          <div style="font-size:11px;color:var(--g500)">Trip report dengan map snapshot, summary table, dan event log</div>
+        </div>
+      </div>
+      <div class="export-opt" onclick="selExport(this,'xlsx')">
+        <div class="export-icon xlsx"><i class="fa-solid fa-file-excel"></i></div>
+        <div>
+          <div style="font-size:13px;font-weight:600;color:var(--g900)">Excel (.xlsx)</div>
+          <div style="font-size:11px;color:var(--g500)">Multi-sheet: Trip Summary + GPS Log + Events</div>
+        </div>
+      </div>
+      <div style="background:var(--p50);border:1px solid var(--p200);border-radius:var(--r);padding:8px 12px;font-size:11px;color:var(--g600)">
+        <i class="fa-solid fa-circle-info" style="color:var(--p500);margin-right:5px"></i>
+        Maksimum 100.000 baris GPS log per request. Export besar diproses asinkron dan dikirim via notifikasi in-app.
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="hideExportModal()">Batal</button>
+      <button class="btn btn-primary" onclick="doExport()"><i class="fa-solid fa-download"></i> Export Sekarang</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── DATA ──
+// Each DO has: lat/lng (drop point coordinate), geofenceRadius (meters), geofenceTrigger ('confirmed'|'unconfirmed')
+const TRIPS=[
+ // ── TRIP 1 · 15 drop points · flagship demo ──
+ {id:1,plate:'D 4411 MHN',driver:'Citra Mulyono',type:'Truck',status:'completed',
+  start:'2025-06-17 06:30',end:'2025-06-17 18:55',dist:142.6,duration:'12j 25m',
+  stops:13,stopsTotal:15,avgSpeed:36,maxSpeed:82,idle:48,overspeed:3,harsh:2,fuel:18.4,
+  shipment:'SHP-2024-0120',
+  route:[
+   [-6.215,106.844],[-6.210,106.852],[-6.205,106.862],[-6.198,106.872],
+   [-6.190,106.882],[-6.182,106.893],[-6.175,106.905],[-6.168,106.918],
+   [-6.162,106.930],[-6.158,106.942],[-6.152,106.952],[-6.148,106.962],
+   [-6.145,106.972],[-6.142,106.982],[-6.140,106.992],[-6.138,107.002]
+  ],
+  dos:[
+   {num:'DO-PM6001',dest:'Hypermart Kelapa Gading, Jakarta Utara',lat:-6.160,lng:106.900,geofenceRadius:25,geofenceTrigger:'confirmed',
+    planned:'07:30',actual:'07:44',depPlanned:'08:00',depActual:'08:12',status:'delivered',compliance:'late',lateDelta:14,
+    customer:'PT Matahari Putra Prima',contact:'Budi Santoso',phone:'0812-3456-7890',items:'48 karton susu UHT, 24 karton minuman isotonic'},
+   {num:'DO-PM6002',dest:'Carrefour Pluit, Jakarta Utara',lat:-6.155,lng:106.912,geofenceRadius:30,geofenceTrigger:'confirmed',
+    planned:'08:30',actual:'08:28',depPlanned:'09:00',depActual:'08:58',status:'delivered',compliance:'early',lateDelta:-2,
+    customer:'PT Trans Retail Indonesia',contact:'Sari Dewi',phone:'0821-9876-5432',items:'36 dus biskuit, 60 karton mie instan'},
+   {num:'DO-PM6003',dest:'Indomaret Sunter, Jakarta Utara',lat:-6.148,lng:106.925,geofenceRadius:15,geofenceTrigger:'confirmed',
+    planned:'09:15',actual:'09:22',depPlanned:'09:45',depActual:'09:50',status:'delivered',compliance:'late',lateDelta:7,
+    customer:'PT Indomarco Prismatama',contact:'Andi Wijaya',phone:'0813-2233-4455',items:'24 karton minuman ringan, 12 karton snack'},
+   {num:'DO-PM6004',dest:'Giant Ekstra Kelapa Gading, Jakarta Utara',lat:-6.162,lng:106.908,geofenceRadius:35,geofenceTrigger:'confirmed',
+    planned:'10:00',actual:'09:58',depPlanned:'10:30',depActual:'10:28',status:'delivered',compliance:'ontime',lateDelta:-2,
+    customer:'PT Hero Supermarket',contact:'Rini Susanti',phone:'0856-7788-9900',items:'72 karton berbagai produk FMCG'},
+   {num:'DO-PM6005',dest:'Alfamart Pademangan, Jakarta Utara',lat:-6.140,lng:106.932,geofenceRadius:15,geofenceTrigger:'confirmed',
+    planned:'10:45',actual:'10:52',depPlanned:'11:15',depActual:'11:20',status:'delivered',compliance:'late',lateDelta:7,
+    customer:'PT Sumber Alfaria Trijaya',contact:'Hendro K.',phone:'0877-1122-3344',items:'30 karton produk personal care'},
+   {num:'DO-PM6006',dest:'Superindo Tanjung Priok, Jakarta Utara',lat:-6.132,lng:106.945,geofenceRadius:20,geofenceTrigger:'confirmed',
+    planned:'11:30',actual:'11:28',depPlanned:'12:00',depActual:'11:55',status:'delivered',compliance:'ontime',lateDelta:-2,
+    customer:'PT Lion Super Indo',contact:'Maya Putri',phone:'0818-5566-7788',items:'48 karton produk dairy, 24 karton frozen food'},
+   {num:'DO-PM6007',dest:'Lottemart Tanjung Priok, Jakarta Utara',lat:-6.128,lng:106.958,geofenceRadius:40,geofenceTrigger:'confirmed',
+    planned:'12:30',actual:'13:05',depPlanned:'13:00',depActual:'13:42',status:'delivered',compliance:'late',lateDelta:35,
+    customer:'PT Lotte Mart Indonesia',contact:'Dodi Firmansyah',phone:'0811-9900-1122',items:'96 karton berbagai kategori produk'},
+   {num:'DO-PM6008',dest:'Indogrosir Sunter, Jakarta Utara',lat:-6.145,lng:106.963,geofenceRadius:50,geofenceTrigger:'confirmed',
+    planned:'13:30',actual:'13:48',depPlanned:'14:00',depActual:'14:15',status:'delivered',compliance:'late',lateDelta:18,
+    customer:'PT Indomarco Adi Prima',contact:'Wahyu Nugroho',phone:'0857-3344-5566',items:'120 karton bulk FMCG — wholesale'},
+   {num:'DO-PM6009',dest:'Toko Grosir Pak Hendra, Bekasi Barat',lat:-6.238,lng:106.972,geofenceRadius:20,geofenceTrigger:'confirmed',
+    planned:'14:30',actual:'14:44',depPlanned:'15:00',depActual:'15:10',status:'delivered',compliance:'late',lateDelta:14,
+    customer:'CV Hendra Jaya',contact:'Hendra Gunawan',phone:'0812-6677-8899',items:'24 dus teh kemasan, 36 karton kopi sachet'},
+   {num:'DO-PM6010',dest:'Minimarket Berkah Jaya, Bekasi',lat:-6.244,lng:106.982,geofenceRadius:15,geofenceTrigger:'confirmed',
+    planned:'15:15',actual:'15:12',depPlanned:'15:45',depActual:'15:40',status:'delivered',compliance:'ontime',lateDelta:-3,
+    customer:'UD Berkah Jaya',contact:'Siti Rahayu',phone:'0821-4455-6677',items:'18 karton minuman, 12 karton snack anak'},
+   {num:'DO-PM6011',dest:'Pasar Modern Harapan Indah, Bekasi',lat:-6.190,lng:106.988,geofenceRadius:30,geofenceTrigger:'confirmed',
+    planned:'15:30',actual:'15:28',depPlanned:'16:00',depActual:'15:58',status:'delivered',compliance:'ontime',lateDelta:-2,
+    customer:'PD Harapan Indah',contact:'Bambang S.',phone:'0813-8899-0011',items:'60 karton produk household & sembako'},
+   {num:'DO-PM6012',dest:'Alfamidi Jatibening, Bekasi',lat:-6.210,lng:106.995,geofenceRadius:15,geofenceTrigger:'unconfirmed',
+    planned:'16:15',actual:'16:30',depPlanned:'16:45',depActual:'17:00',status:'delivered',compliance:'late',lateDelta:15,
+    customer:'PT Midi Utama Indonesia',contact:'Fajar Setiawan',phone:'0856-0011-2233',items:'20 karton produk minuman & snack'},
+   {num:'DO-PM6013',dest:'Hypermart Bekasi Junction, Bekasi',lat:-6.228,lng:107.002,geofenceRadius:35,geofenceTrigger:'confirmed',
+    planned:'17:00',actual:'17:18',depPlanned:'17:30',depActual:'17:52',status:'delivered',compliance:'late',lateDelta:18,
+    customer:'PT Matahari Putra Prima',contact:'Agus Wibowo',phone:'0877-2233-4455',items:'84 karton multikategori produk FMCG'},
+   {num:'DO-PM6014',dest:'Giant Harapan Baru, Bekasi',lat:-6.198,lng:107.008,geofenceRadius:25,geofenceTrigger:'confirmed',
+    planned:'17:30',actual:null,depPlanned:'18:00',depActual:null,status:'pickup',compliance:null,lateDelta:null,
+    customer:'PT Hero Supermarket',contact:'Dewi Kusuma',phone:'0818-3344-5566',items:'48 karton produk — belum diambil'},
+   {num:'DO-PM6015',dest:'Toko Sembako Bu Yati, Pondok Gede',lat:-6.268,lng:107.015,geofenceRadius:10,geofenceTrigger:'confirmed',
+    planned:'18:00',actual:null,depPlanned:'18:30',depActual:null,status:'skipped',compliance:null,lateDelta:null,
+    customer:'UD Yati Makmur',contact:'Yati Suryani',phone:'0812-9900-1122',items:'12 karton sembako — dilewati (akses jalan tutup)'},
+  ],
+  events:[
+   {seq:1,type:'geofence-in',label:'Geofence Arrival',detail:'Tiba di Hypermart Kelapa Gading [radius 25 m]',time:'07:44:10',coords:'-6.160, 106.900',speed:0,sev:'info'},
+   {seq:2,type:'geofence-out',label:'Geofence Departure',detail:'Meninggalkan Hypermart Kelapa Gading',time:'08:12:33',coords:'-6.161, 106.900',speed:6,sev:'info'},
+   {seq:3,type:'geofence-in',label:'Geofence Arrival',detail:'Tiba di Carrefour Pluit [radius 30 m]',time:'08:28:05',coords:'-6.155, 106.912',speed:0,sev:'info'},
+   {seq:4,type:'overspeed',label:'Overspeed',detail:'82 km/h melebihi batas 60 km/h — eskalasi supervisor',time:'08:55:22',coords:'-6.152, 106.920',speed:82,sev:'kritis'},
+   {seq:5,type:'geofence-in',label:'Geofence Arrival',detail:'Tiba di Indomaret Sunter [radius 15 m]',time:'09:22:14',coords:'-6.148, 106.925',speed:0,sev:'info'},
+   {seq:6,type:'braking',label:'Harsh Braking',detail:'Deselerasi −0.55 g terdeteksi',time:'09:58:40',coords:'-6.155, 106.930',speed:44,sev:'peringatan'},
+   {seq:7,type:'geofence-in',label:'Geofence Arrival',detail:'Tiba di Giant Ekstra [radius 35 m]',time:'09:58:12',coords:'-6.162, 106.908',speed:0,sev:'info'},
+   {seq:8,type:'overspeed',label:'Overspeed',detail:'71 km/h melebihi batas 60 km/h',time:'10:35:08',coords:'-6.145, 106.935',speed:71,sev:'kritis'},
+   {seq:9,type:'cornering',label:'Harsh Cornering',detail:'Lateral G-force 0.48 g saat menikung kiri',time:'11:15:44',coords:'-6.136, 106.945',speed:38,sev:'peringatan'},
+   {seq:10,type:'geofence-in',label:'Geofence Arrival',detail:'Tiba di Superindo Tanjung Priok [radius 20 m]',time:'11:28:55',coords:'-6.132, 106.945',speed:0,sev:'info'},
+   {seq:11,type:'overspeed',label:'Overspeed',detail:'66 km/h melebihi batas 60 km/h',time:'12:10:30',coords:'-6.130, 106.952',speed:66,sev:'kritis'},
+   {seq:12,type:'geofence-in',label:'Geofence Arrival',detail:'Tiba di Lottemart [radius 40 m]',time:'13:05:22',coords:'-6.128, 106.958',speed:0,sev:'info'},
+   {seq:13,type:'offline',label:'Sinyal Terputus',detail:'GPS signal loss 6 menit (area parkir basement)',time:'13:42:00',coords:'-6.129, 106.959',speed:0,sev:'info'},
+   {seq:14,type:'online',label:'Sinyal Pulih',detail:'GPS signal recovered',time:'13:48:18',coords:'-6.129, 106.959',speed:0,sev:'info'},
+   {seq:15,type:'geofence-in',label:'Geofence Arrival',detail:'Tiba di Indogrosir [radius 50 m]',time:'13:48:30',coords:'-6.145, 106.963',speed:0,sev:'info'},
+   {seq:16,type:'geofence-in',label:'Geofence Arrival',detail:'Tiba di Toko Grosir Pak Hendra [radius 20 m]',time:'14:44:10',coords:'-6.238, 106.972',speed:0,sev:'info'},
+   {seq:17,type:'geofence-in',label:'Geofence Arrival',detail:'Tiba di Minimarket Berkah Jaya [radius 15 m]',time:'15:12:05',coords:'-6.244, 106.982',speed:0,sev:'info'},
+   {seq:18,type:'geofence-in',label:'Geofence Arrival',detail:'Tiba di Pasar Modern Harapan Indah [radius 30 m]',time:'15:28:44',coords:'-6.190, 106.988',speed:0,sev:'info'},
+   {seq:19,type:'geofence-in',label:'Geofence Arrival — Unconfirmed',detail:'Alfamidi Jatibening: kendaraan masuk area tetapi tidak tepat di drop point [radius 15 m tidak terpenuhi]',time:'16:30:11',coords:'-6.212, 106.994',speed:0,sev:'peringatan'},
+   {seq:20,type:'geofence-in',label:'Geofence Arrival',detail:'Tiba di Hypermart Bekasi Junction [radius 35 m]',time:'17:18:22',coords:'-6.228, 107.002',speed:0,sev:'info'},
+  ]},
+
+ // ── TRIP 2 · 3 drop points ──
+ {id:2,plate:'B 9354 PCS',driver:'M. Fadhli Salam',type:'Truck',status:'completed',
+  start:'2025-06-17 07:12',end:'2025-06-17 13:44',dist:64.2,duration:'6j 32m',
+  stops:3,stopsTotal:3,avgSpeed:38,maxSpeed:74,idle:22,overspeed:2,harsh:1,fuel:9.4,
+  shipment:'SHP-2024-0107',
+  route:[[-6.165,106.870],[-6.172,106.880],[-6.182,106.892],[-6.195,106.905],[-6.210,106.915]],
+  dos:[
+   {num:'DO-PM5535',dest:'Toko Agung, Kemayoran',lat:-6.170,lng:106.876,geofenceRadius:20,geofenceTrigger:'confirmed',
+    planned:'09:00',actual:'09:14',depPlanned:'09:30',depActual:'09:38',status:'delivered',compliance:'late',lateDelta:14,
+    customer:'CV Agung Jaya',contact:'Agung Prasetyo',phone:'0812-1122-3344',items:'36 karton minuman & snack'},
+   {num:'DO-PM5536',dest:'Pasar Baru DC, Jakarta Pusat',lat:-6.183,lng:106.893,geofenceRadius:30,geofenceTrigger:'confirmed',
+    planned:'11:00',actual:'10:58',depPlanned:'11:30',depActual:'11:25',status:'delivered',compliance:'ontime',lateDelta:0,
+    customer:'PD Pasar Baru',contact:'Herni Wahyuni',phone:'0821-5566-7788',items:'60 karton produk sembako'},
+   {num:'DO-PM5537',dest:'Grosir Nusantara, Tanjung Priok',lat:-6.205,lng:106.912,geofenceRadius:25,geofenceTrigger:'confirmed',
+    planned:'13:30',actual:'13:52',depPlanned:'14:00',depActual:'14:10',status:'delivered',compliance:'late',lateDelta:22,
+    customer:'PT Nusantara Distribusi',contact:'Rudi Hartono',phone:'0813-7788-9900',items:'72 karton produk FMCG multikategori'},
+  ],
+  events:[
+   {seq:1,type:'geofence-in',label:'Geofence Arrival',detail:'Tiba di Toko Agung, Kemayoran [radius 20 m]',time:'09:14:22',coords:'-6.170, 106.876',speed:0,sev:'info'},
+   {seq:2,type:'overspeed',label:'Overspeed',detail:'74 km/h melebihi batas 60 km/h',time:'09:48:05',coords:'-6.172, 106.878',speed:74,sev:'kritis'},
+   {seq:3,type:'braking',label:'Harsh Braking',detail:'Deselerasi −0.6 g terdeteksi',time:'10:21:33',coords:'-6.180, 106.885',speed:52,sev:'peringatan'},
+   {seq:4,type:'geofence-out',label:'Geofence Departure',detail:'Meninggalkan Toko Agung',time:'09:38:11',coords:'-6.171, 106.876',speed:12,sev:'info'},
+   {seq:5,type:'geofence-in',label:'Geofence Arrival',detail:'Tiba di Pasar Baru DC [radius 30 m]',time:'10:58:44',coords:'-6.183, 106.893',speed:0,sev:'info'},
+   {seq:6,type:'overspeed',label:'Overspeed',detail:'68 km/h melebihi batas 60 km/h',time:'12:05:17',coords:'-6.192, 106.902',speed:68,sev:'kritis'},
+   {seq:7,type:'geofence-in',label:'Geofence Arrival',detail:'Tiba di Grosir Nusantara [radius 25 m]',time:'13:52:09',coords:'-6.205, 106.912',speed:0,sev:'info'},
+   {seq:8,type:'geofence-out',label:'Geofence Departure',detail:'Meninggalkan Grosir Nusantara',time:'14:10:30',coords:'-6.206, 106.913',speed:8,sev:'info'},
+  ]},
+
+ // ── TRIP 3 · 2 drop points ──
+ {id:3,plate:'B 9449 PCS',driver:'M. Iqbal Kurniawan',type:'Truck',status:'completed',
+  start:'2025-06-17 06:55',end:'2025-06-17 14:20',dist:62.1,duration:'7j 25m',
+  stops:2,stopsTotal:2,avgSpeed:31,maxSpeed:68,idle:35,overspeed:1,harsh:2,fuel:9.8,
+  shipment:'SHP-2024-0110',
+  route:[[-6.360,106.815],[-6.375,106.828],[-6.392,106.842],[-6.410,106.858],[-6.425,106.868]],
+  dos:[
+   {num:'DO-PM5550',dest:'Pasar Parung, Bogor',lat:-6.375,lng:106.826,geofenceRadius:20,geofenceTrigger:'confirmed',
+    planned:'09:30',actual:'09:25',depPlanned:'10:00',depActual:'09:58',status:'delivered',compliance:'early',lateDelta:-5,
+    customer:'PD Pasar Parung',contact:'Parno Wicaksono',phone:'0856-4455-6677',items:'48 karton sembako & produk segar'},
+   {num:'DO-PM5551',dest:'Indomaret Citayam',lat:-6.412,lng:106.860,geofenceRadius:15,geofenceTrigger:'confirmed',
+    planned:'12:00',actual:'12:18',depPlanned:'12:30',depActual:'12:45',status:'delivered',compliance:'late',lateDelta:18,
+    customer:'PT Indomarco Prismatama',contact:'Lina Susanti',phone:'0812-3344-5566',items:'24 karton minuman & snack kemasan'},
+  ],
+  events:[
+   {seq:1,type:'geofence-in',label:'Geofence Arrival',detail:'Tiba di Pasar Parung [radius 20 m]',time:'09:25:10',coords:'-6.375, 106.826',speed:0,sev:'info'},
+   {seq:2,type:'braking',label:'Harsh Braking',detail:'Deselerasi −0.5 g terdeteksi',time:'10:45:22',coords:'-6.385, 106.835',speed:48,sev:'peringatan'},
+   {seq:3,type:'cornering',label:'Harsh Cornering',detail:'Lateral G-force 0.5 g terdeteksi',time:'11:12:08',coords:'-6.398, 106.845',speed:35,sev:'peringatan'},
+   {seq:4,type:'overspeed',label:'Overspeed',detail:'68 km/h melebihi batas 60 km/h',time:'11:48:55',coords:'-6.405, 106.852',speed:68,sev:'kritis'},
+   {seq:5,type:'geofence-in',label:'Geofence Arrival',detail:'Tiba di Indomaret Citayam [radius 15 m]',time:'12:18:33',coords:'-6.412, 106.860',speed:0,sev:'info'},
+  ]},
+
+ // ── TRIP 4 · 4 drop points ──
+ {id:4,plate:'B 5645 TCF',driver:'Tri Febrianto',type:'Motorcycle',status:'completed',
+  start:'2025-06-17 08:00',end:'2025-06-17 14:30',dist:42.5,duration:'6j 30m',
+  stops:4,stopsTotal:4,avgSpeed:22,maxSpeed:48,idle:18,overspeed:0,harsh:0,fuel:2.8,
+  shipment:'SHP-2024-0098',
+  route:[[-6.195,106.820],[-6.200,106.812],[-6.210,106.800],[-6.218,106.792],[-6.228,106.782],[-6.238,106.772]],
+  dos:[
+   {num:'DO-PM5488',dest:'Warung Pak Slamet, Ciledug',lat:-6.200,lng:106.812,geofenceRadius:15,geofenceTrigger:'confirmed',
+    planned:'09:00',actual:'08:58',depPlanned:'09:30',depActual:'09:35',status:'delivered',compliance:'ontime',lateDelta:-2,
+    customer:'UD Slamet Jaya',contact:'Slamet Riyadi',phone:'0813-6677-8899',items:'12 karton minuman sachet, 8 karton snack'},
+   {num:'DO-PM5489',dest:'Minimarket Berkah, Tangerang',lat:-6.210,lng:106.800,geofenceRadius:15,geofenceTrigger:'confirmed',
+    planned:'10:00',actual:'10:08',depPlanned:'10:30',depActual:'10:40',status:'delivered',compliance:'late',lateDelta:8,
+    customer:'UD Berkah Makmur',contact:'Siti Nuraini',phone:'0821-8899-0011',items:'10 karton kopi & teh sachet'},
+   {num:'DO-PM5490',dest:'Toko Kelontong Ibu Wati, Cipondoh',lat:-6.220,lng:106.790,geofenceRadius:10,geofenceTrigger:'confirmed',
+    planned:'11:30',actual:'11:35',depPlanned:'12:00',depActual:'12:08',status:'delivered',compliance:'late',lateDelta:5,
+    customer:'UD Wati Jaya',contact:'Wati Sutrisno',phone:'0857-1122-3344',items:'8 karton produk kebutuhan sehari-hari'},
+   {num:'DO-PM5491',dest:'Alfamart Pinang, Tangerang',lat:-6.230,lng:106.780,geofenceRadius:15,geofenceTrigger:'confirmed',
+    planned:'13:00',actual:'12:58',depPlanned:'13:30',depActual:'13:25',status:'delivered',compliance:'ontime',lateDelta:-2,
+    customer:'PT Sumber Alfaria Trijaya',contact:'Deni Kurniawan',phone:'0812-5566-7788',items:'18 karton produk personal care & snack'},
+  ],
+  events:[
+   {seq:1,type:'geofence-in',label:'Geofence Arrival',detail:'Tiba di Warung Pak Slamet [radius 15 m]',time:'08:58:10',coords:'-6.200, 106.812',speed:0,sev:'info'},
+   {seq:2,type:'geofence-out',label:'Geofence Departure',detail:'Meninggalkan Warung Pak Slamet',time:'09:35:44',coords:'-6.200, 106.813',speed:5,sev:'info'},
+   {seq:3,type:'geofence-in',label:'Geofence Arrival',detail:'Tiba di Minimarket Berkah [radius 15 m]',time:'10:08:30',coords:'-6.210, 106.800',speed:0,sev:'info'},
+   {seq:4,type:'geofence-in',label:'Geofence Arrival',detail:'Tiba di Toko Kelontong Ibu Wati [radius 10 m]',time:'11:35:22',coords:'-6.220, 106.790',speed:0,sev:'info'},
+   {seq:5,type:'geofence-in',label:'Geofence Arrival',detail:'Tiba di Alfamart Pinang [radius 15 m]',time:'12:58:08',coords:'-6.230, 106.780',speed:0,sev:'info'},
+  ]},
+
+ // ── TRIP 5 · 2 drop points · in-progress ──
+ {id:5,plate:'B 9432 PCS',driver:'Farraz Nanang Fauzan',type:'Truck',status:'inprogress',
+  start:'2025-06-18 07:45',end:null,dist:34.2,duration:'3j 15m',
+  stops:1,stopsTotal:2,avgSpeed:29,maxSpeed:55,idle:8,overspeed:0,harsh:1,fuel:5.6,
+  shipment:'SHP-2024-0108',
+  route:[[-6.188,106.856],[-6.196,106.866],[-6.206,106.878]],
+  dos:[
+   {num:'DO-PM5540',dest:'DC Timur, Klender',lat:-6.196,lng:106.866,geofenceRadius:30,geofenceTrigger:'confirmed',
+    planned:'09:00',actual:'09:12',depPlanned:'09:30',depActual:'09:35',status:'delivered',compliance:'late',lateDelta:12,
+    customer:'PT Sumber Graha Sejahtera',contact:'Wahono Prasetyo',phone:'0818-7788-9900',items:'80 karton multikategori DC internal'},
+   {num:'DO-PM5541',dest:'Pasar Jatinegara DC',lat:-6.214,lng:106.875,geofenceRadius:25,geofenceTrigger:'confirmed',
+    planned:'11:00',actual:null,depPlanned:'11:30',depActual:null,status:'pickup',compliance:null,lateDelta:null,
+    customer:'PD Jatinegara Makmur',contact:'Asep Kurnia',phone:'0812-0011-2233',items:'50 karton — menunggu pickup'},
+  ],
+  events:[
+   {seq:1,type:'geofence-in',label:'Geofence Arrival',detail:'Tiba di DC Timur, Klender [radius 30 m]',time:'09:12:05',coords:'-6.196, 106.866',speed:0,sev:'info'},
+   {seq:2,type:'cornering',label:'Harsh Cornering',detail:'Lateral G-force 0.45 g terdeteksi',time:'10:05:18',coords:'-6.200, 106.872',speed:40,sev:'peringatan'},
+   {seq:3,type:'geofence-out',label:'Geofence Departure',detail:'Meninggalkan DC Timur',time:'09:35:22',coords:'-6.197, 106.867',speed:10,sev:'info'},
+  ]},
+
+ // ── TRIP 6 · 1 drop point — high idle, overspeed ──
+ {id:6,plate:'B 9277 PCS',driver:'Alamsyah Satrio Aji',type:'Truck',status:'completed',
+  start:'2025-06-16 07:00',end:'2025-06-16 13:45',dist:44.8,duration:'6j 45m',
+  stops:1,stopsTotal:1,avgSpeed:24,maxSpeed:80,idle:40,overspeed:1,harsh:1,fuel:7.2,
+  shipment:'SHP-2024-0106',
+  route:[[-6.175,106.835],[-6.182,106.842],[-6.192,106.852]],
+  dos:[{num:'DO-PM5530',dest:'Pasar Senen, Jakarta Pusat',lat:-6.188,lng:106.848,geofenceRadius:20,geofenceTrigger:'confirmed',
+    planned:'10:00',actual:'10:22',depPlanned:'10:30',depActual:'11:10',status:'delivered',compliance:'late',lateDelta:22,
+    customer:'PD Pasar Senen',contact:'Eko Budiono',phone:'0856-2233-4455',items:'100 karton sembako — wholesale pasar'}],
+  events:[
+   {seq:1,type:'overspeed',label:'Overspeed',detail:'80 km/h melebihi batas 60 km/h — eskalasi supervisor',time:'08:15:30',coords:'-6.178, 106.838',speed:80,sev:'kritis'},
+   {seq:2,type:'braking',label:'Harsh Braking',detail:'Deselerasi −0.7 g terdeteksi',time:'08:16:10',coords:'-6.179, 106.839',speed:62,sev:'peringatan'},
+   {seq:3,type:'offline',label:'Sinyal Terputus',detail:'GPS signal loss 8 menit',time:'09:42:00',coords:'-6.184, 106.844',speed:0,sev:'info'},
+   {seq:4,type:'online',label:'Sinyal Pulih',detail:'GPS signal recovered',time:'09:50:12',coords:'-6.184, 106.844',speed:0,sev:'info'},
+   {seq:5,type:'geofence-in',label:'Geofence Arrival',detail:'Tiba di Pasar Senen [radius 20 m]',time:'10:22:44',coords:'-6.188, 106.848',speed:0,sev:'info'},
+  ]},
+
+ // ── TRIP 7 · 2 drop points — clean trip ──
+ {id:7,plate:'B 9453 PCS',driver:'Abdullah Harmaen',type:'Truck',status:'completed',
+  start:'2025-06-16 08:10',end:'2025-06-16 14:50',dist:38.6,duration:'6j 40m',
+  stops:2,stopsTotal:2,avgSpeed:21,maxSpeed:44,idle:28,overspeed:0,harsh:0,fuel:6.1,
+  shipment:'SHP-2024-0111',
+  route:[[-6.272,106.810],[-6.262,106.820],[-6.252,106.830]],
+  dos:[
+   {num:'DO-PM5555',dest:'Toko Mandiri, Kebayoran Baru',lat:-6.262,lng:106.820,geofenceRadius:20,geofenceTrigger:'confirmed',
+    planned:'10:00',actual:'09:58',depPlanned:'10:30',depActual:'10:32',status:'delivered',compliance:'ontime',lateDelta:-2,
+    customer:'CV Mandiri Sejahtera',contact:'Tono Wibowo',phone:'0813-4455-6677',items:'30 karton produk personal care'},
+   {num:'DO-PM5556',dest:'Grosir Selatan, Cilandak',lat:-6.252,lng:106.830,geofenceRadius:25,geofenceTrigger:'confirmed',
+    planned:'12:00',actual:'12:05',depPlanned:'12:30',depActual:'12:28',status:'delivered',compliance:'ontime',lateDelta:5,
+    customer:'PD Grosir Selatan',contact:'Lenny Kurniawati',phone:'0818-6677-8899',items:'45 karton produk FMCG'}
+  ],
+  events:[
+   {seq:1,type:'geofence-in',label:'Geofence Arrival',detail:'Tiba di Toko Mandiri [radius 20 m]',time:'09:58:22',coords:'-6.262, 106.820',speed:0,sev:'info'},
+   {seq:2,type:'geofence-out',label:'Geofence Departure',detail:'Meninggalkan Toko Mandiri',time:'10:32:10',coords:'-6.263, 106.820',speed:7,sev:'info'},
+   {seq:3,type:'geofence-in',label:'Geofence Arrival',detail:'Tiba di Grosir Selatan [radius 25 m]',time:'12:05:10',coords:'-6.252, 106.830',speed:0,sev:'info'},
+  ]},
+
+ // ── TRIP 8 · 1 drop point — motorcycle ──
+ {id:8,plate:'B 9560 PCS',driver:'Tio Sugiatna',type:'Motorcycle',status:'completed',
+  start:'2025-06-15 09:00',end:'2025-06-15 11:30',dist:15.2,duration:'2j 30m',
+  stops:1,stopsTotal:1,avgSpeed:18,maxSpeed:38,idle:5,overspeed:0,harsh:0,fuel:1.0,
+  shipment:'SHP-2024-0114',
+  route:[[-6.262,106.785],[-6.268,106.778],[-6.275,106.770]],
+  dos:[{num:'DO-PM5563',dest:'Warung Makan Padang, Kebayoran Lama',lat:-6.268,lng:106.778,geofenceRadius:10,geofenceTrigger:'confirmed',
+    planned:'10:00',actual:'10:02',depPlanned:'10:30',depActual:'10:28',status:'delivered',compliance:'ontime',lateDelta:2,
+    customer:'UD Masakan Minang',contact:'Pak Anto',phone:'0812-7788-9900',items:'6 karton bumbu masak & rempah kemasan'}],
+  events:[
+   {seq:1,type:'geofence-in',label:'Geofence Arrival',detail:'Tiba di Warung Makan Padang [radius 10 m]',time:'10:02:44',coords:'-6.268, 106.778',speed:0,sev:'info'},
+   {seq:2,type:'geofence-out',label:'Geofence Departure',detail:'Meninggalkan Warung Makan Padang',time:'10:28:10',coords:'-6.268, 106.779',speed:6,sev:'info'},
+  ]},
+];
+
+const SEV_ICON={overspeed:'fa-solid fa-gauge-high',braking:'fa-solid fa-car-burst','acceleration':'fa-solid fa-bolt',cornering:'fa-solid fa-rotate','geofence-in':'fa-solid fa-circle-dot','geofence-out':'fa-solid fa-circle-arrow-right',offline:'fa-solid fa-wifi-slash',online:'fa-solid fa-wifi'};
+const SEV_LABEL={overspeed:'Overspeed',braking:'Harsh Braking',acceleration:'Harsh Acceleration',cornering:'Harsh Cornering','geofence-in':'Geofence Arrival','geofence-out':'Geofence Departure',offline:'Sinyal Terputus',online:'Sinyal Pulih'};
+
+let selectedTrip=null,hmap=null,routeLayer=null,stopsLayer=null,eventsLayer=null,geofenceLayer=null;
+let playbackActive=false,playbackInterval=null,pbStep=0,pbSpeed=5;
+let layers={route:true,stops:true,events:true,geofence:true};
+let evLogFilter='all',selectedExport='csv';
+
+// ── FILTER / PRESET ──
+let activeFilter={preset:'7d',veh:'',status:'',search:''};
+
+function setPreset(el,preset){
+  document.querySelectorAll('.ppill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  activeFilter.preset=preset;
+  document.getElementById('custom-range').style.display=preset==='custom'?'flex':'none';
+  if(preset!=='custom') filterTrips();
+}
+
+function filterTrips(){
+  activeFilter.veh=document.getElementById('f-veh').value;
+  activeFilter.status=document.getElementById('f-status').value;
+  activeFilter.search=document.querySelector('input[placeholder="Cari nopol, driver, DO..."]').value.toLowerCase();
+  renderTripList();
+}
+
+function applyCustom(){
+  const s=document.getElementById('dt-start').value;
+  const e=document.getElementById('dt-end').value;
+  if(!s||!e){alert('Masukkan tanggal mulai dan akhir.');return;}
+  filterTrips();
+}
+
+function getFilteredTrips(){
+  return TRIPS.filter(t=>{
+    if(activeFilter.veh && t.plate!==activeFilter.veh) return false;
+    if(activeFilter.status && t.status!==activeFilter.status) return false;
+    if(activeFilter.search){
+      const q=activeFilter.search;
+      const matchDO=t.dos.some(d=>d.num.toLowerCase().includes(q)||d.dest.toLowerCase().includes(q));
+      if(!t.plate.toLowerCase().includes(q)&&!t.driver.toLowerCase().includes(q)&&!t.shipment.toLowerCase().includes(q)&&!matchDO) return false;
+    }
+    return true;
+  });
+}
+
+// ── INIT MAP ──
+function initMap(){
+  // Use position:absolute map div — must set explicit background first
+  const mapEl = document.getElementById('hmap');
+  mapEl.style.background = '#e8f0e4';
+
+  hmap = L.map('hmap', {
+    zoomControl: false,
+    attributionControl: true,
+    preferCanvas: true
+  }).setView([-6.20, 106.90], 11);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    maxZoom: 19,
+    crossOrigin: true
+  }).addTo(hmap);
+
+  L.control.zoom({position:'bottomright'}).addTo(hmap);
+
+  // Force Leaflet to recalculate size after layout settles
+  setTimeout(()=>{ hmap.invalidateSize(); }, 200);
+
+  // Geofence legend
+  const legend = L.control({position:'bottomleft'});
+  legend.onAdd = function(){
+    const d = L.DomUtil.create('div');
+    d.style.cssText = 'background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:8px 12px;font-family:Inter,sans-serif;font-size:11px;box-shadow:0 1px 4px rgba(0,0,0,.1);display:flex;flex-direction:column;gap:5px;max-width:200px';
+    d.innerHTML = `
+      <div style="font-weight:600;color:#334155;margin-bottom:2px">Map Legend</div>
+      <div style="display:flex;align-items:center;gap:7px"><svg width="18" height="10"><line x1="0" y1="5" x2="18" y2="5" stroke="#4f46e5" stroke-width="3"/></svg><span style="color:#475569">GPS Trace</span></div>
+      <div style="display:flex;align-items:center;gap:7px"><svg width="18" height="12"><circle cx="9" cy="6" r="5" fill="none" stroke="#4338ca" stroke-width="1.5"/></svg><span style="color:#475569">Geofence Confirmed</span></div>
+      <div style="display:flex;align-items:center;gap:7px"><svg width="18" height="12"><circle cx="9" cy="6" r="5" fill="none" stroke="#d97706" stroke-width="1.5" stroke-dasharray="3 2"/></svg><span style="color:#475569">Geofence Unconfirmed</span></div>
+      <div style="display:flex;align-items:center;gap:7px"><span style="width:18px;height:18px;background:#16a34a;color:#fff;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0">1</span><span style="color:#475569">Stop Terkirim</span></div>
+      <div style="display:flex;align-items:center;gap:7px"><span style="width:18px;height:18px;background:#4338ca;color:#fff;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0">2</span><span style="color:#475569">Stop Pickup/Pending</span></div>
+      <div style="display:flex;align-items:center;gap:7px"><span style="width:18px;height:18px;background:#94a3b8;color:#fff;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0">✕</span><span style="color:#475569">Stop Dilewati</span></div>
+      <div style="display:flex;align-items:center;gap:7px"><span style="width:18px;height:16px;background:#dc2626;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0">⚡</span><span style="color:#475569">Overspeed</span></div>
+      <div style="display:flex;align-items:center;gap:7px"><span style="width:18px;height:16px;background:#d97706;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0">⛔</span><span style="color:#475569">Harsh Braking</span></div>`;
+    return d;
+  };
+  legend.addTo(hmap);
+
+  renderTripList();
+  selectTrip(TRIPS[0]);
+}
+
+// ── TRIP LIST ──
+function renderTripList(){
+  const el=document.getElementById('tripList');
+  const filtered=getFilteredTrips();
+  document.getElementById('trip-count').textContent=filtered.length;
+
+  if(!filtered.length){
+    el.innerHTML=`<div class="empty-state">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <div class="empty-title">Tidak ada data</div>
+      <div class="empty-sub">Tidak ada perjalanan yang cocok dengan filter saat ini. Coba ubah periode atau kriteria filter.</div>
+      <div style="margin-top:8px"><button onclick="resetFilters()" style="padding:6px 16px;border-radius:6px;background:var(--p700);color:#fff;border:none;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--font)">Reset Filter</button></div>
+    </div>`;
+    return;
+  }
+
+  el.innerHTML=filtered.map(t=>{
+    const doUnconfirmed=t.dos.filter(d=>d.geofenceTrigger==='unconfirmed').length;
+    const doSkipped=t.dos.filter(d=>d.status==='skipped').length;
+    return `<div class="trip-card${t.id===selectedTrip?.id?' selected':''}" onclick="selectTrip(TRIPS.find(x=>x.id===${t.id}))">
+      <div class="tc-head">
+        <div class="tc-date"><i class="fa-regular fa-calendar" style="color:var(--p400);margin-right:4px"></i>${t.start}${t.end?' → '+t.end.split(' ')[1]:''}</div>
+        <span class="tc-status ${t.status}">${t.status==='inprogress'?'In Progress':'Completed'}</span>
+      </div>
+      <div class="tc-vehicle">
+        <span class="tc-plate">${t.plate}</span>
+        <span class="tc-driver"><i class="fa-regular fa-circle-user"></i>${t.driver}</span>
+      </div>
+      <div style="font-size:11px;color:var(--g500);margin-bottom:4px"><i class="fa-solid fa-boxes-stacked" style="color:var(--p400);margin-right:3px;font-size:10px"></i>${t.shipment} · <b style="color:var(--g800)">${t.dos.length} DO</b></div>
+      <div class="tc-stats">
+        <div class="tc-stat"><i class="fa-solid fa-road"></i><b>${t.dist} km</b></div>
+        <div class="tc-stat"><i class="fa-regular fa-clock"></i><b>${t.duration}</b></div>
+        <div class="tc-stat"><i class="fa-solid fa-map-pin"></i><b>${t.stops}/${t.stopsTotal}</b></div>
+        <div class="tc-stat"><i class="fa-solid fa-gauge-high"></i><b>avg ${t.avgSpeed}</b></div>
+      </div>
+      <div class="tc-events">
+        ${t.overspeed>0?`<span class="ev-tag overspeed"><i class="fa-solid fa-gauge-high"></i>${t.overspeed}× overspeed</span>`:''}
+        ${t.harsh>0?`<span class="ev-tag braking"><i class="fa-solid fa-car-burst"></i>${t.harsh}× harsh</span>`:''}
+        ${t.idle>20?`<span class="ev-tag offline"><i class="fa-regular fa-clock"></i>${t.idle}m idle</span>`:''}
+        ${doUnconfirmed>0?`<span class="ev-tag" style="background:#fffbeb;color:#92400e"><i class="fa-solid fa-circle-dot"></i>${doUnconfirmed} unconfirmed</span>`:''}
+        ${doSkipped>0?`<span class="ev-tag" style="background:var(--g100);color:var(--g500)"><i class="fa-solid fa-ban"></i>${doSkipped} skipped</span>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function resetFilters(){
+  document.getElementById('f-veh').value='';
+  document.getElementById('f-status').value='';
+  document.querySelector('.filter-input[placeholder]').value='';
+  document.querySelectorAll('.ppill').forEach(p=>p.classList.toggle('active',p.dataset.preset==='7d'));
+  activeFilter={preset:'7d',veh:'',status:'',search:''};
+  renderTripList();
+}
+
+// ── SELECT TRIP ──
+function selectTrip(t){
+  if(!t)return;
+  selectedTrip=t;
+  renderTripList();
+  drawTrip(t);
+  if(document.getElementById('detailDrawer').classList.contains('open')){
+    document.getElementById('dd-title').textContent='Trip — '+t.plate+' · '+t.shipment;
+    renderDrawer(t);
+  }
+}
+
+// ── LAYER TOGGLES ──
+function toggleLayer(l){
+  layers[l]=!layers[l];
+  document.getElementById('chip-'+l).classList.toggle('active',layers[l]);
+  const lyr={route:routeLayer,stops:stopsLayer,events:eventsLayer,geofence:geofenceLayer}[l];
+  if(!lyr)return;
+  if(layers[l])lyr.addTo(hmap); else hmap.removeLayer(lyr);
+}
+
+// ── PLAYBACK (Scenario 1) ──
+let pbMarker=null;
+
+function startPlayback(){
+  if(!selectedTrip)return;
+  stopPlayback(); // reset first
+  document.getElementById('playbackBar').classList.add('visible');
+  document.getElementById('chip-playback').classList.add('active');
+  pbStep=0;
+  document.getElementById('pb-timeline').value=0;
+  document.getElementById('pb-speed-val').textContent='0 km/h';
+  const t=selectedTrip;
+  document.getElementById('pb-t-start').textContent=t.start.split(' ')[1];
+  document.getElementById('pb-t-end').textContent=t.end?t.end.split(' ')[1]:'—';
+  updateMidLabel(0,t);
+  if(pbMarker){hmap.removeLayer(pbMarker);pbMarker=null;}
+  pbMarker=L.circleMarker(t.route[0],{
+    radius:11,color:'#fff',fillColor:'#4338ca',fillOpacity:1,weight:3,
+    className:'pb-vehicle-marker'
+  }).addTo(hmap);
+}
+
+function updateMidLabel(pct,t){
+  if(!t.start||!t.end) return;
+  const sparts=t.start.split(' ')[1].split(':');
+  const eparts=t.end.split(' ')[1].split(':');
+  const sm=parseInt(sparts[0])*60+parseInt(sparts[1]);
+  const em=parseInt(eparts[0])*60+parseInt(eparts[1]);
+  const cur=sm+Math.round((em-sm)*pct/100);
+  const hh=Math.floor(cur/60)%24, mm=cur%60;
+  document.getElementById('pb-t-mid').textContent=String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0');
+  document.getElementById('pb-timestamp').textContent=String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0');
+}
+
+function togglePlay(){
+  playbackActive=!playbackActive;
+  document.getElementById('pb-play-btn').innerHTML=playbackActive?'<i class="fa-solid fa-pause"></i>':'<i class="fa-solid fa-play"></i>';
+  if(playbackActive) runPlayback(); else clearInterval(playbackInterval);
+}
+
+function runPlayback(){
+  clearInterval(playbackInterval);
+  const t=selectedTrip;
+  const pts=t.route;
+  const total=pts.length-1;
+  playbackInterval=setInterval(()=>{
+    if(pbStep>=total){
+      clearInterval(playbackInterval);
+      playbackActive=false;
+      document.getElementById('pb-play-btn').innerHTML='<i class="fa-solid fa-play"></i>';
+      return;
+    }
+    pbStep=Math.min(total, pbStep+pbSpeed*0.4);
+    const idx=Math.floor(pbStep);
+    if(pbMarker) pbMarker.setLatLng(pts[idx]);
+    const pct=Math.round(pbStep/total*100);
+    document.getElementById('pb-timeline').value=pct;
+    const sp=Math.max(0, Math.round(t.avgSpeed+(Math.random()-0.5)*24));
+    document.getElementById('pb-speed-val').textContent=sp+' km/h';
+    updateMidLabel(pct,t);
+    // Highlight geofence when vehicle enters
+    if(geofenceLayer && layers.geofence){
+      const pos=pts[idx];
+      t.dos.forEach(d=>{
+        if(!d.lat||!d.lng) return;
+        const dist=hmap.distance([d.lat,d.lng],pos);
+        // visual pulse already handled by CSS
+      });
+    }
+  },180);
+}
+
+function stopPlayback(){
+  clearInterval(playbackInterval);
+  playbackActive=false;
+  pbStep=0;
+  document.getElementById('pb-play-btn').innerHTML='<i class="fa-solid fa-play"></i>';
+  document.getElementById('playbackBar').classList.remove('visible');
+  document.getElementById('chip-playback').classList.remove('active');
+  document.getElementById('pb-timeline').value=0;
+  document.getElementById('pb-speed-val').textContent='— km/h';
+  document.getElementById('pb-timestamp').textContent='—';
+  document.getElementById('pb-t-mid').textContent='—';
+  if(pbMarker&&hmap){hmap.removeLayer(pbMarker);pbMarker=null;}
+}
+
+function seekPlayback(val){
+  if(!selectedTrip) return;
+  const pts=selectedTrip.route;
+  pbStep=parseInt(val)/100*(pts.length-1);
+  if(pbMarker) pbMarker.setLatLng(pts[Math.floor(pbStep)]);
+  const sp=Math.max(0,Math.round(selectedTrip.avgSpeed+(Math.random()-0.5)*20));
+  document.getElementById('pb-speed-val').textContent=sp+' km/h';
+  updateMidLabel(parseInt(val),selectedTrip);
+}
+
+function prevStep(){
+  if(!selectedTrip||pbStep<=0) return;
+  pbStep=Math.max(0,pbStep-1);
+  if(pbMarker) pbMarker.setLatLng(selectedTrip.route[Math.floor(pbStep)]);
+  const pct=Math.round(pbStep/(selectedTrip.route.length-1)*100);
+  document.getElementById('pb-timeline').value=pct;
+  updateMidLabel(pct,selectedTrip);
+}
+
+function nextStep(){
+  if(!selectedTrip||pbStep>=selectedTrip.route.length-1) return;
+  pbStep=Math.min(selectedTrip.route.length-1,pbStep+1);
+  if(pbMarker) pbMarker.setLatLng(selectedTrip.route[Math.floor(pbStep)]);
+  const pct=Math.round(pbStep/(selectedTrip.route.length-1)*100);
+  document.getElementById('pb-timeline').value=pct;
+  updateMidLabel(pct,selectedTrip);
+}
+
+function changeSpeed(v){ pbSpeed=parseInt(v); }
+
+// ── DETAIL DRAWER ──
+function openDetail(){
+  if(!selectedTrip)return;
+  document.getElementById('detailDrawer').classList.add('open');
+  document.getElementById('dd-title').textContent='Trip — '+selectedTrip.plate+' · '+selectedTrip.shipment;
+  renderDrawer(selectedTrip);
+}
+
+function closeDetail(){
+  document.getElementById('detailDrawer').classList.remove('open');
+}
+
+function setDDTab(el,tab){
+  document.querySelectorAll('.dd-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.dd-tab-content').forEach(c=>c.classList.remove('active'));
+  const tc=document.getElementById('ddt-'+tab);
+  if(tc) tc.classList.add('active');
+  if(tab==='events') renderEvLog(selectedTrip);
+}
+
+function calcPerfScore(t){
+  // Safety (40): -8 per overspeed, -5 per harsh
+  let safety=100-Math.min(40,t.overspeed*8+t.harsh*5);
+  // Efficiency (30): based on idle ratio
+  let efficiency=100-Math.min(30,Math.round(t.idle/t.stops*2));
+  // Punctuality (20): on-time arrivals / total
+  const ontime=t.dos.filter(d=>d.compliance==='ontime'||d.compliance==='early').length;
+  let punct=t.dos.length>0?Math.round(ontime/t.dos.length*100):100;
+  // Completion (10)
+  let comp=Math.round(t.stops/t.stopsTotal*100);
+  const score=Math.round(safety*0.4+efficiency*0.3+punct*0.2+comp*0.1);
+  const grade=score>=85?'Excellent':score>=70?'Good':score>=55?'Needs Improvement':'Poor';
+  const gcol=score>=85?'var(--green)':score>=70?'#4338ca':score>=55?'var(--amber)':'var(--red)';
+  return {score,grade,gcol,safety,efficiency,punct,comp};
+}
+
+function renderDrawer(t){
+  const perf=calcPerfScore(t);
+  const totalDOs=t.dos.length;
+  const deliveredDOs=t.dos.filter(d=>d.status==='delivered').length;
+  const unconfirmedGF=t.dos.filter(d=>d.geofenceTrigger==='unconfirmed').length;
+  const lateArrival=t.dos.filter(d=>d.compliance==='late').length;
+
+  // ── Summary grid ──
+  document.getElementById('sum-grid').innerHTML=[
+    {lbl:'Jarak Tempuh',val:t.dist,unit:'km',cls:''},
+    {lbl:'Durasi Trip',val:t.duration,unit:'',cls:''},
+    {lbl:'Kec. Rata-rata',val:t.avgSpeed,unit:'km/h',cls:''},
+    {lbl:'Kec. Maksimum',val:t.maxSpeed,unit:'km/h',cls:t.maxSpeed>80?'danger':t.maxSpeed>60?'warn':''},
+    {lbl:'Stops Selesai',val:t.stops+'/'+t.stopsTotal,unit:'',cls:t.stops===t.stopsTotal?'good':'warn'},
+    {lbl:'Total Idle',val:t.idle,unit:'menit',cls:t.idle>30?'danger':t.idle>15?'warn':''},
+    {lbl:'Overspeed Events',val:t.overspeed,unit:'kali',cls:t.overspeed>0?'danger':'good'},
+    {lbl:'Harsh Driving',val:t.harsh,unit:'kali',cls:t.harsh>2?'danger':t.harsh>0?'warn':'good'},
+    {lbl:'BBM Terpakai',val:t.fuel??'—',unit:t.fuel?'liter':'',cls:''},
+  ].map(s=>`<div class="sum-cell">
+    <div class="sum-cell-label">${s.lbl}</div>
+    <div class="sum-cell-val ${s.cls}">${s.val}</div>
+    ${s.unit?`<div class="sum-cell-unit">${s.unit}</div>`:''}
+  </div>`).join('');
+
+  // ── Shipment + vehicle ──
+  document.getElementById('dd-shipment').innerHTML=
+    `<i class="fa-solid fa-boxes-stacked" style="margin-right:6px;font-size:12px"></i>${t.shipment}`;
+
+  document.getElementById('dd-vehicle').innerHTML=`
+    <div style="font-size:12px;color:var(--g500)">
+      <i class="fa-solid fa-truck" style="color:var(--p400);width:16px"></i>
+      <b style="color:var(--g900)">${t.plate}</b> · ${t.type}
+    </div>
+    <div style="font-size:12px;color:var(--g500)">
+      <i class="fa-regular fa-circle-user" style="color:var(--p400);width:16px"></i> ${t.driver}
+    </div>
+    <div style="font-size:12px;color:var(--g500)">
+      <i class="fa-regular fa-calendar" style="color:var(--p400);width:16px"></i>
+      ${t.start} ${t.end?'→ '+t.end:'(In Progress)'}
+    </div>`;
+
+  // ── Geofence compliance summary ──
+  const existingSumSec=document.getElementById('sum-geofence-block');
+  if(existingSumSec) existingSumSec.remove();
+  const gfBlock=document.createElement('div');
+  gfBlock.id='sum-geofence-block';
+  gfBlock.innerHTML=`
+    <div class="sum-section-title" style="margin-top:2px">Geofence & DO Summary</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--g200);border-top:1px solid var(--g200);border-bottom:1px solid var(--g200)">
+      <div class="sum-cell"><div class="sum-cell-label">Total DO</div><div class="sum-cell-val">${totalDOs}</div></div>
+      <div class="sum-cell"><div class="sum-cell-label">DO Terkirim</div><div class="sum-cell-val good">${deliveredDOs}</div></div>
+      <div class="sum-cell"><div class="sum-cell-label">Geofence Unconfirmed</div><div class="sum-cell-val ${unconfirmedGF>0?'warn':''}">${unconfirmedGF}</div></div>
+      <div class="sum-cell"><div class="sum-cell-label">Kedatangan Terlambat</div><div class="sum-cell-val ${lateArrival>0?'warn':''}">${lateArrival}</div></div>
+    </div>
+    <div class="sum-section-title" style="margin-top:2px">Driver Performance Score</div>
+    <div style="padding:12px 16px;background:#fff;border-bottom:1px solid var(--g200)">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px">
+        <div style="width:56px;height:56px;border-radius:50%;border:4px solid ${perf.gcol};display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0">
+          <span style="font-size:18px;font-weight:700;color:${perf.gcol};line-height:1">${perf.score}</span>
+          <span style="font-size:9px;color:var(--g400)">/ 100</span>
+        </div>
+        <div>
+          <div style="font-size:14px;font-weight:700;color:${perf.gcol}">${perf.grade}</div>
+          <div style="font-size:11px;color:var(--g500);margin-top:2px">Rolling score trip ini</div>
+        </div>
+      </div>
+      ${[
+        {lbl:'Safety (40%)',val:perf.safety,col:perf.safety>=80?'#16a34a':perf.safety>=60?'#d97706':'#dc2626'},
+        {lbl:'Efficiency (30%)',val:perf.efficiency,col:perf.efficiency>=80?'#16a34a':perf.efficiency>=60?'#d97706':'#dc2626'},
+        {lbl:'Punctuality (20%)',val:perf.punct,col:perf.punct>=80?'#16a34a':perf.punct>=60?'#d97706':'#dc2626'},
+        {lbl:'Completion (10%)',val:perf.comp,col:perf.comp>=80?'#16a34a':perf.comp>=60?'#d97706':'#dc2626'},
+      ].map(s=>`<div style="margin-bottom:6px">
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--g500);margin-bottom:2px">
+          <span>${s.lbl}</span><span style="font-weight:600;color:${s.col}">${s.val}</span>
+        </div>
+        <div style="height:5px;background:var(--g200);border-radius:3px;overflow:hidden">
+          <div style="height:100%;background:${s.col};border-radius:3px;width:${s.val}%;transition:width .5s ease"></div>
+        </div>
+      </div>`).join('')}
+    </div>`;
+  document.getElementById('ddt-summary').appendChild(gfBlock);
+
+  // ── DO list ──
+  document.getElementById('do-list').innerHTML=t.dos.map((d,i)=>{
+    const confirmed=d.geofenceTrigger==='confirmed';
+    const gfCol=confirmed?'var(--green)':'var(--amber)';
+    const stCol=d.status==='delivered'?'#16a34a':d.status==='skipped'?'#94a3b8':'#4338ca';
+    return `<div class="do-item">
+      <div class="do-item-head">
+        <div style="width:22px;height:22px;border-radius:50%;background:${stCol};color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">${i+1}</div>
+        <div class="do-num">${d.num}</div>
+        <span class="do-st ${d.status}">${d.status==='delivered'?'Terkirim':d.status==='pickup'?'Pickup':'Dilewati'}</span>
+      </div>
+      <div class="do-dest" style="font-weight:600;color:var(--g800);margin-bottom:4px">${d.dest}</div>
+      ${d.customer?`<div style="font-size:11px;color:var(--g500);margin-bottom:1px"><i class="fa-solid fa-building" style="color:var(--p400);width:14px;margin-right:3px"></i>${d.customer}</div>`:''}
+      ${d.contact?`<div style="font-size:11px;color:var(--g500);margin-bottom:5px"><i class="fa-solid fa-user" style="color:var(--p400);width:14px;margin-right:3px"></i>${d.contact}${d.phone?' · '+d.phone:''}</div>`:''}
+      ${d.items?`<div style="font-size:11px;color:var(--g600);margin-bottom:6px;padding:4px 8px;background:var(--g50);border-radius:5px;border:1px solid var(--g200)"><i class="fa-solid fa-boxes-stacked" style="color:var(--p400);margin-right:5px"></i>${d.items}</div>`:''}
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;padding:5px 8px;background:${confirmed?'#f0fdf4':'#fffbeb'};border:1px solid ${confirmed?'#bbf7d0':'#fde68a'};border-radius:6px;font-size:11px">
+        <i class="fa-solid fa-circle-dot" style="color:${gfCol}"></i>
+        <span style="font-weight:600;color:${gfCol}">Radius ${d.geofenceRadius} m</span>
+        <span style="color:var(--g300)">·</span>
+        <span style="color:${gfCol}">${confirmed?'✓ Confirmed':'⚠ Unconfirmed'}</span>
+        ${d.lat?`<span style="margin-left:auto;font-size:10px;color:var(--g400)">${d.lat.toFixed(4)}, ${d.lng.toFixed(4)}</span>`:''}
+      </div>
+      <div class="do-times">
+        <div class="do-time-item"><div class="do-time-label">Tiba Plan</div><div class="do-time-val">${d.planned}</div></div>
+        <div class="do-time-item"><div class="do-time-label">Tiba Aktual</div><div class="do-time-val">${d.actual||'—'}</div></div>
+        <div class="do-time-item"><div class="do-time-label">Keluar Plan</div><div class="do-time-val">${d.depPlanned}</div></div>
+        <div class="do-time-item"><div class="do-time-label">Keluar Aktual</div><div class="do-time-val">${d.depActual||'—'}</div></div>
+      </div>
+      ${d.compliance?`<div class="do-compliance-flag ${d.compliance}">
+        <i class="fa-solid fa-${d.compliance==='ontime'?'circle-check':d.compliance==='late'?'clock':'forward'}"></i>
+        ${d.compliance==='ontime'?'On Time':d.compliance==='late'?'Terlambat '+d.lateDelta+' mnt':'Lebih Awal '+Math.abs(d.lateDelta)+' mnt'}
+      </div>`:''}
+    </div>`;
+  }).join('');
+
+  renderEvLog(t);
+}
+
+// ── EVENT LOG ──
+function renderEvLog(t){
+  if(!t) return;
+  const entries=
+    evLogFilter==='all'    ? t.events :
+    evLogFilter==='geofence'? t.events.filter(e=>e.type.startsWith('geofence')) :
+    evLogFilter==='offline' ? t.events.filter(e=>e.type==='offline'||e.type==='online') :
+    t.events.filter(e=>e.type===evLogFilter);
+  const el=document.getElementById('ev-log');
+  if(!entries.length){
+    el.innerHTML=`<div class="empty-state">
+      <i class="fa-solid fa-clipboard-list"></i>
+      <div class="empty-title">Tidak ada event</div>
+      <div class="empty-sub">Tidak ada event dengan filter yang dipilih untuk trip ini.</div>
+    </div>`;
+    return;
+  }
+  el.innerHTML=entries.map(e=>`
+    <div class="ev-entry">
+      <div class="ev-seq">${e.seq}</div>
+      <div class="ev-icon ${e.type}"><i class="${SEV_ICON[e.type]||'fa-solid fa-circle-info'}"></i></div>
+      <div class="ev-body">
+        <div class="ev-type">${e.label}${e.speed>0?` <span class="ev-speed-badge">${e.speed} km/h</span>`:''}</div>
+        <div class="ev-detail">${e.detail}</div>
+        <div class="ev-meta">
+          <span><i class="fa-regular fa-clock"></i>${e.time}</span>
+          <span><i class="fa-solid fa-location-dot"></i>${e.coords}</span>
+          <span style="background:${e.sev==='kritis'?'#fee2e2':e.sev==='peringatan'?'#fef3c7':'var(--p100)'};color:${e.sev==='kritis'?'#dc2626':e.sev==='peringatan'?'#92400e':'var(--p700)'};padding:1px 6px;border-radius:8px;font-weight:600;font-size:10px">${e.sev.toUpperCase()}</span>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function filterEvLog(el,f){
+  document.querySelectorAll('.ev-pill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  evLogFilter=f;
+  if(selectedTrip) renderEvLog(selectedTrip);
+}
+
+// ── EXPORT ──
+function showExportModal(){ document.getElementById('exportModal').classList.add('show'); }
+function hideExportModal(){ document.getElementById('exportModal').classList.remove('show'); }
+function selExport(el,fmt){
+  document.querySelectorAll('.export-opt').forEach(o=>o.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedExport=fmt;
+}
+function doExport(){
+  const labels={csv:'CSV',pdf:'PDF',xlsx:'Excel (.xlsx)'};
+  const scope=selectedTrip?`Trip ${selectedTrip.plate} · ${selectedTrip.shipment}`:'Semua trip sesuai filter aktif';
+  hideExportModal();
+  // Show toast instead of alert
+  showToast(`Export ${labels[selectedExport]} sedang diproses untuk: ${scope}`);
+}
+
+// ── TOAST ──
+function showToast(msg){
+  let t=document.getElementById('app-toast');
+  if(!t){
+    t=document.createElement('div');
+    t.id='app-toast';
+    t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:#1e1b4b;color:#fff;padding:10px 20px;border-radius:10px;font-size:12px;font-weight:500;z-index:9999;transition:transform .3s ease,opacity .3s ease;opacity:0;pointer-events:none;display:flex;align-items:center;gap:8px;max-width:400px;box-shadow:0 4px 20px rgba(0,0,0,.25)';
+    document.body.appendChild(t);
+  }
+  t.innerHTML=`<i class="fa-solid fa-circle-check" style="color:#86efac;font-size:14px"></i> ${msg}`;
+  t.style.opacity='1';
+  t.style.transform='translateX(-50%) translateY(0)';
+  t.style.pointerEvents='auto';
+  clearTimeout(t._timer);
+  t._timer=setTimeout(()=>{
+    t.style.opacity='0';
+    t.style.transform='translateX(-50%) translateY(80px)';
+    t.style.pointerEvents='none';
+  },3200);
+}
+
+function goLive(){ window.location.href = './live-tracking.html'; }
+
+document.addEventListener('DOMContentLoaded', function(){
+  requestAnimationFrame(function(){ setTimeout(initMap, 50); });
+});
+
+function drawTrip(t){
+  if(routeLayer){hmap.removeLayer(routeLayer);}
+  if(stopsLayer){hmap.removeLayer(stopsLayer);}
+  if(eventsLayer){hmap.removeLayer(eventsLayer);}
+  if(geofenceLayer){hmap.removeLayer(geofenceLayer);}
+
+  // ── Route polyline ──
+  routeLayer=L.layerGroup();
+  L.polyline(t.route,{color:'#4f46e5',weight:4,opacity:.85}).addTo(routeLayer);
+  L.circleMarker(t.route[0],{radius:9,color:'#fff',fillColor:'#16a34a',fillOpacity:1,weight:2.5})
+    .bindTooltip('<b>Start:</b> '+t.start,{direction:'right'}).addTo(routeLayer);
+  L.circleMarker(t.route[t.route.length-1],{radius:9,color:'#fff',fillColor:t.status==='inprogress'?'#4338ca':'#dc2626',fillOpacity:1,weight:2.5})
+    .bindTooltip(t.end?'<b>End:</b> '+t.end:'<b>In Progress</b>',{direction:'right'}).addTo(routeLayer);
+
+  // ── Geofence circles per DO ──
+  geofenceLayer=L.layerGroup();
+  t.dos.forEach((d,i)=>{
+    if(!d.lat||!d.lng) return;
+    const confirmed=d.geofenceTrigger==='confirmed';
+    const col=d.status==='skipped'?'#94a3b8':confirmed?'#4338ca':'#d97706';
+    // Outer pulse ring
+    L.circle([d.lat,d.lng],{
+      radius:d.geofenceRadius,
+      color:col,weight:1.5,
+      fillColor:col,fillOpacity:.1,
+      dashArray:confirmed?null:'6 4'
+    }).bindTooltip(
+      `<b style="color:${col}">${d.num}</b><br>${d.dest}<br>Radius: <b>${d.geofenceRadius} m</b> · ${confirmed?'✓ Confirmed':'⚠ Unconfirmed'}`,
+      {sticky:true}
+    ).addTo(geofenceLayer);
+    // Center dot at exact drop-point
+    L.circleMarker([d.lat,d.lng],{radius:3,color:'#fff',fillColor:col,fillOpacity:.9,weight:1.5}).addTo(geofenceLayer);
+  });
+
+  // ── Stop markers (numbered, at actual DO lat/lng) ──
+  stopsLayer=L.layerGroup();
+  t.dos.forEach((d,i)=>{
+    const pos=d.lat&&d.lng?[d.lat,d.lng]:t.route[Math.min(i+1,t.route.length-1)];
+    const col=d.status==='delivered'?'#16a34a':d.status==='pickup'?'#4338ca':d.status==='skipped'?'#94a3b8':'#4338ca';
+    const confirmed=d.geofenceTrigger==='confirmed';
+    const compLabel=d.compliance?
+      (d.compliance==='late'?'🔴 Terlambat '+d.lateDelta+' mnt':
+       d.compliance==='early'?'🔵 Lebih Awal '+Math.abs(d.lateDelta)+' mnt':'🟢 On Time'):'—';
+    const popupHtml=`<div style="font-family:var(--font);padding:12px 14px;min-width:220px;max-width:260px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <div style="width:22px;height:22px;border-radius:50%;background:${col};color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">${i+1}</div>
+        <b style="font-size:13px;color:#4338ca">${d.num}</b>
+      </div>
+      <p style="font-size:12px;font-weight:600;color:#334155;margin:0 0 6px">${d.dest}</p>
+      <p style="font-size:11px;color:#64748b;margin:0 0 4px"><i class="fa-solid fa-building"></i> ${d.customer||'—'}</p>
+      <p style="font-size:11px;color:#64748b;margin:0 0 4px"><i class="fa-solid fa-user"></i> ${d.contact||'—'} · ${d.phone||''}</p>
+      <p style="font-size:11px;color:#64748b;margin:0 0 8px"><i class="fa-solid fa-boxes-stacked"></i> ${d.items||'—'}</p>
+      <div style="background:#f8fafc;border-radius:6px;padding:6px 8px;font-size:11px;display:grid;grid-template-columns:1fr 1fr;gap:4px">
+        <span style="color:#64748b">Tiba plan</span><span style="font-weight:600">${d.planned}</span>
+        <span style="color:#64748b">Tiba aktual</span><span style="font-weight:600">${d.actual||'—'}</span>
+        <span style="color:#64748b">Keluar plan</span><span style="font-weight:600">${d.depPlanned}</span>
+        <span style="color:#64748b">Keluar aktual</span><span style="font-weight:600">${d.depActual||'—'}</span>
+      </div>
+      <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+        <span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px;background:${d.status==='delivered'?'#dcfce7':d.status==='skipped'?'#f1f5f9':'#e0e7ff'};color:${d.status==='delivered'?'#15803d':d.status==='skipped'?'#64748b':'#4338ca'}">${d.status==='delivered'?'Terkirim':d.status==='skipped'?'Dilewati':'Pickup'}</span>
+        <span style="font-size:11px">${compLabel}</span>
+      </div>
+      <div style="margin-top:6px;font-size:11px;color:${confirmed?'#15803d':'#d97706'}">
+        <i class="fa-solid fa-circle-dot"></i> Geofence ${d.geofenceRadius}m · ${confirmed?'✓ Confirmed':'⚠ Unconfirmed'}
+      </div>
+    </div>`;
+    L.marker(pos,{icon:L.divIcon({
+      html:`<div style="background:${col};color:#fff;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;border:2.5px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.28)">${i+1}</div>`,
+      className:'',iconAnchor:[13,13]
+    })}).bindPopup(popupHtml,{maxWidth:270}).addTo(stopsLayer);
+  });
+
+  // ── Event markers ──
+  eventsLayer=L.layerGroup();
+  t.events.filter(e=>['overspeed','braking','cornering','acceleration'].includes(e.type)).forEach((e,i)=>{
+    const pos=t.route[Math.min(1+i,t.route.length-2)];
+    const col=e.sev==='kritis'?'#dc2626':'#d97706';
+    const ico=e.type==='overspeed'?'⚡':e.type==='braking'?'⛔':e.type==='acceleration'?'🚀':'↩';
+    L.marker(pos,{icon:L.divIcon({
+      html:`<div style="background:${col};color:#fff;width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:12px;box-shadow:0 2px 6px rgba(0,0,0,.3);border:1.5px solid #fff">${ico}</div>`,
+      className:'',iconAnchor:[11,11]
+    })}).bindTooltip(`<b>${e.label}</b> · ${e.time} · ${e.speed>0?e.speed+' km/h':''}`,{direction:'top'}).addTo(eventsLayer);
+  });
+
+  if(layers.route) routeLayer.addTo(hmap);
+  if(layers.geofence) geofenceLayer.addTo(hmap);
+  if(layers.stops) stopsLayer.addTo(hmap);
+  if(layers.events) eventsLayer.addTo(hmap);
+
+  // Fit bounds to all DO positions
+  const allPts=t.dos.filter(d=>d.lat&&d.lng).map(d=>[d.lat,d.lng]);
+  const bounds=allPts.length>1?L.latLngBounds([...t.route,...allPts]):L.latLngBounds(t.route);
+  hmap.fitBounds(bounds.pad(.12));
+
+  document.getElementById('pb-plate').textContent=t.plate;
+  document.getElementById('pb-driver').textContent=t.driver;
+  document.getElementById('pb-t-start').textContent=t.start.split(' ')[1];
+  document.getElementById('pb-t-mid').textContent='—';
+  document.getElementById('pb-t-end').textContent=t.end?t.end.split(' ')[1]:'—';
+}
+</script>
+</body>
+</html>
