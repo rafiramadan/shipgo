@@ -193,6 +193,16 @@ html,body{height:100%;font-family:var(--font);font-size:13px;color:var(--g900);o
 .pb-timeline-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--g400);font-variant-numeric:tabular-nums}
 .pb-speed-select{border:1px solid var(--g200);border-radius:6px;padding:4px 22px 4px 8px;font-size:11px;font-weight:600;color:var(--p700);background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24'%3E%3Cpath fill='%234338ca' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E") no-repeat right 4px center;-webkit-appearance:none;cursor:pointer;font-family:var(--font)}
 
+/* ── DELIVERY PROGRESS (playback) ── */
+.pb-stop-line{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--p700);background:var(--p50);border:1px solid var(--p100);border-radius:6px;padding:5px 10px;transition:background .2s,border-color .2s}
+.pb-stop-line.delivered-flash{background:#dcfce7;border-color:#bbf7d0;color:#15803d}
+.pb-stop-line i{font-size:12px}
+.delivery-toast-stack{position:absolute;left:50%;bottom:132px;transform:translateX(-50%);z-index:550;display:flex;flex-direction:column-reverse;gap:6px;pointer-events:none;align-items:center}
+.delivery-toast{background:#0f172a;color:#fff;padding:8px 14px;border-radius:10px;font-size:12px;font-weight:500;box-shadow:0 6px 20px rgba(0,0,0,.28);opacity:0;transform:translateY(10px) scale(.96);transition:opacity .25s ease,transform .25s ease;white-space:nowrap;max-width:440px;overflow:hidden;text-overflow:ellipsis}
+.delivery-toast.show{opacity:1;transform:translateY(0) scale(1)}
+.delivery-pulse-ring{width:34px;height:34px;border-radius:50%;border:3px solid #16a34a;box-shadow:0 0 0 3px rgba(22,163,74,.25);animation:deliveryPulseAnim 1.2s ease-out forwards}
+@keyframes deliveryPulseAnim{0%{transform:scale(.35);opacity:1}70%{opacity:.55}100%{transform:scale(2.4);opacity:0}}
+
 /* ── DETAIL DRAWER ── */
 .detail-drawer{position:absolute;right:0;top:0;bottom:0;width:360px;background:#fff;border-left:1px solid var(--g200);z-index:600;transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;overflow:hidden;box-shadow:-4px 0 20px rgba(0,0,0,.08)}
 .detail-drawer.open{transform:translateX(0)}
@@ -471,6 +481,10 @@ html,body{height:100%;font-family:var(--font);font-size:13px;color:var(--g900);o
             <span class="pb-time" id="pb-timestamp">—</span>
           </div>
         </div>
+        <div class="pb-stop-line" id="pbStopLine">
+          <i class="fa-solid fa-truck-fast" id="pbStopLineIcon"></i>
+          <span id="pbStopLineText">Mulai playback untuk melihat progres pengiriman driver</span>
+        </div>
         <div class="pb-mid">
           <div class="pb-ctrl-btn" onclick="stopPlayback()" title="Stop"><i class="fa-solid fa-stop"></i></div>
           <div class="pb-ctrl-btn" onclick="prevStep()" title="Mundur"><i class="fa-solid fa-backward-step"></i></div>
@@ -492,6 +506,9 @@ html,body{height:100%;font-family:var(--font);font-size:13px;color:var(--g900);o
           </select>
         </div>
       </div>
+
+      <!-- Delivery event toasts (playback) -->
+      <div class="delivery-toast-stack" id="deliveryToastStack"></div>
 
       <!-- Detail drawer -->
       <div class="detail-drawer" id="detailDrawer">
@@ -819,6 +836,7 @@ const SEV_LABEL={overspeed:'Overspeed',braking:'Harsh Braking',acceleration:'Har
 
 let selectedTrip=null,hmap=null,routeLayer=null,stopsLayer=null,eventsLayer=null,geofenceLayer=null;
 let playbackActive=false,playbackInterval=null,pbStep=0,pbSpeed=5;
+let stopMarkers=[],pbDelivered=new Set();
 let layers={route:true,stops:true,events:true,geofence:true};
 let evLogFilter='all',selectedExport='csv';
 
@@ -964,6 +982,7 @@ function resetFilters(){
 // ── SELECT TRIP ──
 function selectTrip(t){
   if(!t)return;
+  if(document.getElementById('playbackBar').classList.contains('visible')) stopPlayback();
   selectedTrip=t;
   renderTripList();
   drawTrip(t);
@@ -991,12 +1010,15 @@ function startPlayback(){
   document.getElementById('playbackBar').classList.add('visible');
   document.getElementById('chip-playback').classList.add('active');
   pbStep=0;
+  pbDelivered=new Set();
+  document.getElementById('deliveryToastStack').innerHTML='';
   document.getElementById('pb-timeline').value=0;
   document.getElementById('pb-speed-val').textContent='0 km/h';
   const t=selectedTrip;
   document.getElementById('pb-t-start').textContent=t.start.split(' ')[1];
   document.getElementById('pb-t-end').textContent=t.end?t.end.split(' ')[1]:'—';
   updateMidLabel(0,t);
+  updateDeliveryProgress(0,t);
   if(pbMarker){hmap.removeLayer(pbMarker);pbMarker=null;}
   pbMarker=L.circleMarker(t.route[0],{
     radius:11,color:'#fff',fillColor:'#4338ca',fillOpacity:1,weight:3,
@@ -1004,16 +1026,101 @@ function startPlayback(){
   }).addTo(hmap);
 }
 
+function timeToMinutes(str){
+  const p=str.split(':');
+  return parseInt(p[0])*60+parseInt(p[1]);
+}
+
+function getTripEndMinutes(t){
+  const sm=timeToMinutes(t.start.split(' ')[1]);
+  if(t.end) return timeToMinutes(t.end.split(' ')[1]);
+  const m=t.duration&&t.duration.match(/(\d+)\s*j\s*(\d+)?\s*m?/);
+  if(m) return sm+parseInt(m[1])*60+(m[2]?parseInt(m[2]):0);
+  return sm;
+}
+
+function getElapsedMinutes(pct,t){
+  const sm=timeToMinutes(t.start.split(' ')[1]);
+  const em=getTripEndMinutes(t);
+  return sm+Math.round((em-sm)*pct/100);
+}
+
 function updateMidLabel(pct,t){
-  if(!t.start||!t.end) return;
-  const sparts=t.start.split(' ')[1].split(':');
-  const eparts=t.end.split(' ')[1].split(':');
-  const sm=parseInt(sparts[0])*60+parseInt(sparts[1]);
-  const em=parseInt(eparts[0])*60+parseInt(eparts[1]);
-  const cur=sm+Math.round((em-sm)*pct/100);
+  if(!t.start) return;
+  const cur=getElapsedMinutes(pct,t);
   const hh=Math.floor(cur/60)%24, mm=cur%60;
   document.getElementById('pb-t-mid').textContent=String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0');
   document.getElementById('pb-timestamp').textContent=String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0');
+}
+
+// ── DELIVERY PROGRESS (fires when playback crosses a DO's actual arrival time) ──
+function updateDeliveryProgress(pct,t){
+  if(!t) return;
+  const curMin=getElapsedMinutes(pct,t);
+  const newSet=new Set();
+  const justDelivered=[];
+  t.dos.forEach((d,i)=>{
+    if(d.actual==null) return;
+    if(curMin>=timeToMinutes(d.actual)){
+      newSet.add(i);
+      if(!pbDelivered.has(i)) justDelivered.push({d,i});
+    }
+  });
+  pbDelivered=newSet;
+  if(justDelivered.length>3){
+    // Large jump (e.g. scrubber dragged far) — one summary toast instead of flooding the screen
+    justDelivered.forEach(({d})=>{ if(d.lat&&d.lng) pulseDeliveryAt([d.lat,d.lng]); });
+    showDeliveryToast(`<i class="fa-solid fa-box-check" style="color:#4ade80;margin-right:6px"></i><b>${justDelivered.length} DO</b> terkirim — posisi playback dipindahkan`);
+  }else{
+    justDelivered.forEach(({d,i})=>announceDelivery(d,i));
+  }
+
+  const lineEl=document.getElementById('pbStopLineText');
+  const iconEl=document.getElementById('pbStopLineIcon');
+  const wrapEl=document.getElementById('pbStopLine');
+  if(!lineEl) return;
+  const nextIdx=t.dos.findIndex((d,i)=>!pbDelivered.has(i));
+  if(nextIdx===-1){
+    iconEl.className='fa-solid fa-flag-checkered';
+    lineEl.innerHTML=`Semua stop diproses · <b>${t.dos.length}/${t.dos.length}</b> DO`;
+  }else{
+    const next=t.dos[nextIdx];
+    iconEl.className='fa-solid fa-truck-fast';
+    lineEl.innerHTML=`Menuju <b>${next.num}</b> · ${next.dest} <span style="color:var(--g400)">(stop ${nextIdx+1}/${t.dos.length}, ETA ${next.planned})</span>`;
+  }
+  if(justDelivered.length && wrapEl){
+    wrapEl.classList.add('delivered-flash');
+    setTimeout(()=>wrapEl.classList.remove('delivered-flash'),1500);
+  }
+}
+
+function announceDelivery(d,i){
+  if(d.lat&&d.lng) pulseDeliveryAt([d.lat,d.lng]);
+  const label=d.status==='delivered'?'terkirim ke':'tiba di';
+  showDeliveryToast(`<i class="fa-solid fa-box-check" style="color:#4ade80;margin-right:6px"></i><b>${d.num}</b> ${label} ${d.dest} <span style="color:#94a3b8">· ${d.actual}</span>`);
+}
+
+function pulseDeliveryAt(latlng){
+  if(!hmap) return;
+  const m=L.marker(latlng,{
+    icon:L.divIcon({html:'<div class="delivery-pulse-ring"></div>',className:'',iconSize:[34,34],iconAnchor:[17,17]}),
+    interactive:false,zIndexOffset:1000
+  }).addTo(hmap);
+  setTimeout(()=>{ if(hmap) hmap.removeLayer(m); },1300);
+}
+
+function showDeliveryToast(html){
+  const stack=document.getElementById('deliveryToastStack');
+  if(!stack) return;
+  const el=document.createElement('div');
+  el.className='delivery-toast';
+  el.innerHTML=html;
+  stack.appendChild(el);
+  requestAnimationFrame(()=>el.classList.add('show'));
+  setTimeout(()=>{
+    el.classList.remove('show');
+    setTimeout(()=>el.remove(),300);
+  },3800);
 }
 
 function togglePlay(){
@@ -1042,6 +1149,7 @@ function runPlayback(){
     const sp=Math.max(0, Math.round(t.avgSpeed+(Math.random()-0.5)*24));
     document.getElementById('pb-speed-val').textContent=sp+' km/h';
     updateMidLabel(pct,t);
+    updateDeliveryProgress(pct,t);
     // Highlight geofence when vehicle enters
     if(geofenceLayer && layers.geofence){
       const pos=pts[idx];
@@ -1058,6 +1166,7 @@ function stopPlayback(){
   clearInterval(playbackInterval);
   playbackActive=false;
   pbStep=0;
+  pbDelivered=new Set();
   document.getElementById('pb-play-btn').innerHTML='<i class="fa-solid fa-play"></i>';
   document.getElementById('playbackBar').classList.remove('visible');
   document.getElementById('chip-playback').classList.remove('active');
@@ -1065,6 +1174,9 @@ function stopPlayback(){
   document.getElementById('pb-speed-val').textContent='— km/h';
   document.getElementById('pb-timestamp').textContent='—';
   document.getElementById('pb-t-mid').textContent='—';
+  document.getElementById('pbStopLineText').textContent='Mulai playback untuk melihat progres pengiriman driver';
+  document.getElementById('pbStopLineIcon').className='fa-solid fa-truck-fast';
+  document.getElementById('deliveryToastStack').innerHTML='';
   if(pbMarker&&hmap){hmap.removeLayer(pbMarker);pbMarker=null;}
 }
 
@@ -1076,6 +1188,7 @@ function seekPlayback(val){
   const sp=Math.max(0,Math.round(selectedTrip.avgSpeed+(Math.random()-0.5)*20));
   document.getElementById('pb-speed-val').textContent=sp+' km/h';
   updateMidLabel(parseInt(val),selectedTrip);
+  updateDeliveryProgress(parseInt(val),selectedTrip);
 }
 
 function prevStep(){
@@ -1085,6 +1198,7 @@ function prevStep(){
   const pct=Math.round(pbStep/(selectedTrip.route.length-1)*100);
   document.getElementById('pb-timeline').value=pct;
   updateMidLabel(pct,selectedTrip);
+  updateDeliveryProgress(pct,selectedTrip);
 }
 
 function nextStep(){
@@ -1094,6 +1208,7 @@ function nextStep(){
   const pct=Math.round(pbStep/(selectedTrip.route.length-1)*100);
   document.getElementById('pb-timeline').value=pct;
   updateMidLabel(pct,selectedTrip);
+  updateDeliveryProgress(pct,selectedTrip);
 }
 
 function changeSpeed(v){ pbSpeed=parseInt(v); }
