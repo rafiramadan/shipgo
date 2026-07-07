@@ -76,8 +76,14 @@ html,body{height:100%;font-family:var(--font);font-size:13px;color:var(--g900);o
 .tb-icon{width:34px;height:34px;border-radius:var(--r);border:1px solid var(--g200);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--g500);font-size:14px;position:relative;background:#fff;transition:all .15s}
 .tb-icon:hover{background:var(--p50);border-color:var(--p200);color:var(--p600)}
 .tb-icon .bdg{position:absolute;top:4px;right:4px;width:8px;height:8px;background:var(--red);border-radius:50%;border:1.5px solid #fff}
+.tb-user-wrap{position:relative}
 .tb-user{display:flex;align-items:center;gap:10px;padding:6px 12px;border:1px solid var(--g200);border-radius:var(--r2);cursor:pointer;background:#fff;margin-left:4px;transition:all .15s}
 .tb-user:hover{background:var(--p50);border-color:var(--p200)}
+.tb-user-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;background:#fff;border:1px solid var(--g200);border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.14);min-width:170px;z-index:2000;overflow:hidden}
+.tb-user-menu.open{display:block}
+.tb-user-menu-item{padding:10px 14px;font-size:12px;color:var(--g700);cursor:pointer;display:flex;align-items:center;gap:8px}
+.tb-user-menu-item:hover{background:var(--g50)}
+.tb-user-menu-item i{color:var(--g400);width:14px}
 .tb-avatar{width:28px;height:28px;border-radius:50%;background:var(--p100);display:flex;align-items:center;justify-content:center;color:var(--p700);font-size:11px;font-weight:700;position:relative;flex-shrink:0}
 .tb-avatar .online{position:absolute;bottom:0;right:0;width:9px;height:9px;border-radius:50%;background:#10b981;border:2px solid #fff}
 .tb-user-info{display:flex;flex-direction:column}
@@ -377,6 +383,7 @@ html,body{height:100%;font-family:var(--font);font-size:13px;color:var(--g900);o
 </style>
 </head>
 <body>
+<script src="/auth-guard.js"></script>
 
 <header class="topbar">
   <!-- Logo — inside sidebar column width -->
@@ -402,13 +409,18 @@ html,body{height:100%;font-family:var(--font);font-size:13px;color:var(--g900);o
     <div class="tb-icon"><i class="fa-regular fa-bell"></i><span class="bdg"></span></div>
     <div class="tb-icon"><i class="fa-regular fa-bullhorn"></i></div>
     <div class="tb-icon"><i class="fa-regular fa-comment-dots"></i></div>
-    <div class="tb-user">
-      <div class="tb-avatar">RR<div class="online"></div></div>
-      <div class="tb-user-info">
-        <div class="tb-name">Rafi Ramadani</div>
-        <div class="tb-role">Dispatcher</div>
+    <div class="tb-user-wrap">
+      <div class="tb-user" id="tbUser">
+        <div class="tb-avatar"><span id="tbAvatarInitials">··</span><div class="online"></div></div>
+        <div class="tb-user-info">
+          <div class="tb-name" id="tbUserName">—</div>
+          <div class="tb-role" id="tbUserRole">—</div>
+        </div>
+        <i class="fa-solid fa-chevron-down" style="font-size:10px;color:var(--g400);margin-left:2px"></i>
       </div>
-      <i class="fa-solid fa-chevron-down" style="font-size:10px;color:var(--g400);margin-left:2px"></i>
+      <div class="tb-user-menu" id="tbUserMenu">
+        <div class="tb-user-menu-item" id="tbLogoutBtn"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</div>
+      </div>
     </div>
   </div>
 </header>

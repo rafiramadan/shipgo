@@ -41,8 +41,14 @@ html,body{height:100%;font-family:var(--font);font-size:13px;color:var(--g900);o
 .tb-icon{width:34px;height:34px;border-radius:var(--r);border:1px solid var(--g200);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--g500);font-size:14px;position:relative;background:#fff;transition:all .15s}
 .tb-icon:hover{background:var(--p50);border-color:var(--p200);color:var(--p600)}
 .tb-icon .bdg{position:absolute;top:4px;right:4px;width:8px;height:8px;background:var(--red);border-radius:50%;border:1.5px solid #fff}
+.tb-user-wrap{position:relative}
 .tb-user{display:flex;align-items:center;gap:10px;padding:6px 12px;border:1px solid var(--g200);border-radius:var(--r2);cursor:pointer;background:#fff;margin-left:4px;transition:all .15s}
 .tb-user:hover{background:var(--p50);border-color:var(--p200)}
+.tb-user-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;background:#fff;border:1px solid var(--g200);border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.14);min-width:170px;z-index:2000;overflow:hidden}
+.tb-user-menu.open{display:block}
+.tb-user-menu-item{padding:10px 14px;font-size:12px;color:var(--g700);cursor:pointer;display:flex;align-items:center;gap:8px}
+.tb-user-menu-item:hover{background:var(--g50)}
+.tb-user-menu-item i{color:var(--g400);width:14px}
 .tb-avatar{width:28px;height:28px;border-radius:50%;background:var(--p100);display:flex;align-items:center;justify-content:center;color:var(--p700);font-size:11px;font-weight:700;position:relative;flex-shrink:0}
 .tb-avatar .online{position:absolute;bottom:0;right:0;width:9px;height:9px;border-radius:50%;background:#10b981;border:2px solid #fff}
 .tb-user-info{display:flex;flex-direction:column}
@@ -206,6 +212,12 @@ html,body{height:100%;font-family:var(--font);font-size:13px;color:var(--g900);o
 .delivery-pulse-ring{width:34px;height:34px;border-radius:50%;border:3px solid #16a34a;box-shadow:0 0 0 3px rgba(22,163,74,.25);animation:deliveryPulseAnim 1.2s ease-out forwards}
 @keyframes deliveryPulseAnim{0%{transform:scale(.35);opacity:1}70%{opacity:.55}100%{transform:scale(2.4);opacity:0}}
 
+/* ── LIVE VEHICLE MARKER (playback) — bright/high-contrast so motion is obvious against the route line ── */
+.pb-vehicle-icon{width:34px;height:34px;position:relative;display:flex;align-items:center;justify-content:center}
+.pb-vehicle-icon .pulse{position:absolute;inset:-8px;border-radius:50%;background:rgba(249,115,22,.28);animation:vehiclePulseAnim 1.5s ease-out infinite}
+.pb-vehicle-icon .badge{position:relative;width:30px;height:30px;border-radius:50%;background:#f97316;border:3px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px}
+@keyframes vehiclePulseAnim{0%{transform:scale(.55);opacity:.9}100%{transform:scale(1.9);opacity:0}}
+
 /* ── DETAIL DRAWER ── */
 .detail-drawer{position:absolute;right:0;top:0;bottom:0;width:360px;background:#fff;border-left:1px solid var(--g200);z-index:600;transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;overflow:hidden;box-shadow:-4px 0 20px rgba(0,0,0,.08)}
 .detail-drawer.open{transform:translateX(0)}
@@ -317,6 +329,7 @@ html,body{height:100%;font-family:var(--font);font-size:13px;color:var(--g900);o
 </style>
 </head>
 <body>
+<script src="/auth-guard.js"></script>
 
 <!-- TOPBAR -->
 <header class="topbar">
@@ -334,13 +347,18 @@ html,body{height:100%;font-family:var(--font);font-size:13px;color:var(--g900);o
   <div class="tb-actions">
     <div class="tb-icon"><i class="fa-regular fa-bell"></i><span class="bdg"></span></div>
     <div class="tb-icon"><i class="fa-regular fa-bullhorn"></i></div>
-    <div class="tb-user">
-      <div class="tb-avatar">RR<div class="online"></div></div>
-      <div class="tb-user-info">
-        <div class="tb-name">Rafi Ramadani</div>
-        <div class="tb-role">Dispatcher</div>
+    <div class="tb-user-wrap">
+      <div class="tb-user" id="tbUser">
+        <div class="tb-avatar"><span id="tbAvatarInitials">··</span><div class="online"></div></div>
+        <div class="tb-user-info">
+          <div class="tb-name" id="tbUserName">—</div>
+          <div class="tb-role" id="tbUserRole">—</div>
+        </div>
+        <i class="fa-solid fa-chevron-down" style="font-size:10px;color:var(--g400);margin-left:2px"></i>
       </div>
-      <i class="fa-solid fa-chevron-down" style="font-size:10px;color:var(--g400);margin-left:2px"></i>
+      <div class="tb-user-menu" id="tbUserMenu">
+        <div class="tb-user-menu-item" id="tbLogoutBtn"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</div>
+      </div>
     </div>
   </div>
 </header>
@@ -503,8 +521,8 @@ html,body{height:100%;font-family:var(--font);font-size:13px;color:var(--g900);o
           </div>
           <select class="pb-speed-select" id="pb-speed" onchange="changeSpeed(this.value)">
             <option value="1">1×</option>
-            <option value="2">2×</option>
-            <option value="5" selected>5×</option>
+            <option value="2" selected>2×</option>
+            <option value="5">5×</option>
             <option value="10">10×</option>
           </select>
         </div>
@@ -838,7 +856,8 @@ const SEV_ICON={overspeed:'fa-solid fa-gauge-high',braking:'fa-solid fa-car-burs
 const SEV_LABEL={overspeed:'Overspeed',braking:'Harsh Braking',acceleration:'Harsh Acceleration',cornering:'Harsh Cornering','geofence-in':'Geofence Arrival','geofence-out':'Geofence Departure',offline:'Sinyal Terputus',online:'Sinyal Pulih'};
 
 let selectedTrip=null,hmap=null,routeLayer=null,stopsLayer=null,eventsLayer=null,geofenceLayer=null;
-let playbackActive=false,playbackInterval=null,pbStep=0,pbSpeed=5;
+let playbackActive=false,pbRafId=null,pbLastTs=null,pbFrac=0,pbSpeed=2;
+const PB_BASE_DURATION_SEC=30; // wall-clock seconds for a full trip replay at 1×
 let stopMarkers=[],pbDelivered=new Set();
 let layers={route:true,stops:true,events:true,geofence:true};
 let evLogFilter='all',selectedExport='csv';
@@ -901,8 +920,9 @@ function initMap(){
 
   L.control.zoom({position:'bottomright'}).addTo(hmap);
 
-  // Force Leaflet to recalculate size after layout settles
-  setTimeout(()=>{ hmap.invalidateSize(); }, 200);
+  // Force Leaflet to recalculate size after layout settles, then fit the first trip
+  // (fitBounds computed against a still-zero-size container would wrongly snap zoom to 0)
+  setTimeout(()=>{ hmap.invalidateSize(); selectTrip(TRIPS[0]); }, 200);
 
   // Geofence legend
   const legend = L.control({position:'bottomleft'});
@@ -924,7 +944,6 @@ function initMap(){
   legend.addTo(hmap);
 
   renderTripList();
-  selectTrip(TRIPS[0]);
 }
 
 // ── TRIP LIST ──
@@ -1005,14 +1024,87 @@ function toggleLayer(l){
 }
 
 // ── PLAYBACK (Scenario 1) ──
-let pbMarker=null;
+let pbMarker=null,trailLayer=null;
+
+function vehicleDivIcon(){
+  return L.divIcon({
+    html:'<div class="pb-vehicle-icon"><div class="pulse"></div><div class="badge"><i class="fa-solid fa-truck-fast"></i></div></div>',
+    className:'',iconSize:[34,34],iconAnchor:[17,17]
+  });
+}
+
+// ── Playback keyframes: the vehicle must physically pass through every DO's exact
+// lat/lng at the same time-fraction its delivery alert fires (updateDeliveryProgress
+// uses the identical elapsed-time math), so motion and alerts never disagree. ──
+function getPlaybackKeyframes(t){
+  if(t._pbKeyframes) return t._pbKeyframes;
+  const startMin=timeToMinutes(t.start.split(' ')[1]);
+  const endMin=getTripEndMinutes(t);
+  const span=Math.max(1,endMin-startMin);
+  const kfs=[{frac:0,lat:t.route[0][0],lng:t.route[0][1]}];
+  t.dos.forEach(d=>{
+    if(d.lat==null||d.lng==null) return;
+    const timeStr=d.actual||d.planned;
+    if(!timeStr) return;
+    const frac=Math.max(0,Math.min(1,(timeToMinutes(timeStr)-startMin)/span));
+    kfs.push({frac,lat:d.lat,lng:d.lng});
+  });
+  const last=t.route[t.route.length-1];
+  kfs.push({frac:1,lat:last[0],lng:last[1]});
+  kfs.sort((a,b)=>a.frac-b.frac);
+  for(let i=1;i<kfs.length;i++){ if(kfs[i].frac<=kfs[i-1].frac) kfs[i].frac=kfs[i-1].frac+0.0005; }
+  t._pbKeyframes=kfs;
+  return kfs;
+}
+
+function easeInOutCubic(x){ return x<0.5 ? 4*x*x*x : 1-Math.pow(-2*x+2,3)/2; }
+
+function getPointAtFraction(t,frac){
+  const kfs=getPlaybackKeyframes(t);
+  frac=Math.max(0,Math.min(1,frac));
+  let i=1;
+  while(i<kfs.length-1 && kfs[i].frac<frac) i++;
+  const a=kfs[i-1],b=kfs[i];
+  const span=b.frac-a.frac;
+  const lf=easeInOutCubic(span>0?(frac-a.frac)/span:0);
+  return [a.lat+(b.lat-a.lat)*lf, a.lng+(b.lng-a.lng)*lf];
+}
+
+// Redraw the bright "traveled so far" trail up to the current fraction, through the same keyframes
+function updateProgressTrail(t,frac){
+  if(!trailLayer) return;
+  const kfs=getPlaybackKeyframes(t);
+  frac=Math.max(0,Math.min(1,frac));
+  const coords=[[kfs[0].lat,kfs[0].lng]];
+  for(let i=1;i<kfs.length;i++){
+    if(kfs[i].frac<=frac){ coords.push([kfs[i].lat,kfs[i].lng]); continue; }
+    const a=kfs[i-1],b=kfs[i],span=b.frac-a.frac;
+    const lf=easeInOutCubic(span>0?(frac-a.frac)/span:0);
+    coords.push([a.lat+(b.lat-a.lat)*lf, a.lng+(b.lng-a.lng)*lf]);
+    break;
+  }
+  trailLayer.setLatLngs(coords);
+}
+
+// Apply one frame of playback: move marker/trail, update all readouts for a given 0–100 pct
+function applyPlaybackFrame(t,frac){
+  const pos=getPointAtFraction(t,frac);
+  if(pbMarker) pbMarker.setLatLng(pos);
+  updateProgressTrail(t,frac);
+  const pct=Math.round(frac*100);
+  document.getElementById('pb-timeline').value=pct;
+  const sp=Math.max(0,Math.round(t.avgSpeed+Math.sin(frac*37)*14));
+  document.getElementById('pb-speed-val').textContent=(frac>=1?0:sp)+' km/h';
+  updateMidLabel(pct,t);
+  updateDeliveryProgress(pct,t);
+}
 
 function startPlayback(){
   if(!selectedTrip)return;
   stopPlayback(); // reset first
   document.getElementById('playbackBar').classList.add('visible');
   document.getElementById('chip-playback').classList.add('active');
-  pbStep=0;
+  pbFrac=0;
   pbDelivered=new Set();
   document.getElementById('deliveryToastStack').innerHTML='';
   document.getElementById('pb-timeline').value=0;
@@ -1020,13 +1112,11 @@ function startPlayback(){
   const t=selectedTrip;
   document.getElementById('pb-t-start').textContent=t.start.split(' ')[1];
   document.getElementById('pb-t-end').textContent=t.end?t.end.split(' ')[1]:'—';
-  updateMidLabel(0,t);
-  updateDeliveryProgress(0,t);
   if(pbMarker){hmap.removeLayer(pbMarker);pbMarker=null;}
-  pbMarker=L.circleMarker(t.route[0],{
-    radius:11,color:'#fff',fillColor:'#4338ca',fillOpacity:1,weight:3,
-    className:'pb-vehicle-marker'
-  }).addTo(hmap);
+  if(trailLayer){hmap.removeLayer(trailLayer);trailLayer=null;}
+  trailLayer=L.polyline([t.route[0]],{color:'#f97316',weight:6,opacity:.9,lineCap:'round'}).addTo(hmap);
+  pbMarker=L.marker(t.route[0],{icon:vehicleDivIcon(),zIndexOffset:2000,interactive:false}).addTo(hmap);
+  applyPlaybackFrame(t,0);
   syncPlaybackOffset();
 }
 
@@ -1142,48 +1232,37 @@ function showDeliveryToast(html){
 }
 
 function togglePlay(){
+  if(!selectedTrip) return;
+  if(pbFrac>=1) pbFrac=0; // replay from start if it had finished
   playbackActive=!playbackActive;
   document.getElementById('pb-play-btn').innerHTML=playbackActive?'<i class="fa-solid fa-pause"></i>':'<i class="fa-solid fa-play"></i>';
-  if(playbackActive) runPlayback(); else clearInterval(playbackInterval);
+  if(playbackActive){ pbLastTs=performance.now(); runPlayback(); }
+  else cancelAnimationFrame(pbRafId);
 }
 
 function runPlayback(){
-  clearInterval(playbackInterval);
+  cancelAnimationFrame(pbRafId);
   const t=selectedTrip;
-  const pts=t.route;
-  const total=pts.length-1;
-  playbackInterval=setInterval(()=>{
-    if(pbStep>=total){
-      clearInterval(playbackInterval);
+  const step=(ts)=>{
+    if(!playbackActive) return;
+    const dt=ts-pbLastTs; pbLastTs=ts;
+    const effDurationMs=PB_BASE_DURATION_SEC*1000/pbSpeed;
+    pbFrac=Math.min(1,pbFrac+dt/effDurationMs);
+    applyPlaybackFrame(t,pbFrac);
+    if(pbFrac>=1){
       playbackActive=false;
       document.getElementById('pb-play-btn').innerHTML='<i class="fa-solid fa-play"></i>';
       return;
     }
-    pbStep=Math.min(total, pbStep+pbSpeed*0.4);
-    const idx=Math.floor(pbStep);
-    if(pbMarker) pbMarker.setLatLng(pts[idx]);
-    const pct=Math.round(pbStep/total*100);
-    document.getElementById('pb-timeline').value=pct;
-    const sp=Math.max(0, Math.round(t.avgSpeed+(Math.random()-0.5)*24));
-    document.getElementById('pb-speed-val').textContent=sp+' km/h';
-    updateMidLabel(pct,t);
-    updateDeliveryProgress(pct,t);
-    // Highlight geofence when vehicle enters
-    if(geofenceLayer && layers.geofence){
-      const pos=pts[idx];
-      t.dos.forEach(d=>{
-        if(!d.lat||!d.lng) return;
-        const dist=hmap.distance([d.lat,d.lng],pos);
-        // visual pulse already handled by CSS
-      });
-    }
-  },180);
+    pbRafId=requestAnimationFrame(step);
+  };
+  pbRafId=requestAnimationFrame(step);
 }
 
 function stopPlayback(){
-  clearInterval(playbackInterval);
+  cancelAnimationFrame(pbRafId);
   playbackActive=false;
-  pbStep=0;
+  pbFrac=0;
   pbDelivered=new Set();
   document.getElementById('pb-play-btn').innerHTML='<i class="fa-solid fa-play"></i>';
   document.getElementById('playbackBar').classList.remove('visible');
@@ -1196,39 +1275,27 @@ function stopPlayback(){
   document.getElementById('pbStopLineIcon').className='fa-solid fa-truck-fast';
   document.getElementById('deliveryToastStack').innerHTML='';
   if(pbMarker&&hmap){hmap.removeLayer(pbMarker);pbMarker=null;}
+  if(trailLayer&&hmap){hmap.removeLayer(trailLayer);trailLayer=null;}
   syncPlaybackOffset();
   if(hmap) hmap.invalidateSize();
 }
 
 function seekPlayback(val){
   if(!selectedTrip) return;
-  const pts=selectedTrip.route;
-  pbStep=parseInt(val)/100*(pts.length-1);
-  if(pbMarker) pbMarker.setLatLng(pts[Math.floor(pbStep)]);
-  const sp=Math.max(0,Math.round(selectedTrip.avgSpeed+(Math.random()-0.5)*20));
-  document.getElementById('pb-speed-val').textContent=sp+' km/h';
-  updateMidLabel(parseInt(val),selectedTrip);
-  updateDeliveryProgress(parseInt(val),selectedTrip);
+  pbFrac=parseInt(val)/100;
+  applyPlaybackFrame(selectedTrip,pbFrac);
 }
 
 function prevStep(){
-  if(!selectedTrip||pbStep<=0) return;
-  pbStep=Math.max(0,pbStep-1);
-  if(pbMarker) pbMarker.setLatLng(selectedTrip.route[Math.floor(pbStep)]);
-  const pct=Math.round(pbStep/(selectedTrip.route.length-1)*100);
-  document.getElementById('pb-timeline').value=pct;
-  updateMidLabel(pct,selectedTrip);
-  updateDeliveryProgress(pct,selectedTrip);
+  if(!selectedTrip) return;
+  pbFrac=Math.max(0,pbFrac-0.02);
+  applyPlaybackFrame(selectedTrip,pbFrac);
 }
 
 function nextStep(){
-  if(!selectedTrip||pbStep>=selectedTrip.route.length-1) return;
-  pbStep=Math.min(selectedTrip.route.length-1,pbStep+1);
-  if(pbMarker) pbMarker.setLatLng(selectedTrip.route[Math.floor(pbStep)]);
-  const pct=Math.round(pbStep/(selectedTrip.route.length-1)*100);
-  document.getElementById('pb-timeline').value=pct;
-  updateMidLabel(pct,selectedTrip);
-  updateDeliveryProgress(pct,selectedTrip);
+  if(!selectedTrip) return;
+  pbFrac=Math.min(1,pbFrac+0.02);
+  applyPlaybackFrame(selectedTrip,pbFrac);
 }
 
 function changeSpeed(v){ pbSpeed=parseInt(v); }

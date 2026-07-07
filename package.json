@@ -1,0 +1,10 @@
+{
+  "name": "shipgo-tms",
+  "private": true,
+  "type": "module",
+  "description": "ShipGo GPS Tracking Platform — PT Parama Global Inspira",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "jose": "^5.9.6"
+  }
+}

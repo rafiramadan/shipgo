@@ -1,11 +1,11 @@
 {
   "version": 2,
   "name": "shipgo-gps-tracking",
-  "routes": [
-    { "src": "/", "dest": "/index.html" },
-    { "src": "/live", "dest": "/live-tracking.html" },
-    { "src": "/history", "dest": "/history-tracking.html" },
-    { "src": "/shipment", "dest": "/shipment-planning.html" }
+  "rewrites": [
+    { "source": "/", "destination": "/index.html" },
+    { "source": "/live", "destination": "/live-tracking.html" },
+    { "source": "/history", "destination": "/history-tracking.html" },
+    { "source": "/shipment", "destination": "/shipment-planning.html" }
   ],
   "headers": [
     {
@@ -14,6 +14,12 @@
         { "key": "X-Content-Type-Options", "value": "nosniff" },
         { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
         { "key": "Cache-Control", "value": "public, max-age=3600" }
+      ]
+    },
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" }
       ]
     }
   ]

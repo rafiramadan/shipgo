@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Masuk — ShipGo TMS</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --p50:#eef2ff;--p100:#e0e7ff;--p200:#c7d2fe;--p600:#4f46e5;--p700:#4338ca;--p800:#3730a3;
+  --sb:#1e1b4b;--sb2:#16134a;
+  --g50:#f8fafc;--g100:#f1f5f9;--g200:#e2e8f0;--g400:#94a3b8;--g500:#64748b;--g700:#334155;--g900:#0f172a;
+  --red:#dc2626;--r:8px;--r2:12px;
+  --font:'Inter',sans-serif;
+}
+html,body{height:100%;font-family:var(--font);background:var(--sb2);color:var(--g900)}
+body{
+  display:flex;align-items:center;justify-content:center;padding:24px;
+  background:radial-gradient(circle at 20% 20%, #2b2670 0%, var(--sb2) 45%, var(--sb) 100%);
+}
+.card{
+  width:100%;max-width:380px;background:#fff;border-radius:16px;
+  box-shadow:0 24px 60px rgba(0,0,0,.35);padding:36px 32px 28px;
+}
+.brand{display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:26px}
+.brand-icon{width:48px;height:48px;border-radius:12px;background:var(--p700);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(67,56,202,.35)}
+.brand-icon i{color:#fff;font-size:22px}
+.brand-name{font-size:18px;font-weight:700;color:var(--g900);letter-spacing:-.3px}
+.brand-name span{color:var(--p700)}
+.brand-sub{font-size:12px;color:var(--g500);text-align:center}
+
+.field{margin-bottom:16px}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--g700);margin-bottom:6px}
+.input-wrap{position:relative}
+.input-wrap i.leading{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--g400);font-size:13px}
+.input-wrap input{
+  width:100%;padding:10px 12px 10px 34px;border:1px solid var(--g200);border-radius:var(--r);
+  font-size:13px;font-family:var(--font);color:var(--g900);outline:none;transition:border-color .15s,box-shadow .15s;
+}
+.input-wrap input:focus{border-color:var(--p600);box-shadow:0 0 0 3px var(--p100)}
+.toggle-pw{position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--g400);font-size:13px;cursor:pointer;background:none;border:none;padding:4px}
+.toggle-pw:hover{color:var(--g700)}
+
+.remember-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.remember{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--g600)}
+.remember input{accent-color:var(--p700)}
+
+.btn-login{
+  width:100%;padding:11px;border:none;border-radius:var(--r);background:var(--p700);color:#fff;
+  font-family:var(--font);font-size:13.5px;font-weight:600;cursor:pointer;transition:background .15s;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.btn-login:hover{background:var(--p800)}
+.btn-login:disabled{background:var(--g400);cursor:not-allowed}
+
+.error-banner{
+  display:none;align-items:center;gap:8px;background:#fef2f2;border:1px solid #fecaca;color:var(--red);
+  font-size:12px;font-weight:500;padding:9px 12px;border-radius:var(--r);margin-bottom:16px;
+}
+.error-banner.show{display:flex}
+
+.footer-note{margin-top:18px;text-align:center;font-size:11px;color:rgba(255,255,255,.55)}
+</style>
+</head>
+<body>
+
+<div>
+  <div class="card">
+    <div class="brand">
+      <div class="brand-icon"><i class="fa-solid fa-map-location-dot"></i></div>
+      <div class="brand-name">Ship<span>Go</span> TMS</div>
+      <div class="brand-sub">PT Parama Global Inspira — GPS Tracking Platform</div>
+    </div>
+
+    <div class="error-banner" id="errorBanner">
+      <i class="fa-solid fa-circle-exclamation"></i>
+      <span id="errorText">Email atau password salah.</span>
+    </div>
+
+    <form id="loginForm" autocomplete="on">
+      <div class="field">
+        <label for="email">Email</label>
+        <div class="input-wrap">
+          <i class="fa-regular fa-envelope leading"></i>
+          <input type="email" id="email" name="email" placeholder="nama@shipgo.id" required autocomplete="username">
+        </div>
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <div class="input-wrap">
+          <i class="fa-solid fa-lock leading"></i>
+          <input type="password" id="password" name="password" placeholder="••••••••" required autocomplete="current-password" style="padding-right:34px">
+          <button type="button" class="toggle-pw" id="togglePw" aria-label="Tampilkan password"><i class="fa-regular fa-eye"></i></button>
+        </div>
+      </div>
+      <div class="remember-row">
+        <label class="remember"><input type="checkbox" id="remember"> Ingat saya</label>
+      </div>
+      <button type="submit" class="btn-login" id="submitBtn">
+        <i class="fa-solid fa-right-to-bracket"></i> <span>Masuk</span>
+      </button>
+    </form>
+
+  </div>
+  <div class="footer-note">&copy; 2026 PT Parama Global Inspira</div>
+</div>
+
+<script>
+const form = document.getElementById('loginForm');
+const errorBanner = document.getElementById('errorBanner');
+const errorText = document.getElementById('errorText');
+const submitBtn = document.getElementById('submitBtn');
+const togglePw = document.getElementById('togglePw');
+const pwInput = document.getElementById('password');
+
+togglePw.addEventListener('click', () => {
+  const isPw = pwInput.type === 'password';
+  pwInput.type = isPw ? 'text' : 'password';
+  togglePw.innerHTML = isPw ? '<i class="fa-regular fa-eye-slash"></i>' : '<i class="fa-regular fa-eye"></i>';
+});
+
+function setLoading(loading) {
+  submitBtn.disabled = loading;
+  submitBtn.innerHTML = loading
+    ? '<i class="fa-solid fa-circle-notch fa-spin"></i> <span>Memeriksa...</span>'
+    : '<i class="fa-solid fa-right-to-bracket"></i> <span>Masuk</span>';
+}
+
+function showError(msg) {
+  errorText.textContent = msg;
+  errorBanner.classList.add('show');
+}
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  errorBanner.classList.remove('show');
+  setLoading(true);
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({
+        email: document.getElementById('email').value,
+        password: pwInput.value,
+      }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      showError(data.error || 'Gagal masuk. Silakan coba lagi.');
+      setLoading(false);
+      return;
+    }
+    const params = new URLSearchParams(window.location.search);
+    const next = params.get('next');
+    window.location.href = next && next.startsWith('/') ? next : '/index.html';
+  } catch (err) {
+    showError('Tidak dapat terhubung ke server. Periksa koneksi Anda.');
+    setLoading(false);
+  }
+});
+</script>
+</body>
+</html>
