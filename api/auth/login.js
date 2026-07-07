@@ -38,7 +38,9 @@ export default async function handler(req, res) {
   }
 
   const user = findUserByEmail(normalizedEmail);
-  const valid = user ? bcrypt.compareSync(password, user.passwordHash) : false;
+  // Trim to absorb stray whitespace/newlines from copy-paste — these demo passwords
+  // never intentionally contain leading/trailing spaces.
+  const valid = user ? bcrypt.compareSync(password.trim(), user.passwordHash) : false;
   if (!valid) {
     return res.status(401).json({ error: 'Email atau password salah.' });
   }

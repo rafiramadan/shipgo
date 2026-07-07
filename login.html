@@ -143,8 +143,8 @@ form.addEventListener('submit', async (e) => {
       headers: { 'Content-Type': 'application/json' },
       credentials: 'same-origin',
       body: JSON.stringify({
-        email: document.getElementById('email').value,
-        password: pwInput.value,
+        email: document.getElementById('email').value.trim(),
+        password: pwInput.value.trim(),
       }),
     });
     const data = await res.json().catch(() => ({}));
