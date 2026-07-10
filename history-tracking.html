@@ -1049,10 +1049,17 @@ function getPlaybackKeyframes(t){
     const frac=Math.max(0,Math.min(1,(timeToMinutes(timeStr)-startMin)/span));
     kfs.push({frac,lat:d.lat,lng:d.lng});
   });
-  const last=t.route[t.route.length-1];
-  kfs.push({frac:1,lat:last[0],lng:last[1]});
   kfs.sort((a,b)=>a.frac-b.frac);
   for(let i=1;i<kfs.length;i++){ if(kfs[i].frac<=kfs[i-1].frac) kfs[i].frac=kfs[i-1].frac+0.0005; }
+  // Close the path at frac=1 without jumping to an unrelated fixed point: stay put at
+  // the last drop point (a real driver idles/returns from here, not to some other spot
+  // on the original hand-drawn route) — only fall back to the raw route's end if there
+  // were no usable DO keyframes at all.
+  const lastKf=kfs[kfs.length-1];
+  if(lastKf.frac<1){
+    const anchor=kfs.length>1?lastKf:{lat:t.route[t.route.length-1][0],lng:t.route[t.route.length-1][1]};
+    kfs.push({frac:1,lat:anchor.lat,lng:anchor.lng});
+  }
   t._pbKeyframes=kfs;
   return kfs;
 }
@@ -1546,12 +1553,17 @@ function drawTrip(t){
   if(eventsLayer){hmap.removeLayer(eventsLayer);}
   if(geofenceLayer){hmap.removeLayer(geofenceLayer);}
 
-  // ── Route polyline ──
+  // ── Route polyline — threaded through the actual drop points (same keyframes
+  // driving playback) so the trace guides through the real stop sequence instead of
+  // a generic path that drifts away from the pins ──
   routeLayer=L.layerGroup();
-  L.polyline(t.route,{color:'#4f46e5',weight:4,opacity:.85}).addTo(routeLayer);
+  const pbKfs=getPlaybackKeyframes(t);
+  const routePath=pbKfs.map(k=>[k.lat,k.lng]);
+  const routeEnd=routePath[routePath.length-1];
+  L.polyline(routePath,{color:'#4f46e5',weight:4,opacity:.85}).addTo(routeLayer);
   L.circleMarker(t.route[0],{radius:9,color:'#fff',fillColor:'#16a34a',fillOpacity:1,weight:2.5})
     .bindTooltip('<b>Start:</b> '+t.start,{direction:'right'}).addTo(routeLayer);
-  L.circleMarker(t.route[t.route.length-1],{radius:9,color:'#fff',fillColor:t.status==='inprogress'?'#4338ca':'#dc2626',fillOpacity:1,weight:2.5})
+  L.circleMarker(routeEnd,{radius:9,color:'#fff',fillColor:t.status==='inprogress'?'#4338ca':'#dc2626',fillOpacity:1,weight:2.5})
     .bindTooltip(t.end?'<b>End:</b> '+t.end:'<b>In Progress</b>',{direction:'right'}).addTo(routeLayer);
 
   // ── Geofence circles per DO ──
@@ -1615,7 +1627,10 @@ function drawTrip(t){
   // ── Event markers ──
   eventsLayer=L.layerGroup();
   t.events.filter(e=>['overspeed','braking','cornering','acceleration'].includes(e.type)).forEach((e,i)=>{
-    const pos=t.route[Math.min(1+i,t.route.length-2)];
+    // Use the event's own recorded coordinate — not an arbitrary route-array index —
+    // so the icon sits exactly on the (drop-point-aligned) trace/trail line.
+    const [elat,elng]=e.coords.split(',').map(Number);
+    const pos=(!isNaN(elat)&&!isNaN(elng))?[elat,elng]:t.route[Math.min(1+i,t.route.length-2)];
     const col=e.sev==='kritis'?'#dc2626':'#d97706';
     const ico=e.type==='overspeed'?'⚡':e.type==='braking'?'⛔':e.type==='acceleration'?'🚀':'↩';
     L.marker(pos,{icon:L.divIcon({

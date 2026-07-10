@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shipment Planning — PT Parama Global Inspira</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --p50:#eef2ff;--p100:#e0e7ff;--p200:#c7d2fe;--p300:#a5b4fc;
+  --p400:#818cf8;--p500:#6366f1;--p600:#4f46e5;--p700:#4338ca;--p800:#3730a3;--p900:#312e81;
+  --sb:#1e1b4b;--sb2:#16134a;
+  --green:#16a34a;--red:#dc2626;--orange:#ea580c;--amber:#d97706;
+  --g50:#f8fafc;--g100:#f1f5f9;--g150:#eef0f4;--g200:#e2e8f0;
+  --g300:#cbd5e1;--g400:#94a3b8;--g500:#64748b;--g700:#334155;--g900:#0f172a;
+  --sw:56px;--th:60px;--r:8px;--r2:12px;
+  --sh:0 1px 3px rgba(0,0,0,.08);--shl:0 8px 24px rgba(0,0,0,.13);
+  --font:'Inter',sans-serif;
+}
+html,body{height:100%;font-family:var(--font);font-size:13px;color:var(--g900);overflow:hidden;background:var(--g100)}
+
+/* ── TOPBAR ── */
+.topbar{position:fixed;top:0;left:0;right:0;height:var(--th);background:#fff;border-bottom:1px solid var(--g200);display:flex;align-items:center;z-index:1000;padding:0 20px 0 0;box-shadow:0 1px 0 var(--g200)}
+.tb-logo{width:var(--sw);height:var(--th);background:var(--sb2);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;transition:width .25s cubic-bezier(.4,0,.2,1)}
+.sidebar:hover~.topbar .tb-logo{width:220px}
+.tb-logo-inner{display:flex;align-items:center;gap:10px;padding:0 16px;white-space:nowrap}
+.tb-logo-icon{width:32px;height:32px;border-radius:8px;background:var(--p600);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.tb-logo-icon i{color:#fff;font-size:15px}
+.tb-logo-text{font-size:14px;font-weight:700;color:#fff;opacity:0;transition:opacity .15s .1s;letter-spacing:-.3px}
+.sidebar:hover~.topbar .tb-logo-text{opacity:1}
+.tb-dc{display:flex;flex-direction:column;margin-left:16px}
+.tb-dc-label{font-size:10px;color:var(--g400);font-weight:500;letter-spacing:.3px}
+.tb-dc-val{display:flex;align-items:center;gap:5px;font-size:14px;font-weight:600;color:var(--g900)}
+.tb-dc-val i{color:var(--p600);font-size:12px}
+.tb-spacer{flex:1}
+.tb-actions{display:flex;align-items:center;gap:6px}
+.tb-icon{width:34px;height:34px;border-radius:var(--r);border:1px solid var(--g200);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--g500);font-size:14px;position:relative;background:#fff;transition:all .15s}
+.tb-icon:hover{background:var(--p50);border-color:var(--p200);color:var(--p600)}
+.tb-icon .bdg{position:absolute;top:4px;right:4px;width:8px;height:8px;background:var(--red);border-radius:50%;border:1.5px solid #fff}
+.tb-user-wrap{position:relative}
+.tb-user{display:flex;align-items:center;gap:10px;padding:6px 12px;border:1px solid var(--g200);border-radius:var(--r2);cursor:pointer;background:#fff;margin-left:4px;transition:all .15s}
+.tb-user:hover{background:var(--p50);border-color:var(--p200)}
+.tb-user-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;background:#fff;border:1px solid var(--g200);border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.14);min-width:170px;z-index:2000;overflow:hidden}
+.tb-user-menu.open{display:block}
+.tb-user-menu-item{padding:10px 14px;font-size:12px;color:var(--g700);cursor:pointer;display:flex;align-items:center;gap:8px}
+.tb-user-menu-item:hover{background:var(--g50)}
+.tb-user-menu-item i{color:var(--g400);width:14px}
+.tb-avatar{width:28px;height:28px;border-radius:50%;background:var(--p100);display:flex;align-items:center;justify-content:center;color:var(--p700);font-size:11px;font-weight:700;position:relative;flex-shrink:0}
+.tb-avatar .online{position:absolute;bottom:0;right:0;width:9px;height:9px;border-radius:50%;background:#10b981;border:2px solid #fff}
+.tb-user-info{display:flex;flex-direction:column}
+.tb-name{font-size:13px;font-weight:600;color:var(--g900)}
+.tb-role{font-size:11px;color:var(--g500)}
+
+/* ── SIDEBAR ── */
+.sidebar{position:fixed;top:var(--th);left:0;bottom:0;width:var(--sw);background:var(--sb);display:flex;flex-direction:column;padding:10px 0;z-index:900;overflow:hidden;transition:width .25s cubic-bezier(.4,0,.2,1)}
+.sidebar:hover{width:220px}
+.sb-section{font-size:9px;font-weight:600;color:rgba(255,255,255,.25);letter-spacing:.8px;padding:10px 18px 4px;white-space:nowrap;overflow:hidden;opacity:0;transition:opacity .12s .06s}
+.sidebar:hover .sb-section{opacity:1}
+.si{display:flex;align-items:center;gap:12px;padding:0 18px;height:42px;cursor:pointer;color:rgba(255,255,255,.45);transition:all .15s;position:relative;white-space:nowrap;overflow:hidden;text-decoration:none}
+.si:hover{color:rgba(255,255,255,.9);background:rgba(255,255,255,.07)}
+.si.active{color:#fff;background:rgba(255,255,255,.12)}
+.si.active::before{content:'';position:absolute;left:0;top:8px;bottom:8px;width:3px;background:var(--p400);border-radius:0 3px 3px 0}
+.si i{font-size:16px;flex-shrink:0;width:22px;text-align:center}
+.si-label{font-size:12px;font-weight:500;opacity:0;transition:opacity .12s .06s;pointer-events:none}
+.sidebar:hover .si-label{opacity:1}
+.s-sp{flex:1}
+.sb-divider{height:1px;background:rgba(255,255,255,.08);margin:6px 0}
+
+/* ── MAIN LAYOUT ── */
+.main{
+  position:fixed;top:var(--th);left:var(--sw);right:0;bottom:0;
+  display:flex;flex-direction:column;overflow:hidden;
+}
+
+/* ── PAGE HEADER ── */
+.page-hdr{
+  background:#fff;border-bottom:1px solid var(--g200);
+  padding:12px 24px;flex-shrink:0;display:flex;align-items:center;gap:12px;
+}
+.page-hdr-left{display:flex;flex-direction:column;gap:2px}
+.page-breadcrumb{font-size:11px;color:var(--g400);font-weight:500}
+.page-title{font-size:20px;font-weight:700;color:var(--g900)}
+.hdr-spacer{flex:1}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--r);font-size:12px;font-weight:500;cursor:pointer;border:none;font-family:var(--font);transition:all .15s;white-space:nowrap}
+.btn-outline{background:#fff;color:var(--g700);border:1px solid var(--g200)}
+.btn-outline:hover{background:var(--g50);border-color:var(--p300);color:var(--p700)}
+.btn-primary{background:var(--p700);color:#fff}
+.btn-primary:hover{background:var(--p800)}
+.btn-ghost{background:transparent;color:var(--g600);border:1px solid var(--g200);font-size:11px}
+.btn-ghost:hover{background:var(--g50)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* ── FILTER BAR ── */
+.filter-bar{
+  background:#fff;border-bottom:1px solid var(--g200);
+  padding:8px 24px;flex-shrink:0;display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+}
+.filter-group{display:flex;align-items:center;gap:6px}
+.filter-label{font-size:11px;color:var(--g500);font-weight:500;white-space:nowrap}
+.ppill{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:500;cursor:pointer;border:1px solid var(--g200);background:#fff;color:var(--g600);transition:all .15s;white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
+.ppill.active{background:var(--p700);color:#fff;border-color:var(--p700)}
+.ppill:hover:not(.active){border-color:var(--p300);color:var(--p700);background:var(--p50)}
+.ppill .dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
+.filter-input{border:1px solid var(--g200);border-radius:var(--r);padding:5px 10px;font-size:12px;color:var(--g700);outline:none;font-family:var(--font);background:#fff;transition:border-color .15s}
+.filter-input:focus{border-color:var(--p400)}
+.filter-sep{width:1px;height:20px;background:var(--g200)}
+
+/* ── LOCATION SELECTOR ── */
+.loc-selector-wrap{position:relative}
+.loc-selector{display:flex;align-items:center;gap:8px;padding:6px 12px;border-radius:20px;border:1px solid var(--p200);background:var(--p50);color:var(--p700);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
+.loc-selector:hover{background:var(--p100)}
+.loc-selector .badge{background:var(--p700);color:#fff;border-radius:10px;padding:1px 7px;font-size:10.5px;font-weight:700}
+.loc-panel{display:none;position:absolute;top:calc(100% + 8px);left:0;z-index:1500;background:#fff;border:1px solid var(--g200);border-radius:var(--r2);box-shadow:var(--shl);padding:12px;width:300px}
+.loc-panel.open{display:block}
+.loc-panel-title{font-size:10px;font-weight:600;color:var(--g400);letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px}
+.loc-option{display:flex;align-items:center;gap:10px;padding:8px 8px;border-radius:var(--r);cursor:pointer}
+.loc-option:hover{background:var(--g50)}
+.loc-option input{margin:0}
+.loc-option .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.loc-option .lbl{font-weight:600;font-size:12.5px;flex:1;color:var(--g900)}
+.loc-option .cnt{font-size:11px;color:var(--g400)}
+.loc-panel-footer{display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:10px;border-top:1px solid var(--g200);font-size:11.5px}
+.loc-panel-footer a{color:var(--p700);text-decoration:none;font-weight:600}
+
+/* ── BODY / CONTENT ── */
+.body-wrap{flex:1;overflow-y:auto;padding:18px 24px 32px}
+.content-grid{display:flex;gap:16px;align-items:flex-start}
+.main-col{flex:1;min-width:0}
+.side-col{width:260px;flex-shrink:0}
+
+/* ── KPI ROW ── */
+.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px}
+.kpi-card{background:#fff;border:1px solid var(--g200);border-radius:var(--r2);padding:12px 14px;display:flex;align-items:center;gap:12px;box-shadow:var(--sh)}
+.kpi-icon{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px}
+.kpi-icon.blue{background:var(--p100);color:var(--p700)}
+.kpi-icon.green{background:#dcfce7;color:#15803d}
+.kpi-icon.purple{background:#ede9fe;color:#6d28d9}
+.kpi-icon.orange{background:#fef3c7;color:#b45309}
+.kpi-icon.pink{background:#fce7f3;color:#be185d}
+.kpi-body{min-width:0}
+.kpi-label{font-size:11px;color:var(--g500);font-weight:500;margin-bottom:2px;white-space:nowrap}
+.kpi-value{font-size:19px;font-weight:700;color:var(--g900);letter-spacing:-.01em}
+.kpi-sub{font-size:10.5px;color:var(--g400);margin-top:1px}
+
+/* ── DOC PANEL ── */
+.doc-panel{background:#fff;border:1px solid var(--g200);border-radius:var(--r2);box-shadow:var(--sh)}
+.doc-panel-hdr{padding:14px 16px 10px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.doc-panel-title{font-size:15px;font-weight:700;color:var(--g900)}
+.doc-toolbar{display:flex;align-items:center;gap:10px;padding:0 16px 12px;flex-wrap:wrap}
+.doc-toolbar .search-wrap{position:relative;width:230px}
+.doc-toolbar .search-wrap i{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--g400);font-size:11px}
+.doc-toolbar .search-wrap input{width:100%;padding-left:28px}
+.doc-toolbar-right{margin-left:auto;display:flex;gap:8px}
+.qf-row{display:flex;align-items:center;gap:6px;padding:0 16px 12px;flex-wrap:wrap}
+.doc-meta{padding:0 16px 8px;display:flex;align-items:center;justify-content:space-between;color:var(--g400);font-size:11.5px}
+.doc-meta b{color:var(--g900)}
+
+/* ── DOC TABLE ── */
+.doc-table-scroll{overflow-x:auto}
+table.doc-table{width:100%;border-collapse:collapse;font-size:12px}
+table.doc-table thead th{text-align:left;font-size:10.5px;font-weight:600;color:var(--g400);padding:9px 10px;border-top:1px solid var(--g200);border-bottom:1px solid var(--g200);background:var(--g50);white-space:nowrap}
+table.doc-table tbody td{padding:9px 10px;border-bottom:1px solid var(--g100);vertical-align:middle;white-space:nowrap;color:var(--g700)}
+table.doc-table tbody tr{cursor:pointer;transition:background .12s}
+table.doc-table tbody tr:hover{background:var(--p50)}
+table.doc-table tbody tr.selected{background:var(--p50)}
+table.doc-table tbody tr:last-child td{border-bottom:none}
+.cell-doc{font-weight:700;color:var(--g900)}
+
+/* Pills — status / order type / location */
+.st-pill{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:12px;font-size:10.5px;font-weight:600;white-space:nowrap}
+.st-pill.blue{background:var(--p700);color:#fff}
+.st-pill.orange{background:#fef3c7;color:#92400e}
+.st-pill.green{background:#dcfce7;color:#15803d}
+.st-pill.yellow{background:#fef9c3;color:#854d0e}
+.st-pill.red{background:#fee2e2;color:#b91c1c}
+.st-pill.gray{background:var(--g100);color:var(--g500)}
+.loc-tag{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:4px;font-size:10.5px;font-weight:600}
+.loc-tag .dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
+.loc-tag.banten{color:#3b5bb8;background:#e7ecfa}
+.loc-tag.jakarta{color:#0e7c80;background:#e0f2f2}
+.loc-tag.serang{color:#a8621f;background:#faedd9}
+.row-action{border:none;background:transparent;color:var(--g400);width:24px;height:24px;border-radius:5px;font-size:14px;cursor:pointer}
+.row-action:hover{background:var(--g100);color:var(--g700)}
+
+/* ── PAGINATION ── */
+.doc-pagination{padding:12px 16px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--g200)}
+.page-nums{display:flex;gap:4px;align-items:center;font-size:12px}
+.page-nums button{border:1px solid transparent;background:transparent;padding:4px 10px;border-radius:6px;font-size:12px;font-weight:600;color:var(--g600);cursor:pointer;font-family:var(--font)}
+.page-nums button.active{background:var(--p700);color:#fff}
+.page-nums button:hover:not(.active){background:var(--g50)}
+
+/* ── SUMMARY SIDE PANEL ── */
+.summary-panel{background:#fff;border:1px solid var(--g200);border-radius:var(--r2);padding:14px;position:sticky;top:0;box-shadow:var(--sh)}
+.summary-head{display:flex;align-items:center;gap:6px;font-weight:700;font-size:13.5px;color:var(--g900);margin-bottom:14px}
+.summary-head i{color:var(--p600);font-size:11px}
+.summary-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.summary-stat-label{font-size:10px;color:var(--g400);font-weight:500}
+.summary-stat-value{font-size:17px;font-weight:700;color:var(--g900);margin-top:2px}
+.summary-doc-hdr{display:flex;align-items:center;gap:6px;font-weight:700;font-size:12.5px;color:var(--g900);padding-top:12px;border-top:1px solid var(--g200);margin-bottom:12px}
+.summary-doc-hdr i{color:var(--g400);font-size:11px}
+.summary-empty{text-align:center;padding:20px 6px}
+.summary-empty-illust{width:60px;height:60px;margin:0 auto 12px;background:var(--p50);border-radius:50%;display:flex;align-items:center;justify-content:center}
+.summary-empty-illust i{font-size:22px;color:var(--p300)}
+.summary-empty-title{font-size:13px;font-weight:700;color:var(--g900);margin-bottom:6px}
+.summary-empty-desc{font-size:11.5px;color:var(--g400);line-height:1.5}
+.summary-doc-no{font-size:14px;font-weight:700;color:var(--g900);margin-bottom:3px}
+.summary-doc-cust{font-size:11.5px;color:var(--g500);margin-bottom:12px}
+.summary-fields{display:flex;flex-direction:column;gap:9px}
+.summary-field{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;font-size:11.5px}
+.summary-field .k{color:var(--g400);font-size:11px;font-weight:500}
+.summary-field .v{color:var(--g900);font-weight:600;text-align:right}
+.summary-actions{display:flex;gap:8px;padding-top:14px;margin-top:14px;border-top:1px solid var(--g200)}
+.summary-actions .btn{flex:1;justify-content:center}
+
+/* ── TOAST ── */
+#app-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--sb);color:#fff;padding:10px 20px;border-radius:10px;font-size:12px;font-weight:500;z-index:9999;transition:transform .3s ease,opacity .3s ease;opacity:0;pointer-events:none;display:flex;align-items:center;gap:8px;max-width:400px;box-shadow:0 4px 20px rgba(0,0,0,.25)}
+
+@media (max-width:1280px){ .kpi-row{grid-template-columns:repeat(3,1fr)} }
+</style>
+</head>
+<body>
+<script src="/auth-guard.js"></script>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="tb-logo">
+    <div class="tb-logo-inner">
+      <div class="tb-logo-icon"><i class="fa-solid fa-map-location-dot"></i></div>
+      <span class="tb-logo-text">FleetTrack TMS</span>
+    </div>
+  </div>
+  <div class="tb-dc">
+    <div class="tb-dc-label">Company</div>
+    <div class="tb-dc-val"><i class="fa-solid fa-building"></i> PT Parama Global Inspira</div>
+  </div>
+  <div class="tb-spacer"></div>
+  <div class="tb-actions">
+    <div class="tb-icon"><i class="fa-regular fa-bell"></i><span class="bdg"></span></div>
+    <div class="tb-icon"><i class="fa-regular fa-bullhorn"></i></div>
+    <div class="tb-user-wrap">
+      <div class="tb-user" id="tbUser">
+        <div class="tb-avatar"><span id="tbAvatarInitials">··</span><div class="online"></div></div>
+        <div class="tb-user-info">
+          <div class="tb-name" id="tbUserName">—</div>
+          <div class="tb-role" id="tbUserRole">—</div>
+        </div>
+        <i class="fa-solid fa-chevron-down" style="font-size:10px;color:var(--g400);margin-left:2px"></i>
+      </div>
+      <div class="tb-user-menu" id="tbUserMenu">
+        <div class="tb-user-menu-item" id="tbLogoutBtn"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sb-section">MAIN</div>
+  <div class="si" onclick="window.location.href='./index.html'"><i class="fa-solid fa-grip"></i><span class="si-label">Dashboard</span></div>
+  <div class="si" onclick="window.location.href='./live-tracking.html'"><i class="fa-solid fa-location-dot"></i><span class="si-label">Live Tracking</span></div>
+  <div class="sb-section">ORDER</div>
+  <div class="si active"><i class="fa-solid fa-boxes-stacked"></i><span class="si-label">Shipment Planning</span></div>
+  <div class="si"><i class="fa-solid fa-clipboard-list"></i><span class="si-label">Order Assignment</span></div>
+  <div class="si"><i class="fa-solid fa-route"></i><span class="si-label">Route Planning</span></div>
+  <div class="sb-section">ANALYTICS</div>
+  <div class="si" onclick="window.location.href='./history-tracking.html'"><i class="fa-solid fa-clock-rotate-left"></i><span class="si-label">History Tracking</span></div>
+  <div class="si"><i class="fa-solid fa-chart-line"></i><span class="si-label">Laporan Perjalanan</span></div>
+  <div class="si"><i class="fa-solid fa-chart-mixed"></i><span class="si-label">Analytics</span></div>
+  <div class="sb-section">FLEET</div>
+  <div class="si"><i class="fa-solid fa-truck"></i><span class="si-label">Kendaraan</span></div>
+  <div class="si"><i class="fa-regular fa-circle-user"></i><span class="si-label">Driver</span></div>
+  <div class="s-sp"></div>
+  <div class="sb-divider"></div>
+  <div class="si"><i class="fa-solid fa-gear"></i><span class="si-label">Settings</span></div>
+</nav>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- Page header -->
+  <div class="page-hdr">
+    <div class="page-hdr-left">
+      <div class="page-breadcrumb">Order Management</div>
+      <div class="page-title">Shipment Planning</div>
+    </div>
+    <div class="hdr-spacer"></div>
+    <button class="btn btn-outline" onclick="doExport()"><i class="fa-solid fa-download"></i> Export</button>
+  </div>
+
+  <!-- Filter bar -->
+  <div class="filter-bar">
+    <div class="loc-selector-wrap">
+      <div class="loc-selector" id="locSelectorBtn">
+        <i class="fa-solid fa-location-dot"></i>
+        <span id="locContextText">3 Lokasi</span>
+        <span class="badge" id="locBadgeCount">3</span>
+        <i class="fa-solid fa-chevron-down" style="font-size:9px"></i>
+      </div>
+      <div class="loc-panel" id="locPanel">
+        <div class="loc-panel-title">Shipping Point yang di-assign ke akun Anda</div>
+        <label class="loc-option">
+          <input type="checkbox" class="loc-check" data-loc="banten" checked>
+          <span class="dot" style="background:#3b5bb8"></span>
+          <span class="lbl">DC Banten</span>
+          <span class="cnt">6 DO</span>
+        </label>
+        <label class="loc-option">
+          <input type="checkbox" class="loc-check" data-loc="jakarta" checked>
+          <span class="dot" style="background:#0e7c80"></span>
+          <span class="lbl">Depo Jakarta</span>
+          <span class="cnt">5 DO</span>
+        </label>
+        <label class="loc-option">
+          <input type="checkbox" class="loc-check" data-loc="serang" checked>
+          <span class="dot" style="background:#a8621f"></span>
+          <span class="lbl">Depo Serang</span>
+          <span class="cnt">4 DO</span>
+        </label>
+        <div class="loc-panel-footer">
+          <span style="color:var(--g400)">Filter data yang ditampilkan</span>
+          <a href="#" id="locSelectAll">Pilih Semua</a>
+        </div>
+      </div>
+    </div>
+    <div class="filter-sep"></div>
+    <div class="filter-group">
+      <span class="filter-label">Status:</span>
+      <div class="ppill active" data-status="all" onclick="setStatusFilter(this,'all')">Semua</div>
+      <div class="ppill" data-status="goods_issued" onclick="setStatusFilter(this,'goods_issued')"><span class="dot" style="color:#15803d"></span>Goods Issued</div>
+      <div class="ppill" data-status="waiting_gi" onclick="setStatusFilter(this,'waiting_gi')"><span class="dot" style="color:#854d0e"></span>Waiting GI</div>
+      <div class="ppill" data-status="failed" onclick="setStatusFilter(this,'failed')"><span class="dot" style="color:#b91c1c"></span>Failed</div>
+    </div>
+    <div class="filter-group" style="margin-left:auto">
+      <div style="position:relative">
+        <i class="fa-solid fa-magnifying-glass" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);color:var(--g400);font-size:11px"></i>
+        <input class="filter-input" type="text" id="searchBox" placeholder="Cari no. dokumen, ship to..." style="padding-left:26px;width:220px">
+      </div>
+    </div>
+  </div>
+
+  <!-- Body -->
+  <div class="body-wrap">
+    <div class="content-grid">
+      <div class="main-col">
+
+        <!-- KPI Row -->
+        <div class="kpi-row">
+          <div class="kpi-card">
+            <div class="kpi-icon blue"><i class="fa-solid fa-file-lines"></i></div>
+            <div class="kpi-body">
+              <div class="kpi-label">Outstanding DO</div>
+              <div class="kpi-value" id="kpiDo">15</div>
+              <div class="kpi-sub" id="kpiDoSub">di 3 shipping point</div>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon green"><i class="fa-solid fa-cubes"></i></div>
+            <div class="kpi-body">
+              <div class="kpi-label">Total SKU</div>
+              <div class="kpi-value">7</div>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon purple"><i class="fa-solid fa-boxes-packing"></i></div>
+            <div class="kpi-body">
+              <div class="kpi-label">Shipping Units (SHU)</div>
+              <div class="kpi-value">19</div>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon orange"><i class="fa-solid fa-layer-group"></i></div>
+            <div class="kpi-body">
+              <div class="kpi-label">Total Qty (pcs)</div>
+              <div class="kpi-value">417</div>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon pink"><i class="fa-solid fa-map-location-dot"></i></div>
+            <div class="kpi-body">
+              <div class="kpi-label">Total Area Covered</div>
+              <div class="kpi-value">7 Areas</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Doc Panel -->
+        <div class="doc-panel">
+          <div class="doc-panel-hdr">
+            <div class="doc-panel-title">Daftar Dokumen</div>
+          </div>
+
+          <div class="doc-meta">
+            <div>Menampilkan <b id="showingText">1–10</b> dari <b id="totalText">15</b> dokumen</div>
+          </div>
+
+          <div class="doc-table-scroll">
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th><input type="checkbox" id="checkAll"></th>
+                  <th>No. Dokumen</th>
+                  <th>Order Type</th>
+                  <th>Shipping Point</th>
+                  <th>Ship To ID</th>
+                  <th>Ship To</th>
+                  <th>Order Status</th>
+                  <th>Stage</th>
+                  <th>SHU / SKU</th>
+                  <th>Qty</th>
+                  <th>Kota</th>
+                  <th>Aging</th>
+                  <th>GI Status</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="tbody"></tbody>
+            </table>
+          </div>
+
+          <div class="doc-pagination">
+            <div style="font-size:11.5px;color:var(--g400)">Halaman 1 dari 2</div>
+            <div class="page-nums">
+              <button>‹ Prev</button>
+              <button class="active">1</button>
+              <button>2</button>
+              <button>Next ›</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Summary side panel -->
+      <div class="side-col">
+        <div class="summary-panel">
+          <div class="summary-head"><i class="fa-solid fa-chart-simple"></i> Summary</div>
+          <div class="summary-stats">
+            <div><div class="summary-stat-label">Total Dok.</div><div class="summary-stat-value" id="ssDoc">0</div></div>
+            <div><div class="summary-stat-label">Total SHU</div><div class="summary-stat-value" id="ssShu">0</div></div>
+            <div><div class="summary-stat-label">Total SKU</div><div class="summary-stat-value" id="ssSku">0</div></div>
+          </div>
+          <div class="summary-doc-hdr"><i class="fa-solid fa-file-lines"></i> Dokumen</div>
+          <div id="sideBody">
+            <div class="summary-empty" id="emptyState">
+              <div class="summary-empty-illust"><i class="fa-regular fa-file"></i></div>
+              <div class="summary-empty-title">Pilih Dokumen</div>
+              <div class="summary-empty-desc">Silakan pilih dokumen terlebih dulu melalui daftar tabel di samping.</div>
+            </div>
+          </div>
+          <div class="summary-actions">
+            <button class="btn btn-outline" id="btnReset">Reset</button>
+            <button class="btn btn-primary" id="btnDraft">Create Draft</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const LOC = {
+  banten:  {name:'DC Banten',    cls:'banten'},
+  jakarta: {name:'Depo Jakarta', cls:'jakarta'},
+  serang:  {name:'Depo Serang',  cls:'serang'},
+};
+
+// Sample data — mixed across 3 shipping points (Order Management demo dataset)
+const DATA = [
+ {doc:'PMTEST3006',type:'Drop',loc:'banten', shipId:'CUST001',    shipTo:'PT. Global Shipping',       status:'menyiapkan',stage:'Outstanding',shu:'7/3',qty:'52 Pcs(s)', kota:'Depok',                 aging:'9 hari', gi:'failed',      giLabel:'Failed',      shu_n:7,sku_n:3},
+ {doc:'PMQA000025',type:'Drop',loc:'jakarta',shipId:'1000003956', shipTo:'APOTEK AR-RIDHO',           status:'draft',     stage:'Draft',      shu:'0/0',qty:'0 Pcs(s)',  kota:'KAB. PANDEGLANG',       aging:'10 hari',gi:'waiting_gi',  giLabel:'Waiting GI',  shu_n:0,sku_n:0},
+ {doc:'PMQA000024',type:'Drop',loc:'serang', shipId:'1000003827', shipTo:'ANDARA TOKO',               status:'draft',     stage:'Draft',      shu:'0/0',qty:'0 Pcs(s)',  kota:'KOTA ADM. JAKSEL',      aging:'10 hari',gi:'waiting_gi',  giLabel:'Waiting GI',  shu_n:0,sku_n:0},
+ {doc:'PMQA000023',type:'Drop',loc:'banten', shipId:'1000003528', shipTo:'212 MART TAMAN ROYAL 2',    status:'draft',     stage:'Draft',      shu:'0/0',qty:'0 Pcs(s)',  kota:'KOTA TANGERANG',        aging:'10 hari',gi:'waiting_gi',  giLabel:'Waiting GI',  shu_n:0,sku_n:0},
+ {doc:'PMQA000022',type:'Drop',loc:'jakarta',shipId:'1000000136', shipTo:'KANTOR PELAYANAN PAJAK PRATAMA JAKARTA KEMBANGAN',status:'draft',stage:'Draft',shu:'0/0',qty:'0 Pcs(s)',kota:'KOTA ADM. JAKBAR',aging:'10 hari',gi:'waiting_gi',giLabel:'Waiting GI',shu_n:0,sku_n:0},
+ {doc:'PMQA000021',type:'Drop',loc:'jakarta',shipId:'1000000074', shipTo:'BANK MANDIRI (PERSERO)',    status:'draft',     stage:'Draft',      shu:'0/0',qty:'0 Pcs(s)',  kota:'KOTA ADM. JAKSEL',      aging:'10 hari',gi:'goods_issued',giLabel:'Good Issued', shu_n:0,sku_n:0},
+ {doc:'PMQA000020',type:'Drop',loc:'serang', shipId:'1000000023', shipTo:'ANEKA COSMETICS PANDEGLANG KONSINYASI',status:'draft',stage:'Draft',shu:'0/0',qty:'0 Pcs(s)', kota:'KAB. PANDEGLANG',       aging:'10 hari',gi:'goods_issued',giLabel:'Good Issued', shu_n:0,sku_n:0},
+ {doc:'PMQA000019',type:'Drop',loc:'banten', shipId:'0000001307', shipTo:'PARAMA DC BANTEN',          status:'draft',     stage:'Draft',      shu:'0/0',qty:'0 Pcs(s)',  kota:'SERANG',                aging:'10 hari',gi:'goods_issued',giLabel:'Good Issued', shu_n:0,sku_n:0},
+ {doc:'PMQA000012',type:'Drop',loc:'banten', shipId:'1000005687', shipTo:'IMAH KOSMETIK',             status:'menyiapkan',stage:'Outstanding',shu:'3/4',qty:'115 Pcs(s)',kota:'KAB. SERANG',           aging:'31 hari',gi:'failed',      giLabel:'Failed',      shu_n:3,sku_n:4},
+ {doc:'PMQA000011',type:'Drop',loc:'jakarta',shipId:'1000005333', shipTo:'FAREL KOSMETIK',            status:'menyiapkan',stage:'Outstanding',shu:'2/3',qty:'30 Pcs(s)', kota:'KOTA TANGERANG',        aging:'29 hari',gi:'waiting_gi',  giLabel:'Waiting GI',  shu_n:2,sku_n:3},
+ {doc:'PMQA000010',type:'Drop',loc:'serang', shipId:'1000004821', shipTo:'CV BINTANG TIMUR',          status:'menyiapkan',stage:'Outstanding',shu:'4/2',qty:'88 Pcs(s)', kota:'KAB. SERANG',           aging:'12 hari',gi:'goods_issued',giLabel:'Good Issued', shu_n:4,sku_n:2},
+ {doc:'PMQA000009',type:'Drop',loc:'banten', shipId:'1000004500', shipTo:'TOKO SEJAHTERA MAKMUR',     status:'draft',     stage:'Draft',      shu:'0/0',qty:'0 Pcs(s)',  kota:'KOTA TANGERANG',        aging:'8 hari', gi:'waiting_gi',  giLabel:'Waiting GI',  shu_n:0,sku_n:0},
+ {doc:'PMQA000008',type:'Drop',loc:'jakarta',shipId:'1000004230', shipTo:'MINIMARKET JAYA ABADI',     status:'menyiapkan',stage:'Outstanding',shu:'1/2',qty:'24 Pcs(s)', kota:'KOTA ADM. JAKPUS',      aging:'5 hari', gi:'goods_issued',giLabel:'Good Issued', shu_n:1,sku_n:2},
+ {doc:'PMQA000007',type:'Drop',loc:'serang', shipId:'1000003980', shipTo:'WARUNG SEMBAKO 88',         status:'draft',     stage:'Draft',      shu:'0/0',qty:'0 Pcs(s)',  kota:'KAB. SERANG',           aging:'3 hari', gi:'waiting_gi',  giLabel:'Waiting GI',  shu_n:0,sku_n:0},
+ {doc:'PMQA000006',type:'Drop',loc:'banten', shipId:'1000003745', shipTo:'PT KARYA UTAMA MAKMUR',     status:'menyiapkan',stage:'Outstanding',shu:'2/1',qty:'48 Pcs(s)', kota:'KOTA TANGERANG',        aging:'6 hari', gi:'failed',      giLabel:'Failed',      shu_n:2,sku_n:1},
+];
+
+let filters={status:'all',search:'',activeLocs:new Set(['banten','jakarta','serang'])};
+let selectedDoc=null;
+let selectedRows=new Set();
+
+function renderTable(){
+  const rows=DATA.filter(d=>{
+    if(!filters.activeLocs.has(d.loc)) return false;
+    if(filters.status!=='all' && d.gi!==filters.status) return false;
+    if(filters.search){
+      const q=filters.search.toLowerCase();
+      if(!(d.doc.toLowerCase().includes(q)||d.shipTo.toLowerCase().includes(q))) return false;
+    }
+    return true;
+  });
+
+  const tbody=document.getElementById('tbody');
+  if(!rows.length){
+    tbody.innerHTML=`<tr><td colspan="14" style="text-align:center;padding:36px;color:var(--g400)">Tidak ada dokumen sesuai filter.</td></tr>`;
+    document.getElementById('showingText').textContent='0';
+    document.getElementById('totalText').textContent='0';
+    return;
+  }
+
+  tbody.innerHTML=rows.slice(0,10).map(d=>{
+    const loc=LOC[d.loc];
+    return `<tr data-doc="${d.doc}" class="${selectedRows.has(d.doc)?'selected':''}">
+      <td><input type="checkbox" class="row-check" data-doc="${d.doc}" ${selectedRows.has(d.doc)?'checked':''}></td>
+      <td class="cell-doc">${d.doc}</td>
+      <td><span class="st-pill blue"><i class="fa-solid fa-arrow-down" style="font-size:8px"></i> ${d.type}</span></td>
+      <td><span class="loc-tag ${loc.cls}"><span class="dot"></span>${loc.name}</span></td>
+      <td>${d.shipId}</td>
+      <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis">${d.shipTo}</td>
+      <td>${d.status==='menyiapkan'?'<span class="st-pill orange">Menyiapkan Pengiriman</span>':'<span class="st-pill gray">Draft</span>'}</td>
+      <td>${d.stage==='Outstanding'?'<span class="st-pill orange">Outstanding</span>':'<span class="st-pill gray">Draft</span>'}</td>
+      <td>${d.shu}</td>
+      <td>${d.qty}</td>
+      <td>${d.kota}</td>
+      <td>${d.aging}</td>
+      <td>${d.gi==='goods_issued'?'<span class="st-pill green">Good Issued</span>':d.gi==='waiting_gi'?'<span class="st-pill yellow">Waiting GI</span>':'<span class="st-pill red">Failed</span>'}</td>
+      <td><button class="row-action" onclick="event.stopPropagation()"><i class="fa-solid fa-ellipsis-vertical"></i></button></td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('showingText').textContent=`1–${Math.min(rows.length,10)}`;
+  document.getElementById('totalText').textContent=rows.length;
+  document.getElementById('kpiDo').textContent=rows.length;
+  document.getElementById('kpiDoSub').textContent=`di ${filters.activeLocs.size} shipping point`;
+
+  tbody.querySelectorAll('tr[data-doc]').forEach(tr=>{
+    tr.addEventListener('click',e=>{
+      if(e.target.closest('.row-check')||e.target.closest('.row-action')) return;
+      selectDoc(tr.dataset.doc);
+    });
+  });
+  tbody.querySelectorAll('.row-check').forEach(cb=>{
+    cb.addEventListener('change',()=>{
+      const doc=cb.dataset.doc;
+      if(cb.checked) selectedRows.add(doc); else selectedRows.delete(doc);
+      updateSummaryStats();
+      tbody.querySelector(`tr[data-doc="${doc}"]`).classList.toggle('selected',cb.checked);
+    });
+  });
+}
+
+function selectDoc(doc){
+  const d=DATA.find(x=>x.doc===doc);
+  if(!d) return;
+  selectedDoc=d;
+  const loc=LOC[d.loc];
+  document.getElementById('sideBody').innerHTML=`
+    <div class="summary-doc-no">${d.doc}</div>
+    <div class="summary-doc-cust">${d.shipTo}</div>
+    <div style="margin-bottom:14px"><span class="loc-tag ${loc.cls}"><span class="dot"></span>${loc.name}</span></div>
+    <div class="summary-fields">
+      <div class="summary-field"><span class="k">Ship To ID</span><span class="v">${d.shipId}</span></div>
+      <div class="summary-field"><span class="k">Order Type</span><span class="v"><span class="st-pill blue">${d.type}</span></span></div>
+      <div class="summary-field"><span class="k">Stage</span><span class="v">${d.stage}</span></div>
+      <div class="summary-field"><span class="k">SHU / SKU</span><span class="v">${d.shu}</span></div>
+      <div class="summary-field"><span class="k">Quantity</span><span class="v">${d.qty}</span></div>
+      <div class="summary-field"><span class="k">Kota</span><span class="v" style="max-width:130px;word-break:break-word">${d.kota}</span></div>
+      <div class="summary-field"><span class="k">Aging</span><span class="v">${d.aging}</span></div>
+      <div class="summary-field"><span class="k">GI Status</span><span class="v">${d.giLabel}</span></div>
+    </div>`;
+}
+
+function updateSummaryStats(){
+  let shu=0,sku=0;
+  selectedRows.forEach(doc=>{
+    const d=DATA.find(x=>x.doc===doc);
+    if(d){shu+=d.shu_n;sku+=d.sku_n;}
+  });
+  document.getElementById('ssDoc').textContent=selectedRows.size;
+  document.getElementById('ssShu').textContent=shu;
+  document.getElementById('ssSku').textContent=sku;
+}
+
+function setStatusFilter(el,status){
+  document.querySelectorAll('.ppill[data-status]').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  filters.status=status;
+  renderTable();
+}
+
+document.getElementById('searchBox').addEventListener('input',e=>{
+  filters.search=e.target.value;
+  renderTable();
+});
+
+// Location selector panel
+const locBtn=document.getElementById('locSelectorBtn');
+const locPanel=document.getElementById('locPanel');
+locBtn.addEventListener('click',e=>{ e.stopPropagation(); locPanel.classList.toggle('open'); });
+document.addEventListener('click',e=>{
+  if(!locPanel.contains(e.target) && !locBtn.contains(e.target)) locPanel.classList.remove('open');
+});
+document.querySelectorAll('.loc-check').forEach(chk=>{
+  chk.addEventListener('change',()=>{
+    if(chk.checked) filters.activeLocs.add(chk.dataset.loc);
+    else filters.activeLocs.delete(chk.dataset.loc);
+    if(filters.activeLocs.size===0){ chk.checked=true; filters.activeLocs.add(chk.dataset.loc); return; }
+    updateLocContext();
+    renderTable();
+  });
+});
+document.getElementById('locSelectAll').addEventListener('click',e=>{
+  e.preventDefault();
+  document.querySelectorAll('.loc-check').forEach(c=>{ c.checked=true; filters.activeLocs.add(c.dataset.loc); });
+  updateLocContext();
+  renderTable();
+});
+
+function updateLocContext(){
+  const n=filters.activeLocs.size;
+  document.getElementById('locBadgeCount').textContent=n;
+  const names=[...filters.activeLocs].map(k=>LOC[k].name);
+  document.getElementById('locContextText').textContent = n===3 ? '3 Lokasi' : (n===1 ? names[0] : `${n} Lokasi`);
+}
+
+document.getElementById('checkAll').addEventListener('change',e=>{
+  document.querySelectorAll('.row-check').forEach(cb=>{
+    cb.checked=e.target.checked;
+    if(e.target.checked) selectedRows.add(cb.dataset.doc); else selectedRows.delete(cb.dataset.doc);
+    cb.closest('tr').classList.toggle('selected',e.target.checked);
+  });
+  updateSummaryStats();
+});
+
+document.getElementById('btnReset').addEventListener('click',()=>{
+  selectedRows.clear();
+  selectedDoc=null;
+  document.querySelectorAll('.row-check').forEach(cb=>cb.checked=false);
+  document.getElementById('checkAll').checked=false;
+  document.querySelectorAll('tr.selected').forEach(tr=>tr.classList.remove('selected'));
+  document.getElementById('sideBody').innerHTML=`
+    <div class="summary-empty" id="emptyState">
+      <div class="summary-empty-illust"><i class="fa-regular fa-file"></i></div>
+      <div class="summary-empty-title">Pilih Dokumen</div>
+      <div class="summary-empty-desc">Silakan pilih dokumen terlebih dulu melalui daftar tabel di samping.</div>
+    </div>`;
+  updateSummaryStats();
+});
+
+document.getElementById('btnDraft').addEventListener('click',()=>{
+  if(!selectedRows.size){ showToast('Pilih minimal satu dokumen terlebih dahulu.'); return; }
+  showToast(`Draft planning dibuat untuk ${selectedRows.size} dokumen.`);
+});
+
+function doExport(){
+  showToast('Export data sedang diproses untuk dokumen sesuai filter aktif.');
+}
+
+function showToast(msg){
+  let t=document.getElementById('app-toast');
+  if(!t){
+    t=document.createElement('div');
+    t.id='app-toast';
+    document.body.appendChild(t);
+  }
+  t.innerHTML=`<i class="fa-solid fa-circle-check" style="color:#86efac;font-size:14px"></i> ${msg}`;
+  t.style.opacity='1';
+  t.style.transform='translateX(-50%) translateY(0)';
+  t.style.pointerEvents='auto';
+  clearTimeout(t._timer);
+  t._timer=setTimeout(()=>{
+    t.style.opacity='0';
+    t.style.transform='translateX(-50%) translateY(80px)';
+    t.style.pointerEvents='none';
+  },3200);
+}
+
+renderTable();
+updateLocContext();
+</script>
+</body>
+</html>
