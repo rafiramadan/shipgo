@@ -7,7 +7,8 @@
     { "source": "/history", "destination": "/history-tracking.html" },
     { "source": "/shipment", "destination": "/shipment-planning.html" },
     { "source": "/roles", "destination": "/group-role.html" },
-    { "source": "/users", "destination": "/user-management.html" }
+    { "source": "/users", "destination": "/user-management.html" },
+    { "source": "/config", "destination": "/feature-config.html" }
   ],
   "headers": [
     {

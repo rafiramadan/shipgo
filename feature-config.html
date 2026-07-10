@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Feature Config — PT Parama Global Inspira</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --p50:#eef2ff;--p100:#e0e7ff;--p200:#c7d2fe;--p300:#a5b4fc;
+  --p400:#818cf8;--p500:#6366f1;--p600:#4f46e5;--p700:#4338ca;--p800:#3730a3;--p900:#312e81;
+  --sb:#1e1b4b;--sb2:#16134a;
+  --green:#16a34a;--red:#dc2626;--orange:#ea580c;--amber:#d97706;
+  --g50:#f8fafc;--g100:#f1f5f9;--g150:#eef0f4;--g200:#e2e8f0;
+  --g300:#cbd5e1;--g400:#94a3b8;--g500:#64748b;--g700:#334155;--g900:#0f172a;
+  --sw:220px;--th:60px;--r:8px;--r2:12px;
+  --sh:0 1px 3px rgba(0,0,0,.08);--shl:0 8px 24px rgba(0,0,0,.13);
+  --font:'Inter',sans-serif;
+}
+html,body{height:100%;font-family:var(--font);font-size:13px;color:var(--g900);overflow:hidden;background:var(--g100)}
+
+/* ── TOPBAR ── */
+.topbar{position:fixed;top:0;left:0;right:0;height:var(--th);background:#fff;border-bottom:1px solid var(--g200);display:flex;align-items:center;z-index:1000;padding:0 20px 0 0;box-shadow:0 1px 0 var(--g200)}
+.tb-logo{width:var(--sw);height:var(--th);background:var(--sb2);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;transition:width .2s ease}
+.tb-logo-inner{display:flex;align-items:center;gap:10px;padding:0 16px;white-space:nowrap}
+.tb-logo-icon{width:32px;height:32px;border-radius:8px;background:var(--p600);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.tb-logo-icon i{color:#fff;font-size:15px}
+.tb-logo-text{font-size:14px;font-weight:700;color:#fff;opacity:1;letter-spacing:-.3px;transition:opacity .15s}
+body.sb-collapsed .tb-logo-text{opacity:0;pointer-events:none}
+.tb-dc{display:flex;flex-direction:column;margin-left:16px}
+.tb-dc-label{font-size:10px;color:var(--g400);font-weight:500;letter-spacing:.3px}
+.tb-dc-val{display:flex;align-items:center;gap:5px;font-size:14px;font-weight:600;color:var(--g900)}
+.tb-dc-val i{color:var(--p600);font-size:12px}
+.tb-spacer{flex:1}
+.tb-actions{display:flex;align-items:center;gap:6px}
+.tb-icon{width:34px;height:34px;border-radius:var(--r);border:1px solid var(--g200);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--g500);font-size:14px;position:relative;background:#fff;transition:all .15s}
+.tb-icon:hover{background:var(--p50);border-color:var(--p200);color:var(--p600)}
+.tb-icon .bdg{position:absolute;top:4px;right:4px;width:8px;height:8px;background:var(--red);border-radius:50%;border:1.5px solid #fff}
+.tb-user-wrap{position:relative}
+.tb-user{display:flex;align-items:center;gap:10px;padding:6px 12px;border:1px solid var(--g200);border-radius:var(--r2);cursor:pointer;background:#fff;margin-left:4px;transition:all .15s}
+.tb-user:hover{background:var(--p50);border-color:var(--p200)}
+.tb-user-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;background:#fff;border:1px solid var(--g200);border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.14);min-width:170px;z-index:2000;overflow:hidden}
+.tb-user-menu.open{display:block}
+.tb-user-menu-item{padding:10px 14px;font-size:12px;color:var(--g700);cursor:pointer;display:flex;align-items:center;gap:8px}
+.tb-user-menu-item:hover{background:var(--g50)}
+.tb-user-menu-item i{color:var(--g400);width:14px}
+.tb-avatar{width:28px;height:28px;border-radius:50%;background:var(--p100);display:flex;align-items:center;justify-content:center;color:var(--p700);font-size:11px;font-weight:700;position:relative;flex-shrink:0}
+.tb-avatar .online{position:absolute;bottom:0;right:0;width:9px;height:9px;border-radius:50%;background:#10b981;border:2px solid #fff}
+.tb-user-info{display:flex;flex-direction:column}
+.tb-name{font-size:13px;font-weight:600;color:var(--g900)}
+.tb-role{font-size:11px;color:var(--g500)}
+
+/* ── SIDEBAR ── */
+.sidebar{position:fixed;top:var(--th);left:0;bottom:0;width:var(--sw);background:#fff;border-right:1px solid var(--g200);display:flex;flex-direction:column;padding:8px 10px 14px;z-index:900;overflow-x:hidden;overflow-y:auto;transition:width .2s ease}
+.sb-top{display:flex;justify-content:flex-end;padding:2px 2px 6px}
+.sb-collapse-btn{width:26px;height:26px;border:none;background:transparent;color:var(--g400);border-radius:6px;cursor:pointer;font-size:12px;flex-shrink:0}
+.sb-collapse-btn:hover{background:var(--g100);color:var(--g700)}
+.sb-section{font-size:10px;font-weight:600;color:var(--g400);letter-spacing:.6px;text-transform:uppercase;padding:12px 10px 4px;white-space:nowrap;overflow:hidden}
+.si{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;cursor:pointer;color:var(--g600);font-size:13px;font-weight:500;text-decoration:none;margin-bottom:1px;white-space:nowrap;overflow:hidden;position:relative;transition:all .15s}
+.si:hover{background:var(--p50);color:var(--p700)}
+.si.active{background:var(--p50);color:var(--p700);font-weight:600}
+.si svg{width:17px;height:17px;flex-shrink:0}
+.si-label{opacity:1;flex:1;overflow:hidden;text-overflow:ellipsis}
+.si-caret{margin-left:auto;font-size:9px;color:var(--g400);flex-shrink:0}
+.si-dot{width:7px;height:7px;border-radius:50%;background:#f97316;flex-shrink:0;margin-left:6px}
+.nav-sub{margin:1px 4px 8px 29px;padding-left:10px;border-left:1px solid var(--g200)}
+.nav-sub .si{padding:6px 10px;font-size:12.5px}
+.nav-sub .si.active{background:transparent;color:var(--p700)}
+.nav-sub .si.active::before{content:'';position:absolute;left:-11px;top:6px;bottom:6px;width:2px;background:var(--p600);border-radius:2px}
+.s-sp{flex:1}
+.sb-divider{height:1px;background:var(--g200);margin:6px 4px}
+body.sb-collapsed .sidebar{width:64px}
+body.sb-collapsed .si-label,body.sb-collapsed .sb-section,body.sb-collapsed .si-caret,body.sb-collapsed .si-dot,body.sb-collapsed .nav-sub{display:none}
+body.sb-collapsed .si{justify-content:center}
+body.sb-collapsed .sb-top{justify-content:center}
+
+/* ── MAIN LAYOUT ── */
+.main{position:fixed;top:var(--th);left:var(--sw);right:0;bottom:0;display:flex;flex-direction:column;overflow:hidden;transition:left .2s ease}
+
+/* ── PAGE HEADER ── */
+.page-hdr{background:#fff;border-bottom:1px solid var(--g200);padding:12px 24px;flex-shrink:0;display:flex;align-items:center;gap:12px}
+.page-hdr-left{display:flex;flex-direction:column;gap:2px}
+.page-breadcrumb{font-size:11px;color:var(--g400);font-weight:500}
+.page-title{font-size:20px;font-weight:700;color:var(--g900)}
+.hdr-spacer{flex:1}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--r);font-size:12px;font-weight:500;cursor:pointer;border:none;font-family:var(--font);transition:all .15s;white-space:nowrap}
+.btn-outline{background:#fff;color:var(--g700);border:1px solid var(--g200)}
+.btn-outline:hover{background:var(--g50);border-color:var(--p300);color:var(--p700)}
+.btn-primary{background:var(--p700);color:#fff}
+.btn-primary:hover{background:var(--p800)}
+.btn-ghost{background:transparent;color:var(--p700);border:none;font-size:11.5px;font-weight:600;padding:6px 4px}
+.btn-ghost:hover{text-decoration:underline}
+.btn-sm{padding:5px 10px;font-size:11.5px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* ── FEATURE TABS ── */
+.feature-tab-bar{background:#fff;border-bottom:1px solid var(--g200);padding:10px 24px;flex-shrink:0;display:flex;gap:8px;flex-wrap:wrap}
+.feature-tab{display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:var(--r);border:1px solid var(--g200);background:#fff;color:var(--g600);font-size:12.5px;font-weight:600;cursor:pointer;transition:all .15s}
+.feature-tab:hover{border-color:var(--p300);color:var(--p700)}
+.feature-tab.active{background:var(--p700);border-color:var(--p700);color:#fff}
+.feature-tab i{font-size:12px}
+.feature-tab .ft-count{font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;background:rgba(255,255,255,.25)}
+.feature-tab:not(.active) .ft-count{background:var(--p50);color:var(--p700)}
+
+/* ── BODY ── */
+.body-wrap{flex:1;overflow-y:auto;padding:18px 24px}
+.feature-banner{display:flex;align-items:flex-start;gap:12px;background:var(--p50);border:1px solid var(--p200);border-radius:var(--r2);padding:12px 16px;margin-bottom:16px}
+.feature-banner-icon{width:34px;height:34px;border-radius:9px;background:var(--p700);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px}
+.feature-banner-title{font-size:13.5px;font-weight:700;color:var(--g900);margin-bottom:3px}
+.feature-banner-desc{font-size:12px;color:var(--g600);line-height:1.6}
+.feature-banner-rule{font-size:11.5px;color:var(--p700);background:#fff;border:1px solid var(--p200);border-radius:6px;padding:6px 10px;margin-top:8px;display:inline-flex;align-items:center;gap:6px}
+
+.content-grid{display:flex;gap:16px;align-items:flex-start}
+.main-col{flex:1;min-width:0}
+.side-col{width:280px;flex-shrink:0;display:flex;flex-direction:column;gap:16px}
+
+.panel{background:#fff;border:1px solid var(--g200);border-radius:var(--r2);box-shadow:var(--sh)}
+.panel-hdr-row{padding:14px 16px 10px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--g200)}
+.panel-title{font-size:14px;font-weight:700;color:var(--g900)}
+.panel-sub{font-size:11px;color:var(--g400);margin-top:2px}
+
+.stat-pills{display:flex;gap:8px;margin-left:auto}
+.stat-pill{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:3px 10px;border-radius:12px}
+.stat-pill.on{background:#dcfce7;color:#15803d}
+.stat-pill.off{background:var(--g100);color:var(--g500)}
+
+.toolbar-row{display:flex;align-items:center;gap:10px;padding:12px 16px;flex-wrap:wrap;border-bottom:1px solid var(--g100)}
+.filter-select{border:1px solid var(--g200);border-radius:var(--r);padding:6px 26px 6px 10px;font-size:12px;color:var(--g700);background:#fff;outline:none;font-family:var(--font);cursor:pointer;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%2364748b' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center}
+.filter-input{border:1px solid var(--g200);border-radius:var(--r);padding:6px 10px;font-size:12px;color:var(--g700);outline:none;font-family:var(--font);background:#fff}
+.filter-input:focus,.filter-select:focus{border-color:var(--p400)}
+.bulk-bar{display:flex;align-items:center;gap:8px;margin-left:auto;background:var(--p50);border:1px solid var(--p200);border-radius:var(--r);padding:5px 10px}
+.bulk-bar span{font-size:11.5px;font-weight:600;color:var(--p700)}
+
+table.drv-table{width:100%;border-collapse:collapse;font-size:12.5px}
+table.drv-table thead th{text-align:left;font-size:11px;font-weight:600;color:var(--g400);padding:9px 16px;border-bottom:1px solid var(--g200);background:var(--g50);white-space:nowrap}
+table.drv-table tbody td{padding:10px 16px;border-bottom:1px solid var(--g100);vertical-align:middle}
+table.drv-table tbody tr:last-child td{border-bottom:none}
+table.drv-table tbody tr:hover{background:var(--g50)}
+.drv-name{font-weight:700;color:var(--g900)}
+.drv-id{color:var(--g400);font-size:11px}
+.dc-pill{display:inline-flex;align-items:center;font-size:11px;font-weight:600;background:var(--p50);color:var(--p700);padding:2px 9px;border-radius:12px}
+
+.switch{position:relative;display:inline-flex;align-items:center;gap:8px}
+.switch input{position:absolute;opacity:0;width:0;height:0}
+.switch .track{position:relative;width:36px;height:20px;background:var(--g300);border-radius:20px;cursor:pointer;transition:background .2s;flex-shrink:0}
+.switch .track::before{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 2px rgba(0,0,0,.25)}
+.switch input:checked+.track{background:var(--green)}
+.switch input:checked+.track::before{transform:translateX(16px)}
+.switch .switch-label{font-size:11.5px;font-weight:600}
+.switch .switch-label.active{color:var(--green)}
+.switch .switch-label.inactive{color:var(--g400)}
+
+.do-type-row{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--g100)}
+.do-type-row:last-child{border-bottom:none}
+.do-type-name{font-size:12.5px;font-weight:600;color:var(--g800)}
+
+.activity-item{padding:10px 16px;border-bottom:1px solid var(--g100);font-size:11.5px;line-height:1.6}
+.activity-item:last-child{border-bottom:none}
+.activity-item .who{font-weight:700;color:var(--g900)}
+.activity-item .what{color:var(--g600)}
+.activity-item .when{color:var(--g400);font-size:10.5px;margin-top:2px}
+.activity-badge{display:inline-flex;font-size:10px;font-weight:700;padding:1px 6px;border-radius:8px}
+.activity-badge.on{background:#dcfce7;color:#15803d}
+.activity-badge.off{background:#fee2e2;color:#b91c1c}
+
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;gap:10px}
+.empty-state i{font-size:32px;color:var(--p200)}
+.empty-title{font-size:14px;font-weight:600;color:var(--g700)}
+.empty-sub{font-size:11.5px;color:var(--g400);text-align:center;line-height:1.6;max-width:260px}
+
+/* ── MODAL (Audit Log) ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:2000;display:none;align-items:center;justify-content:center;padding:24px}
+.modal-overlay.show{display:flex}
+.modal{background:#fff;border-radius:var(--r2);padding:0;overflow:hidden;box-shadow:var(--shl);display:flex;flex-direction:column;max-height:100%}
+.modal.modal-lg{width:820px;max-width:100%}
+.modal-head{padding:16px 20px;border-bottom:1px solid var(--g200);display:flex;align-items:center;gap:10px;flex-shrink:0}
+.modal-title{font-size:15px;font-weight:700;color:var(--g900);flex:1}
+.modal-close{width:28px;height:28px;border-radius:6px;border:1px solid var(--g200);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--g500);font-size:12px;background:#fff}
+.modal-close:hover{background:var(--g100)}
+.modal-body{padding:0;display:flex;flex-direction:column;overflow-y:auto}
+.modal-foot{padding:12px 20px;border-top:1px solid var(--g200);display:flex;gap:8px;justify-content:flex-end;flex-shrink:0}
+
+table.audit-table{width:100%;border-collapse:collapse;font-size:12px}
+table.audit-table thead th{text-align:left;font-size:10.5px;font-weight:600;color:var(--g400);padding:9px 16px;border-bottom:1px solid var(--g200);background:var(--g50);white-space:nowrap;position:sticky;top:0}
+table.audit-table tbody td{padding:9px 16px;border-bottom:1px solid var(--g100);white-space:nowrap}
+table.audit-table tbody tr:last-child td{border-bottom:none}
+.audit-change{display:flex;align-items:center;gap:6px;font-weight:600}
+.audit-arrow{color:var(--g400);font-size:10px}
+
+#app-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--sb);color:#fff;padding:10px 20px;border-radius:10px;font-size:12px;font-weight:500;z-index:9999;transition:transform .3s ease,opacity .3s ease;opacity:0;pointer-events:none;display:flex;align-items:center;gap:8px;max-width:420px;box-shadow:0 4px 20px rgba(0,0,0,.25)}
+
+@media (max-width:1100px){ .content-grid{flex-direction:column} .side-col{width:100%;flex-direction:row;flex-wrap:wrap} .side-col>.panel{flex:1;min-width:260px} }
+</style>
+</head>
+<body>
+<script src="/auth-guard.js"></script>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="tb-logo">
+    <div class="tb-logo-inner">
+      <div class="tb-logo-icon"><i class="fa-solid fa-map-location-dot"></i></div>
+      <span class="tb-logo-text">ShipGo TMS</span>
+    </div>
+  </div>
+  <div class="tb-dc">
+    <div class="tb-dc-label">Company</div>
+    <div class="tb-dc-val"><i class="fa-solid fa-building"></i> PT Parama Global Inspira</div>
+  </div>
+  <div class="tb-spacer"></div>
+  <div class="tb-actions">
+    <div class="tb-icon"><i class="fa-regular fa-bell"></i><span class="bdg"></span></div>
+    <div class="tb-icon"><i class="fa-regular fa-bullhorn"></i></div>
+    <div class="tb-user-wrap">
+      <div class="tb-user" id="tbUser">
+        <div class="tb-avatar"><span id="tbAvatarInitials">··</span><div class="online"></div></div>
+        <div class="tb-user-info">
+          <div class="tb-name" id="tbUserName">—</div>
+          <div class="tb-role" id="tbUserRole">—</div>
+        </div>
+        <i class="fa-solid fa-chevron-down" style="font-size:10px;color:var(--g400);margin-left:2px"></i>
+      </div>
+      <div class="tb-user-menu" id="tbUserMenu">
+        <div class="tb-user-menu-item" id="tbLogoutBtn"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sb-top"><button class="sb-collapse-btn" onclick="toggleSidebar()" title="Collapse sidebar"><i class="fa-solid fa-angles-left"></i></button></div>
+  <div class="sb-section">Main Menu</div>
+  <a class="si" href="./index.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    <span class="si-label">Dashboard</span>
+  </a>
+  <a class="si" href="./live-tracking.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-7.58 7-12a7 7 0 00-14 0c0 4.42 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>
+    <span class="si-label">Live Tracking</span>
+  </a>
+  <a class="si" href="./history-tracking.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/><path d="M12 7v5l3.5 2"/></svg>
+    <span class="si-label">History Tracking</span>
+  </a>
+
+  <div class="sb-section">Order Management</div>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5h6a2 2 0 012 2v12a2 2 0 01-2 2H9a2 2 0 01-2-2V7a2 2 0 012-2z"/><path d="M9 3h6v4H9z"/></svg>
+    <span class="si-label">Order Management</span>
+    <span class="si-caret">▾</span>
+  </a>
+  <div class="nav-sub">
+    <a class="si" href="./shipment-planning.html"><span class="si-label">Planning</span></a>
+    <a class="si" href="#"><span class="si-label">Assignment</span></a>
+    <a class="si" href="#"><span class="si-label">Tracking</span></a>
+    <a class="si" href="#"><span class="si-label">Review</span></a>
+  </div>
+
+  <div class="sb-section">Analytics</div>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v16h16"/><path d="M7 15l3.5-4 3 2.5L19 7"/></svg>
+    <span class="si-label">Laporan Perjalanan</span>
+  </a>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v16h16"/><rect x="7" y="12" width="2.6" height="5"/><rect x="12" y="9" width="2.6" height="8"/><rect x="17" y="6" width="2.6" height="11"/></svg>
+    <span class="si-label">Analytics</span>
+  </a>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+    <span class="si-label">Peringatan</span>
+    <span class="si-dot"></span>
+  </a>
+
+  <div class="sb-section">Fleet</div>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="7" width="12" height="9" rx="1"/><path d="M13 10h4l3.5 3.2V16H13z"/><circle cx="5.5" cy="17.5" r="1.6"/><circle cx="17" cy="17.5" r="1.6"/></svg>
+    <span class="si-label">Kendaraan</span>
+  </a>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2.5"/><circle cx="12" cy="10" r="2.3"/><path d="M7.5 16.8c.6-1.9 2.3-2.8 4.5-2.8s3.9.9 4.5 2.8"/></svg>
+    <span class="si-label">Driver</span>
+  </a>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+    <span class="si-label">Kamera</span>
+  </a>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0116 0"/></svg>
+    <span class="si-label">Roster Management</span>
+  </a>
+
+  <div class="sb-section">Admin</div>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg>
+    <span class="si-label">User &amp; Access</span>
+    <span class="si-caret">▾</span>
+  </a>
+  <div class="nav-sub">
+    <a class="si" href="./group-role.html"><span class="si-label">Group / Role</span></a>
+    <a class="si" href="./user-management.html"><span class="si-label">User Management</span></a>
+  </div>
+  <a class="si active" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09A1.65 1.65 0 0015 4.6a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    <span class="si-label">Configuration</span>
+    <span class="si-caret">▾</span>
+  </a>
+  <div class="nav-sub">
+    <a class="si active" href="./feature-config.html"><span class="si-label">Feature Config</span></a>
+  </div>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v6c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M3 11v6c0 1.66 4 3 9 3s9-1.34 9-3v-6"/></svg>
+    <span class="si-label">Master Data</span>
+    <span class="si-caret">▾</span>
+  </a>
+
+  <div class="s-sp"></div>
+  <div class="sb-divider"></div>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 015 0c0 1.5-2 2-2.5 3.5"/><path d="M12 17h.01"/></svg>
+    <span class="si-label">Bantuan</span>
+  </a>
+</nav>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="page-hdr">
+    <div class="page-hdr-left">
+      <div class="page-breadcrumb">Configuration</div>
+      <div class="page-title">Feature Config</div>
+    </div>
+    <div class="hdr-spacer"></div>
+    <button class="btn btn-outline" onclick="openAuditModal()"><i class="fa-solid fa-clock-rotate-left"></i> Audit Log</button>
+  </div>
+
+  <div class="feature-tab-bar" id="featureTabBar"></div>
+
+  <div class="body-wrap">
+    <div class="feature-banner" id="featureBanner"></div>
+
+    <div class="content-grid">
+      <div class="main-col">
+        <div class="panel">
+          <div class="panel-hdr-row">
+            <div>
+              <div class="panel-title">Driver Configuration</div>
+              <div class="panel-sub">Atur akses fitur per driver. Perubahan berlaku pada sesi/pengiriman berikutnya.</div>
+            </div>
+            <div class="stat-pills" id="driverStatPills"></div>
+          </div>
+          <div class="toolbar-row">
+            <select class="filter-select" id="dcFilter"></select>
+            <div style="position:relative">
+              <i class="fa-solid fa-magnifying-glass" style="position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--g400);font-size:11px"></i>
+              <input class="filter-input" type="text" id="driverSearch" placeholder="Cari driver..." style="padding-left:26px;width:200px">
+            </div>
+            <div class="bulk-bar" id="bulkBar" style="display:none">
+              <span id="bulkCount">0 driver dipilih</span>
+              <button class="btn btn-outline btn-sm" onclick="bulkSetStatus(true)"><i class="fa-solid fa-toggle-on"></i> Enable</button>
+              <button class="btn btn-outline btn-sm" onclick="bulkSetStatus(false)"><i class="fa-solid fa-toggle-off"></i> Disable</button>
+            </div>
+          </div>
+          <div class="drv-table-scroll" style="overflow-x:auto">
+            <table class="drv-table">
+              <thead>
+                <tr>
+                  <th style="width:30px"><input type="checkbox" id="checkAllDrivers"></th>
+                  <th>Driver</th>
+                  <th>DC</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="driverTbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="side-col">
+        <div class="panel">
+          <div class="panel-hdr-row" style="border-bottom:1px solid var(--g200)">
+            <div>
+              <div class="panel-title">DO Type Configuration</div>
+              <div class="panel-sub">Berlaku untuk semua DO ke depan dengan tipe ini.</div>
+            </div>
+          </div>
+          <div id="doTypeList"></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-hdr-row" style="border-bottom:1px solid var(--g200)">
+            <div class="panel-title">Recent Activity</div>
+          </div>
+          <div id="recentActivity"></div>
+          <div style="padding:8px 16px 12px">
+            <button class="btn-ghost" onclick="openAuditModal()">Lihat Semua Log <i class="fa-solid fa-arrow-right" style="font-size:10px"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Audit Log Modal -->
+<div class="modal-overlay" id="auditModal">
+  <div class="modal modal-lg">
+    <div class="modal-head">
+      <div class="modal-title"><i class="fa-solid fa-clock-rotate-left" style="color:var(--p600);margin-right:6px;font-size:13px"></i>Configuration Audit Log — <span id="auditModalFeature"></span></div>
+      <div class="modal-close" onclick="closeAuditModal()"><i class="fa-solid fa-xmark"></i></div>
+    </div>
+    <div class="modal-body">
+      <div style="overflow-x:auto">
+        <table class="audit-table">
+          <thead>
+            <tr>
+              <th>Waktu</th>
+              <th>Admin</th>
+              <th>Scope</th>
+              <th>Target</th>
+              <th>DC</th>
+              <th>Perubahan</th>
+            </tr>
+          </thead>
+          <tbody id="auditTbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeAuditModal()">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function toggleSidebar(){
+  const collapsed=document.body.classList.toggle('sb-collapsed');
+  document.documentElement.style.setProperty('--sw', collapsed?'64px':'220px');
+}
+function escapeHtml(str){
+  const d=document.createElement('div');
+  d.textContent=str==null?'':String(str);
+  return d.innerHTML;
+}
+function todayStr(){ return new Date().toISOString().slice(0,16).replace('T',' '); }
+
+// ── REFERENCE DATA ──
+const FEATURES=[
+  {key:'auto_pickup',name:'Auto Pickup',icon:'fa-solid fa-box-open',
+   desc:'Mengizinkan driver menyelesaikan proses pickup barang secara otomatis tanpa konfirmasi manual dari admin.'},
+  {key:'auto_pod_validation',name:'Auto POD Validation',icon:'fa-solid fa-clipboard-check',
+   desc:'Memvalidasi Proof of Delivery (POD) secara otomatis ketika kriteria pengiriman terpenuhi, mengurangi beban review manual admin.',
+   rule:'Auto-validasi hanya berjalan jika Delivery Status = <b>Terkirim Semua</b> DAN CFOT = <b>Ontime</b> — dan berlaku hanya jika toggle Driver <b>DAN</b> DO Type sama-sama Enabled. Jika salah satu Disabled, DO diarahkan ke menu review admin.'},
+  {key:'pod_do_level',name:'POD on DO Level',icon:'fa-solid fa-layer-group',
+   desc:'Merekam Proof of Delivery per DO individual (bukan per manifest/shipment gabungan), memberi granularitas lebih untuk audit & klaim.'},
+  {key:'pod_ai_result',name:'POD with AI Result',icon:'fa-solid fa-wand-magic-sparkles',
+   desc:'Menyertakan hasil deteksi AI (kualitas foto, kecocokan tanda tangan) sebagai bagian dari proses POD driver.'},
+];
+let currentFeature=FEATURES[0].key;
+
+const DC_NAMES=[
+  'DC Aceh','DC Ambon','DC Bali','DC Bangka','DC Banten','DC Bengkulu','DC Bogor','DC Bukittinggi',
+  'DC Jambi','DC Kendari','DC Lampung','DC Manado','DC Mataram','DC Palangkaraya','DC Palu','DC Pontianak',
+  'DC Purwokerto','DC Rantau Prapat','DC Samarinda','DC Semarang','DC Solo','DC Sukabumi','DC Surabaya',
+  'DC Tanjung Pinang','DC Tasikmalaya','DC Bandung','DC Banjarmasin','DC Cirebon','DC Jember','DC Kediri',
+  'DC Makassar','DC Medan','DC Palembang','DC Pekanbaru',
+].sort((a,b)=>a.localeCompare(b));
+function slugify(s){ return s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,''); }
+const DCS=DC_NAMES.map(name=>({id:slugify(name),name}));
+
+const DO_TYPES=['Drop','Pickup','Transit','Retur'];
+
+// Reuse the same driver roster referenced in History Tracking, assigned across DCs
+const DRIVERS=[
+  {id:'drv1',name:'Citra Mulyono',dc:'dc-solo'},
+  {id:'drv2',name:'M. Fadhli Salam',dc:'dc-bandung'},
+  {id:'drv3',name:'M. Iqbal Kurniawan',dc:'dc-bogor'},
+  {id:'drv4',name:'Tri Febrianto',dc:'dc-tasikmalaya'},
+  {id:'drv5',name:'Farraz Nanang Fauzan',dc:'dc-solo'},
+  {id:'drv6',name:'Alamsyah Satrio Aji',dc:'dc-semarang'},
+  {id:'drv7',name:'Abdullah Harmaen',dc:'dc-bandung'},
+  {id:'drv8',name:'Tio Sugiatna',dc:'dc-sukabumi'},
+  {id:'drv9',name:'Wahono Prasetyo',dc:'dc-solo'},
+  {id:'drv10',name:'Asep Kurnia',dc:'dc-bogor'},
+];
+
+// Per-feature config state — every driver/DO-type starts Disabled (safe default, Scenario 9)
+let featureConfig={};
+FEATURES.forEach(f=>{
+  featureConfig[f.key]={
+    driver:Object.fromEntries(DRIVERS.map(d=>[d.id,false])),
+    doType:Object.fromEntries(DO_TYPES.map(t=>[t,false])),
+  };
+});
+// Seed a realistic in-progress rollout for Auto POD Validation so the page isn't all-empty on first view
+featureConfig.auto_pod_validation.driver['drv1']=true;
+featureConfig.auto_pod_validation.driver['drv2']=true;
+featureConfig.auto_pod_validation.driver['drv5']=true;
+featureConfig.auto_pod_validation.doType['Drop']=true;
+
+let auditLog=[]; // {id,ts,feature,admin,scope,targetId,targetName,dc,before,after}
+
+let dcFilterVal='';
+let driverSearchTerm='';
+let selectedDriverIds=new Set();
+
+// ── FEATURE TABS ──
+function renderFeatureTabs(){
+  document.getElementById('featureTabBar').innerHTML=FEATURES.map(f=>{
+    const enabledCount=Object.values(featureConfig[f.key].driver).filter(Boolean).length;
+    return `<div class="feature-tab ${f.key===currentFeature?'active':''}" onclick="switchFeature('${f.key}')">
+      <i class="${f.icon}"></i> ${f.name} <span class="ft-count">${enabledCount}</span>
+    </div>`;
+  }).join('');
+}
+
+function switchFeature(key){
+  currentFeature=key;
+  selectedDriverIds.clear();
+  dcFilterVal='';
+  driverSearchTerm='';
+  document.getElementById('dcFilter').value='';
+  document.getElementById('driverSearch').value='';
+  renderAll();
+}
+
+function renderFeatureBanner(){
+  const f=FEATURES.find(x=>x.key===currentFeature);
+  document.getElementById('featureBanner').innerHTML=`
+    <div class="feature-banner-icon"><i class="${f.icon}"></i></div>
+    <div>
+      <div class="feature-banner-title">${f.name}</div>
+      <div class="feature-banner-desc">${f.desc}</div>
+      ${f.rule?`<div class="feature-banner-rule"><i class="fa-solid fa-circle-info"></i> ${f.rule}</div>`:''}
+    </div>`;
+}
+
+// ── DC FILTER ──
+function initDcFilter(){
+  const sel=document.getElementById('dcFilter');
+  sel.innerHTML='<option value="">Semua DC</option>'+DCS.map(dc=>{
+    const count=DRIVERS.filter(d=>d.dc===dc.id).length;
+    return `<option value="${dc.id}">${escapeHtml(dc.name)} (${count} driver)</option>`;
+  }).join('');
+  sel.addEventListener('change',e=>{ dcFilterVal=e.target.value; selectedDriverIds.clear(); renderDriverPanel(); });
+}
+document.getElementById('driverSearch').addEventListener('input',e=>{
+  driverSearchTerm=e.target.value;
+  renderDriverPanel();
+});
+
+function getFilteredDrivers(){
+  const q=driverSearchTerm.toLowerCase();
+  return DRIVERS.filter(d=>{
+    if(dcFilterVal && d.dc!==dcFilterVal) return false;
+    if(q && !d.name.toLowerCase().includes(q)) return false;
+    return true;
+  });
+}
+
+// ── DRIVER PANEL ──
+function renderDriverPanel(){
+  const cfg=featureConfig[currentFeature];
+  const rows=getFilteredDrivers();
+
+  const onCount=rows.filter(d=>cfg.driver[d.id]).length;
+  const offCount=rows.length-onCount;
+  document.getElementById('driverStatPills').innerHTML=`
+    <span class="stat-pill on"><i class="fa-solid fa-toggle-on"></i> ${onCount} Enabled</span>
+    <span class="stat-pill off"><i class="fa-solid fa-toggle-off"></i> ${offCount} Disabled</span>`;
+
+  const tbody=document.getElementById('driverTbody');
+  if(!rows.length){
+    tbody.innerHTML=`<tr><td colspan="4"><div class="empty-state">
+      <i class="fa-solid fa-user-slash"></i>
+      <div class="empty-title">Tidak ada driver ditemukan</div>
+      <div class="empty-sub">Coba ubah filter DC atau kata kunci pencarian.</div>
+    </div></td></tr>`;
+  }else{
+    tbody.innerHTML=rows.map(d=>{
+      const dc=DCS.find(x=>x.id===d.dc);
+      const on=cfg.driver[d.id];
+      return `<tr>
+        <td><input type="checkbox" class="drv-check" data-id="${d.id}" ${selectedDriverIds.has(d.id)?'checked':''} onchange="onDriverCheck('${d.id}',this.checked)"></td>
+        <td><div class="drv-name">${escapeHtml(d.name)}</div><div class="drv-id">${d.id.toUpperCase()}</div></td>
+        <td><span class="dc-pill">${escapeHtml(dc?dc.name:d.dc)}</span></td>
+        <td>
+          <label class="switch">
+            <input type="checkbox" ${on?'checked':''} onchange="setDriverStatus('${d.id}',this.checked)">
+            <span class="track"></span>
+          </label>
+          <span class="switch-label ${on?'active':'inactive'}" style="margin-left:6px">${on?'Enabled':'Disabled'}</span>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  document.getElementById('checkAllDrivers').checked = rows.length>0 && rows.every(d=>selectedDriverIds.has(d.id));
+  renderBulkBar();
+}
+
+function onDriverCheck(id,checked){
+  if(checked) selectedDriverIds.add(id); else selectedDriverIds.delete(id);
+  renderBulkBar();
+  document.getElementById('checkAllDrivers').checked = getFilteredDrivers().every(d=>selectedDriverIds.has(d.id));
+}
+document.getElementById('checkAllDrivers').addEventListener('change',e=>{
+  const rows=getFilteredDrivers();
+  if(e.target.checked) rows.forEach(d=>selectedDriverIds.add(d.id));
+  else rows.forEach(d=>selectedDriverIds.delete(d.id));
+  renderDriverPanel();
+});
+
+function renderBulkBar(){
+  const bar=document.getElementById('bulkBar');
+  if(selectedDriverIds.size>0){
+    bar.style.display='flex';
+    document.getElementById('bulkCount').textContent=`${selectedDriverIds.size} driver dipilih`;
+  }else{
+    bar.style.display='none';
+  }
+}
+
+// ── ENABLE / DISABLE (Scenario 3, 4, 8) ──
+function setDriverStatus(driverId,newVal){
+  const cfg=featureConfig[currentFeature];
+  const before=cfg.driver[driverId];
+  if(before===newVal) return;
+  cfg.driver[driverId]=newVal;
+  const driver=DRIVERS.find(d=>d.id===driverId);
+  const dc=DCS.find(x=>x.id===driver.dc);
+  logAudit({scope:'Driver',targetId:driver.id,targetName:driver.name,dc:dc?dc.name:driver.dc,before,after:newVal});
+  showToast(`${FEATURES.find(f=>f.key===currentFeature).name} untuk ${driver.name} diubah menjadi ${newVal?'Enabled':'Disabled'}.`);
+  renderAll();
+}
+
+// ── BULK TOGGLE (Scenario 7) ──
+function bulkSetStatus(newVal){
+  const cfg=featureConfig[currentFeature];
+  let changed=0;
+  selectedDriverIds.forEach(driverId=>{
+    const before=cfg.driver[driverId];
+    if(before===newVal) return;
+    cfg.driver[driverId]=newVal;
+    changed++;
+    const driver=DRIVERS.find(d=>d.id===driverId);
+    const dc=DCS.find(x=>x.id===driver.dc);
+    logAudit({scope:'Driver',targetId:driver.id,targetName:driver.name,dc:dc?dc.name:driver.dc,before,after:newVal});
+  });
+  showToast(changed?`${changed} driver diperbarui menjadi ${newVal?'Enabled':'Disabled'}.`:'Tidak ada perubahan — driver terpilih sudah dalam status tersebut.');
+  selectedDriverIds.clear();
+  renderAll();
+}
+
+// ── DO TYPE CONFIGURATION (Scenario 10) ──
+function renderDoTypePanel(){
+  const cfg=featureConfig[currentFeature];
+  document.getElementById('doTypeList').innerHTML=DO_TYPES.map(t=>{
+    const on=cfg.doType[t];
+    return `<div class="do-type-row">
+      <span class="do-type-name">${escapeHtml(t)}</span>
+      <label class="switch">
+        <input type="checkbox" ${on?'checked':''} onchange="setDoTypeStatus('${t}',this.checked)">
+        <span class="track"></span>
+      </label>
+    </div>`;
+  }).join('');
+}
+function setDoTypeStatus(doType,newVal){
+  const cfg=featureConfig[currentFeature];
+  const before=cfg.doType[doType];
+  if(before===newVal) return;
+  cfg.doType[doType]=newVal;
+  logAudit({scope:'DO Type',targetId:doType,targetName:doType,dc:'—',before,after:newVal});
+  showToast(`${FEATURES.find(f=>f.key===currentFeature).name} untuk DO Type "${doType}" diubah menjadi ${newVal?'Enabled':'Disabled'}.`);
+  renderAll();
+}
+
+// ── AUDIT LOG (Scenario 8) ──
+function logAudit(entry){
+  auditLog.unshift({
+    id:'log'+Date.now()+Math.random().toString(36).slice(2,6),
+    ts:todayStr(),
+    feature:currentFeature,
+    admin:(window.shipgoUser&&window.shipgoUser.name)||'Admin',
+    ...entry,
+  });
+}
+function renderRecentActivity(){
+  const entries=auditLog.filter(e=>e.feature===currentFeature).slice(0,5);
+  const el=document.getElementById('recentActivity');
+  if(!entries.length){
+    el.innerHTML=`<div class="empty-state" style="padding:24px 16px">
+      <i class="fa-regular fa-clock"></i>
+      <div class="empty-sub">Belum ada perubahan konfigurasi untuk fitur ini.</div>
+    </div>`;
+    return;
+  }
+  el.innerHTML=entries.map(e=>`
+    <div class="activity-item">
+      <span class="who">${escapeHtml(e.admin)}</span> <span class="what">mengubah ${e.scope==='Driver'?'driver':'DO Type'} <b>${escapeHtml(e.targetName)}</b> menjadi</span>
+      <span class="activity-badge ${e.after?'on':'off'}">${e.after?'Enabled':'Disabled'}</span>
+      <div class="when">${e.ts}</div>
+    </div>`).join('');
+}
+
+function openAuditModal(){
+  document.getElementById('auditModalFeature').textContent=FEATURES.find(f=>f.key===currentFeature).name;
+  const entries=auditLog.filter(e=>e.feature===currentFeature);
+  const tbody=document.getElementById('auditTbody');
+  tbody.innerHTML=entries.length?entries.map(e=>`
+    <tr>
+      <td>${e.ts}</td>
+      <td>${escapeHtml(e.admin)}</td>
+      <td>${e.scope}</td>
+      <td>${escapeHtml(e.targetName)}</td>
+      <td>${escapeHtml(e.dc)}</td>
+      <td><div class="audit-change">
+        <span class="activity-badge ${e.before?'on':'off'}">${e.before?'Enabled':'Disabled'}</span>
+        <i class="fa-solid fa-arrow-right audit-arrow"></i>
+        <span class="activity-badge ${e.after?'on':'off'}">${e.after?'Enabled':'Disabled'}</span>
+      </div></td>
+    </tr>`).join(''):`<tr><td colspan="6"><div class="empty-state">
+      <i class="fa-regular fa-clock"></i>
+      <div class="empty-title">Belum ada log perubahan</div>
+      <div class="empty-sub">Log akan muncul di sini setiap kali konfigurasi fitur ini diubah.</div>
+    </div></td></tr>`;
+  document.getElementById('auditModal').classList.add('show');
+}
+function closeAuditModal(){ document.getElementById('auditModal').classList.remove('show'); }
+
+// ── TOAST ──
+function showToast(msg){
+  let t=document.getElementById('app-toast');
+  if(!t){
+    t=document.createElement('div');
+    t.id='app-toast';
+    document.body.appendChild(t);
+  }
+  t.innerHTML=`<i class="fa-solid fa-circle-check" style="color:#86efac;font-size:14px"></i> ${msg}`;
+  t.style.opacity='1';
+  t.style.transform='translateX(-50%) translateY(0)';
+  t.style.pointerEvents='auto';
+  clearTimeout(t._timer);
+  t._timer=setTimeout(()=>{
+    t.style.opacity='0';
+    t.style.transform='translateX(-50%) translateY(80px)';
+    t.style.pointerEvents='none';
+  },3600);
+}
+
+function renderAll(){
+  renderFeatureTabs();
+  renderFeatureBanner();
+  renderDriverPanel();
+  renderDoTypePanel();
+  renderRecentActivity();
+}
+
+initDcFilter();
+renderAll();
+</script>
+</body>
+</html>

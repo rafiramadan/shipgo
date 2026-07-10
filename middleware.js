@@ -17,6 +17,8 @@ export const config = {
     '/group-role.html',
     '/users',
     '/user-management.html',
+    '/config',
+    '/feature-config.html',
   ],
 };
 
