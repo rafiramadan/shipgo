@@ -382,7 +382,7 @@ table.audit-table tbody tr:last-child td{border-bottom:none}
       </div>
 
       <div class="side-col">
-        <div class="panel">
+        <div class="panel" id="doTypePanel">
           <div class="panel-hdr-row" style="border-bottom:1px solid var(--g200)">
             <div>
               <div class="panel-title">DO Type Configuration</div>
@@ -451,14 +451,14 @@ function todayStr(){ return new Date().toISOString().slice(0,16).replace('T',' '
 // ── REFERENCE DATA ──
 const FEATURES=[
   {key:'auto_pickup',name:'Auto Pickup',icon:'fa-solid fa-box-open',
-   desc:'Mengizinkan driver menyelesaikan proses pickup barang secara otomatis tanpa konfirmasi manual dari admin.'},
+   desc:'Mengizinkan driver menyelesaikan proses pickup barang secara otomatis tanpa melakukan pick up masing-masing SHU.'},
   {key:'auto_pod_validation',name:'Auto POD Validation',icon:'fa-solid fa-clipboard-check',
    desc:'Memvalidasi Proof of Delivery (POD) secara otomatis ketika kriteria pengiriman terpenuhi, mengurangi beban review manual admin.',
    rule:'Auto-validasi hanya berjalan jika Delivery Status = <b>Terkirim Semua</b> DAN CFOT = <b>Ontime</b> — dan berlaku hanya jika toggle Driver <b>DAN</b> DO Type sama-sama Enabled. Jika salah satu Disabled, DO diarahkan ke menu review admin.'},
   {key:'pod_do_level',name:'POD on DO Level',icon:'fa-solid fa-layer-group',
-   desc:'Merekam Proof of Delivery per DO individual (bukan per manifest/shipment gabungan), memberi granularitas lebih untuk audit & klaim.'},
+   desc:'Merekam Proof of Delivery per DO (bukan per material / SKU), sekaligus mengecek kualitas foto driver.'},
   {key:'pod_ai_result',name:'POD with AI Result',icon:'fa-solid fa-wand-magic-sparkles',
-   desc:'Menyertakan hasil deteksi AI (kualitas foto, kecocokan tanda tangan) sebagai bagian dari proses POD driver.'},
+   desc:'Menyertakan hasil deteksi AI (kualitas foto, coretan faktur) sebagai bagian dari proses POD driver.'},
 ];
 let currentFeature=FEATURES[0].key;
 
@@ -662,8 +662,14 @@ function bulkSetStatus(newVal){
   renderAll();
 }
 
-// ── DO TYPE CONFIGURATION (Scenario 10) ──
+// ── DO TYPE CONFIGURATION (Scenario 10) — only applicable to Auto POD Validation ──
 function renderDoTypePanel(){
+  const panel=document.getElementById('doTypePanel');
+  if(currentFeature!=='auto_pod_validation'){
+    panel.style.display='none';
+    return;
+  }
+  panel.style.display='';
   const cfg=featureConfig[currentFeature];
   document.getElementById('doTypeList').innerHTML=DO_TYPES.map(t=>{
     const on=cfg.doType[t.code];

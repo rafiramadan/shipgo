@@ -121,10 +121,6 @@ table.usr-table tbody tr:hover{background:var(--g50)}
 .loc-tags{display:flex;flex-wrap:wrap;gap:4px;max-width:200px}
 .loc-tag-sm{font-size:10.5px;font-weight:600;background:var(--g100);color:var(--g600);padding:2px 7px;border-radius:4px;white-space:nowrap}
 .loc-tag-sm.more{background:var(--p50);color:var(--p700)}
-.auth-badges{display:flex;gap:4px}
-.auth-badge{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:600;padding:2px 7px;border-radius:4px}
-.auth-badge.local{background:#e0f2fe;color:#075985}
-.auth-badge.sso{background:#ede9fe;color:#6d28d9}
 .usr-updated{color:var(--g400);font-size:11.5px}
 .usr-actions{display:flex;align-items:center;gap:6px}
 .icon-btn{width:28px;height:28px;border-radius:6px;border:1px solid var(--g200);background:#fff;color:var(--g500);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;transition:all .15s}
@@ -195,15 +191,6 @@ table.usr-table tbody tr:hover{background:var(--g50)}
 .ms-option .chk{width:15px;height:15px;border:1.5px solid var(--g300);border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:9px;color:#fff}
 .ms-option.selected .chk{background:var(--p600);border-color:var(--p600)}
 .ms-empty{padding:16px;text-align:center;color:var(--g400);font-size:12px}
-
-.auth-opt-row{display:flex;gap:12px}
-.auth-opt{flex:1;display:flex;align-items:flex-start;gap:10px;border:1px solid var(--g200);border-radius:var(--r);padding:12px;cursor:pointer;transition:all .15s}
-.auth-opt:hover{border-color:var(--p300)}
-.auth-opt.checked{border-color:var(--p600);background:var(--p50)}
-.auth-opt input{margin-top:2px}
-.auth-opt-body{display:flex;flex-direction:column;gap:2px}
-.auth-opt-title{font-size:12.5px;font-weight:700;color:var(--g900)}
-.auth-opt-desc{font-size:11px;color:var(--g500);line-height:1.5}
 
 #app-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--sb);color:#fff;padding:10px 20px;border-radius:10px;font-size:12px;font-weight:500;z-index:9999;transition:transform .3s ease,opacity .3s ease;opacity:0;pointer-events:none;display:flex;align-items:center;gap:8px;max-width:420px;box-shadow:0 4px 20px rgba(0,0,0,.25)}
 
@@ -389,7 +376,6 @@ table.usr-table tbody tr:hover{background:var(--g50)}
               <th>Email</th>
               <th>Role / Group</th>
               <th>Location Scope</th>
-              <th>Auth Method</th>
               <th>Status</th>
               <th>Diperbarui</th>
               <th></th>
@@ -475,27 +461,6 @@ table.usr-table tbody tr:hover{background:var(--g50)}
         <div class="field-error" id="locError"><i class="fa-solid fa-circle-exclamation"></i> Pilih minimal satu lokasi.</div>
       </div>
 
-      <div class="field">
-        <label class="field-label">Authentication Method <span class="req">*</span></label>
-        <div class="auth-opt-row">
-          <label class="auth-opt checked" id="authOptLocal">
-            <input type="checkbox" id="fldAuthLocal" checked onchange="onAuthChange()">
-            <div class="auth-opt-body">
-              <div class="auth-opt-title">Local Password</div>
-              <div class="auth-opt-desc">Metode standar. Sistem membuat password default dan mengirim email aktivasi berisi link reset password.</div>
-            </div>
-          </label>
-          <label class="auth-opt" id="authOptSso">
-            <input type="checkbox" id="fldAuthSso" onchange="onAuthChange()">
-            <div class="auth-opt-body">
-              <div class="auth-opt-title">Microsoft SSO (ENTRA)</div>
-              <div class="auth-opt-desc">Tautkan ke akun Microsoft Entra ID. Perlu email yang sama terdaftar di ENTRA organisasi.</div>
-            </div>
-          </label>
-        </div>
-        <div class="field-error" id="authError"><i class="fa-solid fa-circle-exclamation"></i> Pilih minimal satu metode autentikasi.</div>
-      </div>
-
     </div>
     <div class="modal-foot">
       <button class="btn btn-outline" onclick="closeUserModal()">Cancel</button>
@@ -579,10 +544,10 @@ const LOCATIONS=LOCATION_NAMES.map(name=>({id:slugify(name),name}));
 const ALL_LOCATION_IDS=LOCATIONS.map(l=>l.id);
 
 let USERS=[
-  {id:'u1',name:'Rafi Ramadani',employeeId:'EMP0001',email:'dispatcher@shipgo.id',phone:'+6281234567890',role:'Dispatcher',locations:['dc-solo','dc-semarang','dc-surabaya'],auth:{local:true,sso:false},status:'active',updatedAt:'2026-07-01'},
-  {id:'u2',name:'Admin ShipGo',employeeId:'EMP0002',email:'admin@shipgo.id',phone:'',role:'Super Admin',locations:[...ALL_LOCATION_IDS],auth:{local:true,sso:true},status:'active',updatedAt:'2026-07-03'},
-  {id:'u3',name:'Siti Aminah',employeeId:'EMP0003',email:'siti.aminah@shipgo.id',phone:'+6281298765432',role:'Fleet Viewer',locations:['dc-bandung'],auth:{local:true,sso:false},status:'active',updatedAt:'2026-06-20'},
-  {id:'u4',name:'Budi Santoso',employeeId:'EMP0004',email:'budi.santoso@shipgo.id',phone:'',role:'Auditor',locations:[...ALL_LOCATION_IDS],auth:{local:false,sso:true},status:'inactive',updatedAt:'2026-05-10'},
+  {id:'u1',name:'Rafi Ramadani',employeeId:'EMP0001',email:'dispatcher@shipgo.id',phone:'+6281234567890',role:'Dispatcher',locations:['dc-solo','dc-semarang','dc-surabaya'],status:'active',updatedAt:'2026-07-01'},
+  {id:'u2',name:'Admin ShipGo',employeeId:'EMP0002',email:'admin@shipgo.id',phone:'',role:'Super Admin',locations:[...ALL_LOCATION_IDS],status:'active',updatedAt:'2026-07-03'},
+  {id:'u3',name:'Siti Aminah',employeeId:'EMP0003',email:'siti.aminah@shipgo.id',phone:'+6281298765432',role:'Fleet Viewer',locations:['dc-bandung'],status:'active',updatedAt:'2026-06-20'},
+  {id:'u4',name:'Budi Santoso',employeeId:'EMP0004',email:'budi.santoso@shipgo.id',phone:'',role:'Auditor',locations:[...ALL_LOCATION_IDS],status:'inactive',updatedAt:'2026-05-10'},
 ];
 
 let userSearchTerm='';
@@ -646,7 +611,6 @@ function renderUserList(){
       <td class="usr-email">${escapeHtml(u.email)}</td>
       <td><span class="role-pill">${escapeHtml(u.role)}</span></td>
       <td><div class="loc-tags">${shown.map(n=>`<span class="loc-tag-sm">${escapeHtml(n)}</span>`).join('')}${extra>0?`<span class="loc-tag-sm more">+${extra}</span>`:''}</div></td>
-      <td><div class="auth-badges">${u.auth.local?'<span class="auth-badge local"><i class="fa-solid fa-key" style="font-size:9px"></i> Local</span>':''}${u.auth.sso?'<span class="auth-badge sso"><i class="fa-brands fa-microsoft" style="font-size:9px"></i> SSO</span>':''}</div></td>
       <td>
         <label class="switch">
           <input type="checkbox" ${u.status==='active'?'checked':''} onclick="event.preventDefault();confirmStatusToggle('${u.id}')">
@@ -775,14 +739,6 @@ document.addEventListener('click',e=>{
   if(wrap && wrap.classList.contains('open') && !wrap.contains(e.target)) closeLocDropdown();
 });
 
-function onAuthChange(){
-  const localChecked=document.getElementById('fldAuthLocal').checked;
-  const ssoChecked=document.getElementById('fldAuthSso').checked;
-  document.getElementById('authOptLocal').classList.toggle('checked',localChecked);
-  document.getElementById('authOptSso').classList.toggle('checked',ssoChecked);
-  if(localChecked||ssoChecked) clearFieldError('auth');
-}
-
 function openUserModal(id){
   editingUserId=id;
   const u=id?USERS.find(x=>x.id===id):null;
@@ -793,12 +749,9 @@ function openUserModal(id){
   document.getElementById('fldPhone').value=u?(u.phone||''):'';
   document.getElementById('fldRole').value=u?u.role:'';
   document.getElementById('fldStatus').checked=u?u.status==='active':true;
-  document.getElementById('fldAuthLocal').checked=u?u.auth.local:true;
-  document.getElementById('fldAuthSso').checked=u?u.auth.sso:false;
   updateStatusLabel();
-  onAuthChange();
   updateNameCounter();
-  ['name','empId','email','phone','role','loc','auth'].forEach(clearFieldError);
+  ['name','empId','email','phone','role','loc'].forEach(clearFieldError);
 
   draftLocations=new Set(u?u.locations:[]);
   locSearchTerm='';
@@ -858,11 +811,9 @@ function saveUser(){
   const phone=document.getElementById('fldPhone').value.trim();
   const role=document.getElementById('fldRole').value;
   const status=document.getElementById('fldStatus').checked?'active':'inactive';
-  const authLocal=document.getElementById('fldAuthLocal').checked;
-  const authSso=document.getElementById('fldAuthSso').checked;
   let valid=true;
 
-  ['name','empId','email','phone','role','loc','auth'].forEach(clearFieldError);
+  ['name','empId','email','phone','role','loc'].forEach(clearFieldError);
 
   if(!name){ setFieldError('name','Full Name wajib diisi.'); valid=false; }
 
@@ -880,17 +831,12 @@ function saveUser(){
 
   if(draftLocations.size===0){ setFieldError('loc'); valid=false; }
 
-  if(!authLocal && !authSso){ setFieldError('auth'); valid=false; }
-
   if(!valid) return;
-
-  const isNewLocalUser=!editingUserId && authLocal;
 
   if(editingUserId){
     const u=USERS.find(x=>x.id===editingUserId);
     u.name=name; u.employeeId=employeeId; u.email=email; u.phone=phone;
     u.role=role; u.status=status; u.locations=[...draftLocations];
-    u.auth={local:authLocal,sso:authSso};
     u.updatedAt=todayStr();
     showToast(`User "${name}" berhasil diperbarui. Perubahan berlaku pada login berikutnya.`);
   }else{
@@ -898,14 +844,9 @@ function saveUser(){
       id:'u'+Date.now(),
       name, employeeId, email, phone, role, status,
       locations:[...draftLocations],
-      auth:{local:authLocal,sso:authSso},
       updatedAt:todayStr(),
     });
-    if(isNewLocalUser){
-      showActivationEmail(name,email);
-    }else{
-      showToast(`User "${name}" berhasil dibuat dan ditautkan ke Microsoft SSO. Tidak ada password default dibuat.`);
-    }
+    showActivationEmail(name,email);
   }
 
   closeUserModal();
