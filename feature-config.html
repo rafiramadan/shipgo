@@ -152,9 +152,12 @@ table.drv-table tbody tr:hover{background:var(--g50)}
 .switch .switch-label.active{color:var(--green)}
 .switch .switch-label.inactive{color:var(--g400)}
 
-.do-type-row{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--g100)}
+.do-type-row{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:10px 16px;border-bottom:1px solid var(--g100)}
 .do-type-row:last-child{border-bottom:none}
-.do-type-name{font-size:12.5px;font-weight:600;color:var(--g800)}
+.do-type-row .switch{flex-shrink:0;margin-top:1px}
+.do-type-info{display:flex;flex-direction:column;gap:3px;min-width:0}
+.do-type-code{align-self:flex-start;font-family:'SFMono-Regular',Consolas,monospace;font-size:10.5px;font-weight:700;letter-spacing:.3px;background:var(--p50);color:var(--p700);padding:1px 7px;border-radius:8px}
+.do-type-name{font-size:12.5px;font-weight:600;color:var(--g800);line-height:1.35}
 
 .activity-item{padding:10px 16px;border-bottom:1px solid var(--g100);font-size:11.5px;line-height:1.6}
 .activity-item:last-child{border-bottom:none}
@@ -469,7 +472,13 @@ const DC_NAMES=[
 function slugify(s){ return s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,''); }
 const DCS=DC_NAMES.map(name=>({id:slugify(name),name}));
 
-const DO_TYPES=['Drop','Pickup','Transit','Retur'];
+const DO_TYPES=[
+  {code:'ZD01',name:'Contract Delivery'},
+  {code:'ZD02',name:'Direct Delivery'},
+  {code:'ZD09',name:'Free of Charge Delivery'},
+  {code:'ZD18',name:'Consignment Fill up Delivery'},
+  {code:'ZDT1',name:'Stock Transfer Delivery'},
+];
 
 // Reuse the same driver roster referenced in History Tracking, assigned across DCs
 const DRIVERS=[
@@ -490,14 +499,14 @@ let featureConfig={};
 FEATURES.forEach(f=>{
   featureConfig[f.key]={
     driver:Object.fromEntries(DRIVERS.map(d=>[d.id,false])),
-    doType:Object.fromEntries(DO_TYPES.map(t=>[t,false])),
+    doType:Object.fromEntries(DO_TYPES.map(t=>[t.code,false])),
   };
 });
 // Seed a realistic in-progress rollout for Auto POD Validation so the page isn't all-empty on first view
 featureConfig.auto_pod_validation.driver['drv1']=true;
 featureConfig.auto_pod_validation.driver['drv2']=true;
 featureConfig.auto_pod_validation.driver['drv5']=true;
-featureConfig.auto_pod_validation.doType['Drop']=true;
+featureConfig.auto_pod_validation.doType['ZD02']=true;
 
 let auditLog=[]; // {id,ts,feature,admin,scope,targetId,targetName,dc,before,after}
 
@@ -657,23 +666,28 @@ function bulkSetStatus(newVal){
 function renderDoTypePanel(){
   const cfg=featureConfig[currentFeature];
   document.getElementById('doTypeList').innerHTML=DO_TYPES.map(t=>{
-    const on=cfg.doType[t];
+    const on=cfg.doType[t.code];
     return `<div class="do-type-row">
-      <span class="do-type-name">${escapeHtml(t)}</span>
+      <div class="do-type-info">
+        <span class="do-type-code">${escapeHtml(t.code)}</span>
+        <span class="do-type-name">${escapeHtml(t.name)}</span>
+      </div>
       <label class="switch">
-        <input type="checkbox" ${on?'checked':''} onchange="setDoTypeStatus('${t}',this.checked)">
+        <input type="checkbox" ${on?'checked':''} onchange="setDoTypeStatus('${t.code}',this.checked)">
         <span class="track"></span>
       </label>
     </div>`;
   }).join('');
 }
-function setDoTypeStatus(doType,newVal){
+function setDoTypeStatus(doTypeCode,newVal){
   const cfg=featureConfig[currentFeature];
-  const before=cfg.doType[doType];
+  const before=cfg.doType[doTypeCode];
   if(before===newVal) return;
-  cfg.doType[doType]=newVal;
-  logAudit({scope:'DO Type',targetId:doType,targetName:doType,dc:'—',before,after:newVal});
-  showToast(`${FEATURES.find(f=>f.key===currentFeature).name} untuk DO Type "${doType}" diubah menjadi ${newVal?'Enabled':'Disabled'}.`);
+  const t=DO_TYPES.find(x=>x.code===doTypeCode);
+  const label=`${t.code} - ${t.name}`;
+  cfg.doType[doTypeCode]=newVal;
+  logAudit({scope:'DO Type',targetId:doTypeCode,targetName:label,dc:'—',before,after:newVal});
+  showToast(`${FEATURES.find(f=>f.key===currentFeature).name} untuk DO Type "${label}" diubah menjadi ${newVal?'Enabled':'Disabled'}.`);
   renderAll();
 }
 
