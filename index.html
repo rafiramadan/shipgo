@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ShipGo TMS — GPS Tracking Platform</title>
+<title>ShipGo TMS — TMS Prototipe Platform</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
@@ -12,14 +12,45 @@
   --p50:#eef2ff;--p100:#e0e7ff;--p600:#4f46e5;--p700:#4338ca;--p800:#3730a3;
   --sb:#1e1b4b;--sb2:#16134a;
   --g50:#f8fafc;--g100:#f1f5f9;--g200:#e2e8f0;--g400:#94a3b8;--g500:#64748b;--g700:#334155;--g900:#0f172a;
+  --sw:220px;--th:60px;
   --font:'Inter',sans-serif;
 }
-html,body{height:100%;font-family:var(--font);background:var(--g50);color:var(--g900)}
+html,body{height:100%;font-family:var(--font);background:var(--g50);color:var(--g900);overflow:hidden}
 .topbar{
-  height:60px;background:#fff;border-bottom:1px solid var(--g200);
-  display:flex;align-items:center;padding:0 32px;gap:14px;
+  position:fixed;top:0;left:0;right:0;height:var(--th);background:#fff;border-bottom:1px solid var(--g200);
+  display:flex;align-items:center;padding:0 32px 0 0;gap:14px;z-index:1000;
   box-shadow:0 1px 3px rgba(0,0,0,.06);
 }
+.logo{width:var(--sw);height:var(--th);padding:0 0 0 20px;flex-shrink:0;transition:width .2s ease;overflow:hidden;white-space:nowrap}
+body.sb-collapsed .logo-name,body.sb-collapsed .logo-badge{opacity:0;pointer-events:none}
+.logo-name,.logo-badge{transition:opacity .15s}
+
+/* ── SIDEBAR ── */
+.sidebar{position:fixed;top:var(--th);left:0;bottom:0;width:var(--sw);background:#fff;border-right:1px solid var(--g200);display:flex;flex-direction:column;padding:8px 10px 14px;z-index:900;overflow-x:hidden;overflow-y:auto;transition:width .2s ease}
+.sb-top{display:flex;justify-content:flex-end;padding:2px 2px 6px}
+.sb-collapse-btn{width:26px;height:26px;border:none;background:transparent;color:var(--g400);border-radius:6px;cursor:pointer;font-size:12px;flex-shrink:0}
+.sb-collapse-btn:hover{background:var(--g100);color:var(--g700)}
+.sb-section{font-size:10px;font-weight:600;color:var(--g400);letter-spacing:.6px;text-transform:uppercase;padding:12px 10px 4px;white-space:nowrap;overflow:hidden}
+.si{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;cursor:pointer;color:var(--g600);font-size:13px;font-weight:500;text-decoration:none;margin-bottom:1px;white-space:nowrap;overflow:hidden;position:relative;transition:all .15s}
+.si:hover{background:var(--p50);color:var(--p700)}
+.si.active{background:var(--p50);color:var(--p700);font-weight:600}
+.si svg{width:17px;height:17px;flex-shrink:0}
+.si-label{opacity:1;flex:1;overflow:hidden;text-overflow:ellipsis}
+.si-caret{margin-left:auto;font-size:9px;color:var(--g400);flex-shrink:0}
+.si-dot{width:7px;height:7px;border-radius:50%;background:#f97316;flex-shrink:0;margin-left:6px}
+.nav-sub{margin:1px 4px 8px 29px;padding-left:10px;border-left:1px solid var(--g200)}
+.nav-sub .si{padding:6px 10px;font-size:12.5px}
+.nav-sub .si.active{background:transparent;color:var(--p700)}
+.nav-sub .si.active::before{content:'';position:absolute;left:-11px;top:6px;bottom:6px;width:2px;background:var(--p600);border-radius:2px}
+.s-sp{flex:1}
+.sb-divider{height:1px;background:var(--g200);margin:6px 4px}
+body.sb-collapsed .sidebar{width:64px}
+body.sb-collapsed .si-label,body.sb-collapsed .sb-section,body.sb-collapsed .si-caret,body.sb-collapsed .si-dot,body.sb-collapsed .nav-sub{display:none}
+body.sb-collapsed .si{justify-content:center}
+body.sb-collapsed .sb-top{justify-content:center}
+
+/* ── MAIN ── */
+.main{position:fixed;top:var(--th);left:var(--sw);right:0;bottom:0;overflow-y:auto;transition:left .2s ease}
 .logo{display:flex;align-items:center;gap:10px}
 .logo-icon{width:34px;height:34px;border-radius:9px;background:var(--p700);display:flex;align-items:center;justify-content:center}
 .logo-icon i{color:#fff;font-size:16px}
@@ -111,7 +142,7 @@ footer b{color:var(--p700)}
   <div class="logo">
     <div class="logo-icon"><i class="fa-solid fa-map-location-dot"></i></div>
     <div class="logo-name">ShipGo <span>TMS</span></div>
-    <span class="logo-badge">GPS Platform</span>
+    <span class="logo-badge">TMS Platform</span>
   </div>
   <div class="tb-spacer"></div>
   <div style="display:flex;align-items:center;gap:8px">
@@ -132,10 +163,101 @@ footer b{color:var(--p700)}
   </div>
 </div>
 
+<nav class="sidebar">
+  <div class="sb-top"><button class="sb-collapse-btn" onclick="toggleSidebar()" title="Collapse sidebar"><i class="fa-solid fa-angles-left"></i></button></div>
+  <div class="sb-section">Main Menu</div>
+  <a class="si active" href="./index.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    <span class="si-label">Dashboard</span>
+  </a>
+  <a class="si" href="./live-tracking.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-7.58 7-12a7 7 0 00-14 0c0 4.42 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>
+    <span class="si-label">Live Tracking</span>
+  </a>
+  <a class="si" href="./history-tracking.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/><path d="M12 7v5l3.5 2"/></svg>
+    <span class="si-label">History Tracking</span>
+  </a>
+
+  <div class="sb-section">Order Management</div>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5h6a2 2 0 012 2v12a2 2 0 01-2 2H9a2 2 0 01-2-2V7a2 2 0 012-2z"/><path d="M9 3h6v4H9z"/></svg>
+    <span class="si-label">Order Management</span>
+    <span class="si-caret">▾</span>
+  </a>
+  <div class="nav-sub">
+    <a class="si" href="./shipment-planning.html"><span class="si-label">Planning</span></a>
+    <a class="si" href="#"><span class="si-label">Assignment</span></a>
+    <a class="si" href="#"><span class="si-label">Tracking</span></a>
+    <a class="si" href="#"><span class="si-label">Review</span></a>
+  </div>
+
+  <div class="sb-section">Analytics</div>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v16h16"/><path d="M7 15l3.5-4 3 2.5L19 7"/></svg>
+    <span class="si-label">Laporan Perjalanan</span>
+  </a>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v16h16"/><rect x="7" y="12" width="2.6" height="5"/><rect x="12" y="9" width="2.6" height="8"/><rect x="17" y="6" width="2.6" height="11"/></svg>
+    <span class="si-label">Analytics</span>
+  </a>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+    <span class="si-label">Peringatan</span>
+    <span class="si-dot"></span>
+  </a>
+
+  <div class="sb-section">Fleet</div>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="7" width="12" height="9" rx="1"/><path d="M13 10h4l3.5 3.2V16H13z"/><circle cx="5.5" cy="17.5" r="1.6"/><circle cx="17" cy="17.5" r="1.6"/></svg>
+    <span class="si-label">Kendaraan</span>
+  </a>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2.5"/><circle cx="12" cy="10" r="2.3"/><path d="M7.5 16.8c.6-1.9 2.3-2.8 4.5-2.8s3.9.9 4.5 2.8"/></svg>
+    <span class="si-label">Driver</span>
+  </a>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+    <span class="si-label">Kamera</span>
+  </a>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0116 0"/></svg>
+    <span class="si-label">Roster Management</span>
+  </a>
+
+  <div class="sb-section">Admin</div>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg>
+    <span class="si-label">User &amp; Access</span>
+    <span class="si-caret">▾</span>
+  </a>
+  <div class="nav-sub">
+    <a class="si" href="./group-role.html"><span class="si-label">Group / Role</span></a>
+    <a class="si" href="./user-management.html"><span class="si-label">User Management</span></a>
+  </div>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09A1.65 1.65 0 0015 4.6a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    <span class="si-label">Configuration</span>
+  </a>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v6c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M3 11v6c0 1.66 4 3 9 3s9-1.34 9-3v-6"/></svg>
+    <span class="si-label">Master Data</span>
+    <span class="si-caret">▾</span>
+  </a>
+
+  <div class="s-sp"></div>
+  <div class="sb-divider"></div>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 015 0c0 1.5-2 2-2.5 3.5"/><path d="M12 17h.01"/></svg>
+    <span class="si-label">Bantuan</span>
+  </a>
+</nav>
+
+<div class="main">
 <div class="hero">
   <div class="hero-eyebrow"><i class="fa-solid fa-satellite-dish" style="margin-right:6px"></i> PT Parama Global Inspira · DC Solo</div>
-  <h1 class="hero-title">GPS Tracking<br><span>Platform</span></h1>
-  <p class="hero-sub">Pantau armada kendaraan secara real-time, analisis riwayat perjalanan, dan kelola pengiriman dalam satu platform terintegrasi.</p>
+  <h1 class="hero-title">TMS Prototipe<br><span>Platform</span></h1>
+  <p class="hero-sub">Kelola operasional transportasi end-to-end — shipment planning, order assignment, live tracking armada, hingga analisis riwayat perjalanan — dalam satu platform terintegrasi.</p>
 </div>
 
 <div class="features-row">
@@ -186,8 +308,15 @@ footer b{color:var(--p700)}
 </div>
 
 <footer>
-  <b>ShipGo TMS</b> · GPS Tracking Platform · PT Parama Global Inspira · Prototype v1.0
+  <b>ShipGo TMS</b> · TMS Prototipe Platform · PT Parama Global Inspira · Prototype v1.0
 </footer>
+</div>
 
+<script>
+function toggleSidebar(){
+  const collapsed=document.body.classList.toggle('sb-collapsed');
+  document.documentElement.style.setProperty('--sw', collapsed?'64px':'220px');
+}
+</script>
 </body>
 </html>

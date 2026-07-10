@@ -3,33 +3,44 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shipment Planning — PT Parama Global Inspira</title>
+<title>Planning — PT Parama Global Inspira</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
+  /* ── Shared platform tokens (topbar/sidebar) ── */
   --p50:#eef2ff;--p100:#e0e7ff;--p200:#c7d2fe;--p300:#a5b4fc;
   --p400:#818cf8;--p500:#6366f1;--p600:#4f46e5;--p700:#4338ca;--p800:#3730a3;--p900:#312e81;
   --sb:#1e1b4b;--sb2:#16134a;
-  --green:#16a34a;--red:#dc2626;--orange:#ea580c;--amber:#d97706;
   --g50:#f8fafc;--g100:#f1f5f9;--g150:#eef0f4;--g200:#e2e8f0;
   --g300:#cbd5e1;--g400:#94a3b8;--g500:#64748b;--g700:#334155;--g900:#0f172a;
-  --sw:56px;--th:60px;--r:8px;--r2:12px;
+  --sw:220px;--th:60px;--r:8px;--r2:12px;
   --sh:0 1px 3px rgba(0,0,0,.08);--shl:0 8px 24px rgba(0,0,0,.13);
   --font:'Inter',sans-serif;
+
+  /* ── Planning page's own palette (from the shared prototype) ── */
+  --primary:#5B4FE0;--primary-hover:#4B3FD0;--primary-bg:#F0EEFB;--primary-bg-soft:#F7F5FE;
+  --ink:#1F2333;--ink-soft:#5B6272;--ink-faint:#9099AB;--ink-mute:#B5BCC9;
+  --bg:#F7F8FA;--surface:#FFFFFF;--border:#EAECEF;--border-strong:#DDE0E5;--hover:#F8F7FE;
+  --drop-blue:#3B4EB8;--drop-blue-bg:#E5E8F5;
+  --orange:#F5A63C;--orange-bg:#FDF1DF;--green:#4CAE7A;--green-bg:#E3F3EA;
+  --yellow:#E8B33A;--yellow-bg:#FBF3DA;--red:#E4574C;--red-bg:#FBE4E2;--gray:#6B7280;--gray-bg:#EEF0F3;
+  --loc-banten:#4A6FBF;--loc-banten-bg:#E9EFF9;
+  --loc-jakarta:#2E9A9E;--loc-jakarta-bg:#E1F2F3;
+  --loc-serang:#C67D2E;--loc-serang-bg:#F9ECDA;
+  --p-shadow-sm:0 1px 2px rgba(16,24,40,.04);
 }
 html,body{height:100%;font-family:var(--font);font-size:13px;color:var(--g900);overflow:hidden;background:var(--g100)}
 
-/* ── TOPBAR ── */
+/* ── TOPBAR (shared platform chrome) ── */
 .topbar{position:fixed;top:0;left:0;right:0;height:var(--th);background:#fff;border-bottom:1px solid var(--g200);display:flex;align-items:center;z-index:1000;padding:0 20px 0 0;box-shadow:0 1px 0 var(--g200)}
-.tb-logo{width:var(--sw);height:var(--th);background:var(--sb2);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;transition:width .25s cubic-bezier(.4,0,.2,1)}
-.sidebar:hover~.topbar .tb-logo{width:220px}
+.tb-logo{width:var(--sw);height:var(--th);background:var(--sb2);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;transition:width .2s ease}
 .tb-logo-inner{display:flex;align-items:center;gap:10px;padding:0 16px;white-space:nowrap}
 .tb-logo-icon{width:32px;height:32px;border-radius:8px;background:var(--p600);display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .tb-logo-icon i{color:#fff;font-size:15px}
-.tb-logo-text{font-size:14px;font-weight:700;color:#fff;opacity:0;transition:opacity .15s .1s;letter-spacing:-.3px}
-.sidebar:hover~.topbar .tb-logo-text{opacity:1}
+.tb-logo-text{font-size:14px;font-weight:700;color:#fff;opacity:1;letter-spacing:-.3px;transition:opacity .15s}
+body.sb-collapsed .tb-logo-text{opacity:0;pointer-events:none}
 .tb-dc{display:flex;flex-direction:column;margin-left:16px}
 .tb-dc-label{font-size:10px;color:var(--g400);font-weight:500;letter-spacing:.3px}
 .tb-dc-val{display:flex;align-items:center;gap:5px;font-size:14px;font-weight:600;color:var(--g900)}
@@ -38,7 +49,7 @@ html,body{height:100%;font-family:var(--font);font-size:13px;color:var(--g900);o
 .tb-actions{display:flex;align-items:center;gap:6px}
 .tb-icon{width:34px;height:34px;border-radius:var(--r);border:1px solid var(--g200);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--g500);font-size:14px;position:relative;background:#fff;transition:all .15s}
 .tb-icon:hover{background:var(--p50);border-color:var(--p200);color:var(--p600)}
-.tb-icon .bdg{position:absolute;top:4px;right:4px;width:8px;height:8px;background:var(--red);border-radius:50%;border:1.5px solid #fff}
+.tb-icon .bdg{position:absolute;top:4px;right:4px;width:8px;height:8px;background:#dc2626;border-radius:50%;border:1.5px solid #fff}
 .tb-user-wrap{position:relative}
 .tb-user{display:flex;align-items:center;gap:10px;padding:6px 12px;border:1px solid var(--g200);border-radius:var(--r2);cursor:pointer;background:#fff;margin-left:4px;transition:all .15s}
 .tb-user:hover{background:var(--p50);border-color:var(--p200)}
@@ -53,171 +64,161 @@ html,body{height:100%;font-family:var(--font);font-size:13px;color:var(--g900);o
 .tb-name{font-size:13px;font-weight:600;color:var(--g900)}
 .tb-role{font-size:11px;color:var(--g500)}
 
-/* ── SIDEBAR ── */
-.sidebar{position:fixed;top:var(--th);left:0;bottom:0;width:var(--sw);background:var(--sb);display:flex;flex-direction:column;padding:10px 0;z-index:900;overflow:hidden;transition:width .25s cubic-bezier(.4,0,.2,1)}
-.sidebar:hover{width:220px}
-.sb-section{font-size:9px;font-weight:600;color:rgba(255,255,255,.25);letter-spacing:.8px;padding:10px 18px 4px;white-space:nowrap;overflow:hidden;opacity:0;transition:opacity .12s .06s}
-.sidebar:hover .sb-section{opacity:1}
-.si{display:flex;align-items:center;gap:12px;padding:0 18px;height:42px;cursor:pointer;color:rgba(255,255,255,.45);transition:all .15s;position:relative;white-space:nowrap;overflow:hidden;text-decoration:none}
-.si:hover{color:rgba(255,255,255,.9);background:rgba(255,255,255,.07)}
-.si.active{color:#fff;background:rgba(255,255,255,.12)}
-.si.active::before{content:'';position:absolute;left:0;top:8px;bottom:8px;width:3px;background:var(--p400);border-radius:0 3px 3px 0}
-.si i{font-size:16px;flex-shrink:0;width:22px;text-align:center}
-.si-label{font-size:12px;font-weight:500;opacity:0;transition:opacity .12s .06s;pointer-events:none}
-.sidebar:hover .si-label{opacity:1}
+/* ── SIDEBAR (shared platform chrome) ── */
+.sidebar{position:fixed;top:var(--th);left:0;bottom:0;width:var(--sw);background:#fff;border-right:1px solid var(--g200);display:flex;flex-direction:column;padding:8px 10px 14px;z-index:900;overflow-x:hidden;overflow-y:auto;transition:width .2s ease}
+.sb-top{display:flex;justify-content:flex-end;padding:2px 2px 6px}
+.sb-collapse-btn{width:26px;height:26px;border:none;background:transparent;color:var(--g400);border-radius:6px;cursor:pointer;font-size:12px;flex-shrink:0}
+.sb-collapse-btn:hover{background:var(--g100);color:var(--g700)}
+.sb-section{font-size:10px;font-weight:600;color:var(--g400);letter-spacing:.6px;text-transform:uppercase;padding:12px 10px 4px;white-space:nowrap;overflow:hidden}
+.si{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;cursor:pointer;color:var(--g600);font-size:13px;font-weight:500;text-decoration:none;margin-bottom:1px;white-space:nowrap;overflow:hidden;position:relative;transition:all .15s}
+.si:hover{background:var(--p50);color:var(--p700)}
+.si.active{background:var(--p50);color:var(--p700);font-weight:600}
+.si svg{width:17px;height:17px;flex-shrink:0}
+.si-label{opacity:1;flex:1;overflow:hidden;text-overflow:ellipsis}
+.si-caret{margin-left:auto;font-size:9px;color:var(--g400);flex-shrink:0}
+.si-dot{width:7px;height:7px;border-radius:50%;background:#f97316;flex-shrink:0;margin-left:6px}
+.nav-sub{margin:1px 4px 8px 29px;padding-left:10px;border-left:1px solid var(--g200)}
+.nav-sub .si{padding:6px 10px;font-size:12.5px}
+.nav-sub .si.active{background:transparent;color:var(--p700)}
+.nav-sub .si.active::before{content:'';position:absolute;left:-11px;top:6px;bottom:6px;width:2px;background:var(--p600);border-radius:2px}
 .s-sp{flex:1}
-.sb-divider{height:1px;background:rgba(255,255,255,.08);margin:6px 0}
+.sb-divider{height:1px;background:var(--g200);margin:6px 4px}
+body.sb-collapsed .sidebar{width:64px}
+body.sb-collapsed .si-label,body.sb-collapsed .sb-section,body.sb-collapsed .si-caret,body.sb-collapsed .si-dot,body.sb-collapsed .nav-sub{display:none}
+body.sb-collapsed .si{justify-content:center}
+body.sb-collapsed .sb-top{justify-content:center}
 
 /* ── MAIN LAYOUT ── */
-.main{
-  position:fixed;top:var(--th);left:var(--sw);right:0;bottom:0;
-  display:flex;flex-direction:column;overflow:hidden;
-}
+.main{position:fixed;top:var(--th);left:var(--sw);right:0;bottom:0;overflow-y:auto;background:var(--bg);transition:left .2s ease}
+button{font-family:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:2px solid var(--primary);outline-offset:1px}
 
-/* ── PAGE HEADER ── */
-.page-hdr{
-  background:#fff;border-bottom:1px solid var(--g200);
-  padding:12px 24px;flex-shrink:0;display:flex;align-items:center;gap:12px;
-}
-.page-hdr-left{display:flex;flex-direction:column;gap:2px}
-.page-breadcrumb{font-size:11px;color:var(--g400);font-weight:500}
-.page-title{font-size:20px;font-weight:700;color:var(--g900)}
-.hdr-spacer{flex:1}
-.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--r);font-size:12px;font-weight:500;cursor:pointer;border:none;font-family:var(--font);transition:all .15s;white-space:nowrap}
-.btn-outline{background:#fff;color:var(--g700);border:1px solid var(--g200)}
-.btn-outline:hover{background:var(--g50);border-color:var(--p300);color:var(--p700)}
-.btn-primary{background:var(--p700);color:#fff}
-.btn-primary:hover{background:var(--p800)}
-.btn-ghost{background:transparent;color:var(--g600);border:1px solid var(--g200);font-size:11px}
-.btn-ghost:hover{background:var(--g50)}
-.btn:disabled{opacity:.5;cursor:not-allowed}
+/* ── CONTENT (Planning page's own design, ported as-is) ── */
+.content{display:grid;grid-template-columns:1fr 240px;gap:18px;padding:18px 22px 40px}
+.main-col{min-width:0}
 
-/* ── FILTER BAR ── */
-.filter-bar{
-  background:#fff;border-bottom:1px solid var(--g200);
-  padding:8px 24px;flex-shrink:0;display:flex;align-items:center;gap:10px;flex-wrap:wrap;
-}
-.filter-group{display:flex;align-items:center;gap:6px}
-.filter-label{font-size:11px;color:var(--g500);font-weight:500;white-space:nowrap}
-.ppill{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:500;cursor:pointer;border:1px solid var(--g200);background:#fff;color:var(--g600);transition:all .15s;white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
-.ppill.active{background:var(--p700);color:#fff;border-color:var(--p700)}
-.ppill:hover:not(.active){border-color:var(--p300);color:var(--p700);background:var(--p50)}
-.ppill .dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
-.filter-input{border:1px solid var(--g200);border-radius:var(--r);padding:5px 10px;font-size:12px;color:var(--g700);outline:none;font-family:var(--font);background:#fff;transition:border-color .15s}
-.filter-input:focus{border-color:var(--p400)}
-.filter-sep{width:1px;height:20px;background:var(--g200)}
-
-/* ── LOCATION SELECTOR ── */
-.loc-selector-wrap{position:relative}
-.loc-selector{display:flex;align-items:center;gap:8px;padding:6px 12px;border-radius:20px;border:1px solid var(--p200);background:var(--p50);color:var(--p700);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
-.loc-selector:hover{background:var(--p100)}
-.loc-selector .badge{background:var(--p700);color:#fff;border-radius:10px;padding:1px 7px;font-size:10.5px;font-weight:700}
-.loc-panel{display:none;position:absolute;top:calc(100% + 8px);left:0;z-index:1500;background:#fff;border:1px solid var(--g200);border-radius:var(--r2);box-shadow:var(--shl);padding:12px;width:300px}
+/* Location selector (was in the prototype's topbar; lives in-page here since our topbar is shared) */
+.loc-bar{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.loc-context-label{color:var(--ink-faint);font-size:11px;font-weight:500}
+.loc-context-value{display:flex;align-items:center;gap:6px;font-size:13.5px;font-weight:600;color:var(--ink)}
+.loc-context-value .pin{color:var(--primary);font-size:12px}
+.loc-selector-wrap{position:relative;margin-left:auto}
+.loc-selector{display:flex;align-items:center;gap:6px;background:var(--primary-bg-soft);border:1px solid var(--primary-bg);border-radius:20px;padding:5px 10px 5px 8px;font-size:12.5px;font-weight:600;color:var(--primary);cursor:pointer}
+.loc-selector:hover{background:var(--primary-bg)}
+.loc-selector .badge{background:var(--primary);color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;font-weight:700}
+.loc-selector .caret{font-size:9px;opacity:.7}
+.loc-panel{position:absolute;top:calc(100% + 8px);right:0;z-index:1500;background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 24px rgba(16,24,40,.10);padding:12px;width:320px;display:none}
 .loc-panel.open{display:block}
-.loc-panel-title{font-size:10px;font-weight:600;color:var(--g400);letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px}
-.loc-option{display:flex;align-items:center;gap:10px;padding:8px 8px;border-radius:var(--r);cursor:pointer}
-.loc-option:hover{background:var(--g50)}
+.loc-panel-title{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-faint);font-weight:600;margin-bottom:10px}
+.loc-option{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;cursor:pointer}
+.loc-option:hover{background:var(--bg)}
 .loc-option input{margin:0}
-.loc-option .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.loc-option .lbl{font-weight:600;font-size:12.5px;flex:1;color:var(--g900)}
-.loc-option .cnt{font-size:11px;color:var(--g400)}
-.loc-panel-footer{display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:10px;border-top:1px solid var(--g200);font-size:11.5px}
-.loc-panel-footer a{color:var(--p700);text-decoration:none;font-weight:600}
+.loc-option .dot{width:8px;height:8px;border-radius:50%}
+.loc-option .lbl{font-weight:600;font-size:13px;flex:1}
+.loc-option .cnt{font-size:11.5px;color:var(--ink-faint)}
+.loc-panel-footer{display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:10px;border-top:1px solid var(--border);font-size:12px}
+.loc-panel-footer a{color:var(--primary);text-decoration:none;font-weight:600}
 
-/* ── BODY / CONTENT ── */
-.body-wrap{flex:1;overflow-y:auto;padding:18px 24px 32px}
-.content-grid{display:flex;gap:16px;align-items:flex-start}
-.main-col{flex:1;min-width:0}
-.side-col{width:260px;flex-shrink:0}
+.page-eyebrow{color:var(--ink-faint);font-size:12px;margin-bottom:2px}
+.page-title{font-size:20px;font-weight:700;margin:0 0 16px;letter-spacing:-.01em}
 
-/* ── KPI ROW ── */
-.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px}
-.kpi-card{background:#fff;border:1px solid var(--g200);border-radius:var(--r2);padding:12px 14px;display:flex;align-items:center;gap:12px;box-shadow:var(--sh)}
-.kpi-icon{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px}
-.kpi-icon.blue{background:var(--p100);color:var(--p700)}
-.kpi-icon.green{background:#dcfce7;color:#15803d}
-.kpi-icon.purple{background:#ede9fe;color:#6d28d9}
-.kpi-icon.orange{background:#fef3c7;color:#b45309}
-.kpi-icon.pink{background:#fce7f3;color:#be185d}
+/* KPI row */
+.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:18px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:12px 14px;display:flex;align-items:center;gap:12px;box-shadow:var(--p-shadow-sm)}
+.kpi-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.kpi-icon.blue{background:#E7EBF9}
+.kpi-icon.green{background:#E3F3EA}
+.kpi-icon.purple{background:#EEE7FB}
+.kpi-icon.orange{background:#FDF1DF}
+.kpi-icon.pink{background:#FBE4E8}
+.kpi-icon svg{width:18px;height:18px}
 .kpi-body{min-width:0}
-.kpi-label{font-size:11px;color:var(--g500);font-weight:500;margin-bottom:2px;white-space:nowrap}
-.kpi-value{font-size:19px;font-weight:700;color:var(--g900);letter-spacing:-.01em}
-.kpi-sub{font-size:10.5px;color:var(--g400);margin-top:1px}
+.kpi-label{color:var(--ink-faint);font-size:11.5px;font-weight:500;margin-bottom:2px}
+.kpi-value{font-size:20px;font-weight:700;letter-spacing:-.01em}
+.kpi-sub{font-size:11px;color:var(--ink-mute);margin-top:2px}
 
-/* ── DOC PANEL ── */
-.doc-panel{background:#fff;border:1px solid var(--g200);border-radius:var(--r2);box-shadow:var(--sh)}
-.doc-panel-hdr{padding:14px 16px 10px;display:flex;align-items:center;justify-content:space-between;gap:12px}
-.doc-panel-title{font-size:15px;font-weight:700;color:var(--g900)}
-.doc-toolbar{display:flex;align-items:center;gap:10px;padding:0 16px 12px;flex-wrap:wrap}
-.doc-toolbar .search-wrap{position:relative;width:230px}
-.doc-toolbar .search-wrap i{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--g400);font-size:11px}
-.doc-toolbar .search-wrap input{width:100%;padding-left:28px}
-.doc-toolbar-right{margin-left:auto;display:flex;gap:8px}
-.qf-row{display:flex;align-items:center;gap:6px;padding:0 16px 12px;flex-wrap:wrap}
-.doc-meta{padding:0 16px 8px;display:flex;align-items:center;justify-content:space-between;color:var(--g400);font-size:11.5px}
-.doc-meta b{color:var(--g900)}
+/* Table panel */
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--p-shadow-sm)}
+.panel-head{padding:14px 16px 8px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.panel-title{font-size:15px;font-weight:700}
+.toolbar{display:flex;align-items:center;gap:10px;padding:0 16px 12px;flex-wrap:wrap}
+.search{display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:6px 10px;width:220px}
+.search input{border:none;outline:none;background:transparent;font-size:12.5px;width:100%;padding:0}
+.search i{color:var(--ink-mute);font-size:12px}
+.p-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:6px;font-size:12.5px;font-weight:600;border:1px solid var(--border);background:var(--surface);color:var(--ink);font-family:var(--font)}
+.p-btn:hover{background:var(--bg)}
+.p-btn.primary{background:var(--primary);border-color:var(--primary);color:#fff}
+.p-btn.primary:hover{background:var(--primary-hover)}
+.p-btn.ghost{background:transparent;border-color:transparent;color:var(--ink-soft)}
+.p-btn.ghost:hover{background:var(--bg)}
+.toolbar-right{margin-left:auto;display:flex;gap:8px;align-items:center}
+.quick-filter{display:flex;align-items:center;gap:8px;padding:0 16px 14px;flex-wrap:wrap}
+.qf-label{font-size:12px;color:var(--ink-soft);font-weight:600;margin-right:2px}
+.qf-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:6px;font-size:12px;font-weight:600;border:1px solid var(--border);background:var(--surface);color:var(--ink-soft)}
+.qf-chip .dot{width:7px;height:7px;border-radius:50%;background:var(--ink-mute)}
+.qf-chip.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.qf-chip.active .dot{background:#fff}
+.qf-divider{width:1px;height:18px;background:var(--border);margin:0 2px}
+.table-meta{padding:0 16px 8px;display:flex;align-items:center;justify-content:space-between;color:var(--ink-faint);font-size:12px}
+.table-meta b{color:var(--ink)}
 
-/* ── DOC TABLE ── */
-.doc-table-scroll{overflow-x:auto}
-table.doc-table{width:100%;border-collapse:collapse;font-size:12px}
-table.doc-table thead th{text-align:left;font-size:10.5px;font-weight:600;color:var(--g400);padding:9px 10px;border-top:1px solid var(--g200);border-bottom:1px solid var(--g200);background:var(--g50);white-space:nowrap}
-table.doc-table tbody td{padding:9px 10px;border-bottom:1px solid var(--g100);vertical-align:middle;white-space:nowrap;color:var(--g700)}
-table.doc-table tbody tr{cursor:pointer;transition:background .12s}
-table.doc-table tbody tr:hover{background:var(--p50)}
-table.doc-table tbody tr.selected{background:var(--p50)}
-table.doc-table tbody tr:last-child td{border-bottom:none}
-.cell-doc{font-weight:700;color:var(--g900)}
+/* Table */
+.table-scroll{overflow-x:auto}
+table.tms{width:100%;border-collapse:collapse;font-size:12.5px}
+table.tms thead th{text-align:left;font-size:11px;font-weight:600;color:var(--ink-faint);padding:9px 10px;border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:#FBFBFD;white-space:nowrap}
+table.tms tbody td{padding:10px 10px;border-bottom:1px solid var(--border);vertical-align:middle;white-space:nowrap}
+table.tms tbody tr{cursor:pointer}
+table.tms tbody tr:hover{background:var(--hover)}
+table.tms tbody tr.selected{background:var(--primary-bg-soft)}
+table.tms tbody tr:last-child td{border-bottom:none}
+.cell-doc{font-weight:600;color:var(--ink)}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;white-space:nowrap}
+.pill-drop{background:var(--drop-blue);color:#fff}
+.pill-orange{background:var(--orange-bg);color:#8A5518}
+.pill-green{background:var(--green-bg);color:#2E7852}
+.pill-yellow{background:var(--yellow-bg);color:#8A6C1D}
+.pill-red{background:var(--red-bg);color:#8F2E27}
+.pill-gray{background:var(--gray-bg);color:var(--gray)}
+.loc-pill{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600}
+.loc-pill .dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+.loc-banten{color:var(--loc-banten);background:var(--loc-banten-bg)}
+.loc-jakarta{color:var(--loc-jakarta);background:var(--loc-jakarta-bg)}
+.loc-serang{color:var(--loc-serang);background:var(--loc-serang-bg)}
+.row-action{border:none;background:transparent;color:var(--ink-mute);width:22px;height:22px;border-radius:4px;font-size:14px}
+.row-action:hover{background:var(--bg);color:var(--ink)}
 
-/* Pills — status / order type / location */
-.st-pill{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:12px;font-size:10.5px;font-weight:600;white-space:nowrap}
-.st-pill.blue{background:var(--p700);color:#fff}
-.st-pill.orange{background:#fef3c7;color:#92400e}
-.st-pill.green{background:#dcfce7;color:#15803d}
-.st-pill.yellow{background:#fef9c3;color:#854d0e}
-.st-pill.red{background:#fee2e2;color:#b91c1c}
-.st-pill.gray{background:var(--g100);color:var(--g500)}
-.loc-tag{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:4px;font-size:10.5px;font-weight:600}
-.loc-tag .dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
-.loc-tag.banten{color:#3b5bb8;background:#e7ecfa}
-.loc-tag.jakarta{color:#0e7c80;background:#e0f2f2}
-.loc-tag.serang{color:#a8621f;background:#faedd9}
-.row-action{border:none;background:transparent;color:var(--g400);width:24px;height:24px;border-radius:5px;font-size:14px;cursor:pointer}
-.row-action:hover{background:var(--g100);color:var(--g700)}
-
-/* ── PAGINATION ── */
-.doc-pagination{padding:12px 16px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--g200)}
+/* Pagination */
+.pagination{padding:12px 16px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border)}
 .page-nums{display:flex;gap:4px;align-items:center;font-size:12px}
-.page-nums button{border:1px solid transparent;background:transparent;padding:4px 10px;border-radius:6px;font-size:12px;font-weight:600;color:var(--g600);cursor:pointer;font-family:var(--font)}
-.page-nums button.active{background:var(--p700);color:#fff}
-.page-nums button:hover:not(.active){background:var(--g50)}
+.page-nums button{border:1px solid transparent;background:transparent;padding:4px 9px;border-radius:5px;font-size:12px;font-weight:600;color:var(--ink-soft);font-family:var(--font)}
+.page-nums button.active{background:var(--primary);color:#fff}
+.page-nums button:hover:not(.active){background:var(--bg)}
 
-/* ── SUMMARY SIDE PANEL ── */
-.summary-panel{background:#fff;border:1px solid var(--g200);border-radius:var(--r2);padding:14px;position:sticky;top:0;box-shadow:var(--sh)}
-.summary-head{display:flex;align-items:center;gap:6px;font-weight:700;font-size:13.5px;color:var(--g900);margin-bottom:14px}
-.summary-head i{color:var(--p600);font-size:11px}
-.summary-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
-.summary-stat-label{font-size:10px;color:var(--g400);font-weight:500}
-.summary-stat-value{font-size:17px;font-weight:700;color:var(--g900);margin-top:2px}
-.summary-doc-hdr{display:flex;align-items:center;gap:6px;font-weight:700;font-size:12.5px;color:var(--g900);padding-top:12px;border-top:1px solid var(--g200);margin-bottom:12px}
-.summary-doc-hdr i{color:var(--g400);font-size:11px}
-.summary-empty{text-align:center;padding:20px 6px}
-.summary-empty-illust{width:60px;height:60px;margin:0 auto 12px;background:var(--p50);border-radius:50%;display:flex;align-items:center;justify-content:center}
-.summary-empty-illust i{font-size:22px;color:var(--p300)}
-.summary-empty-title{font-size:13px;font-weight:700;color:var(--g900);margin-bottom:6px}
-.summary-empty-desc{font-size:11.5px;color:var(--g400);line-height:1.5}
-.summary-doc-no{font-size:14px;font-weight:700;color:var(--g900);margin-bottom:3px}
-.summary-doc-cust{font-size:11.5px;color:var(--g500);margin-bottom:12px}
-.summary-fields{display:flex;flex-direction:column;gap:9px}
-.summary-field{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;font-size:11.5px}
-.summary-field .k{color:var(--g400);font-size:11px;font-weight:500}
-.summary-field .v{color:var(--g900);font-weight:600;text-align:right}
-.summary-actions{display:flex;gap:8px;padding-top:14px;margin-top:14px;border-top:1px solid var(--g200)}
-.summary-actions .btn{flex:1;justify-content:center}
+/* Right summary panel */
+.side-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px;position:sticky;top:0;box-shadow:var(--p-shadow-sm)}
+.side-head{display:flex;align-items:center;gap:6px;font-weight:700;font-size:13.5px;margin-bottom:14px}
+.side-head .fold{color:var(--ink-mute);font-size:10px}
+.side-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.side-stat-label{font-size:10.5px;color:var(--ink-faint);font-weight:500}
+.side-stat-value{font-size:18px;font-weight:700;margin-top:2px}
+.side-doc-head{display:flex;align-items:center;gap:6px;font-weight:700;font-size:13px;padding-top:12px;border-top:1px solid var(--border);margin-bottom:14px}
+.empty-state{text-align:center;padding:18px 6px}
+.empty-illust{width:70px;height:70px;margin:0 auto 12px;background:radial-gradient(circle at 30% 30%,#F5EFDF 0%,#E9E3D0 100%);border-radius:50%;position:relative;display:flex;align-items:center;justify-content:center}
+.empty-illust i{color:var(--orange);font-size:22px}
+.empty-title{font-size:13px;font-weight:700;margin-bottom:6px}
+.empty-desc{font-size:11.5px;color:var(--ink-faint);line-height:1.5;padding:0 8px}
+.selected-doc-no{font-size:14px;font-weight:700;margin-bottom:4px}
+.selected-doc-cust{font-size:12px;color:var(--ink-soft);margin-bottom:12px}
+.selected-fields{display:grid;grid-template-columns:1fr;gap:9px}
+.selected-field{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;font-size:12px}
+.selected-field .k{color:var(--ink-faint);font-size:11px;font-weight:500}
+.selected-field .v{color:var(--ink);font-weight:600;text-align:right;font-size:12px}
+.side-actions{display:flex;gap:8px;padding-top:14px;margin-top:16px;border-top:1px solid var(--border)}
+.side-actions .p-btn{flex:1;justify-content:center}
 
-/* ── TOAST ── */
 #app-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--sb);color:#fff;padding:10px 20px;border-radius:10px;font-size:12px;font-weight:500;z-index:9999;transition:transform .3s ease,opacity .3s ease;opacity:0;pointer-events:none;display:flex;align-items:center;gap:8px;max-width:400px;box-shadow:0 4px 20px rgba(0,0,0,.25)}
 
-@media (max-width:1280px){ .kpi-row{grid-template-columns:repeat(3,1fr)} }
+@media (max-width:1280px){ .kpi-row{grid-template-columns:repeat(3,1fr)} .content{grid-template-columns:1fr} }
 </style>
 </head>
 <body>
@@ -228,7 +229,7 @@ table.doc-table tbody tr:last-child td{border-bottom:none}
   <div class="tb-logo">
     <div class="tb-logo-inner">
       <div class="tb-logo-icon"><i class="fa-solid fa-map-location-dot"></i></div>
-      <span class="tb-logo-text">FleetTrack TMS</span>
+      <span class="tb-logo-text">ShipGo TMS</span>
     </div>
   </div>
   <div class="tb-dc">
@@ -257,201 +258,267 @@ table.doc-table tbody tr:last-child td{border-bottom:none}
 
 <!-- SIDEBAR -->
 <nav class="sidebar">
-  <div class="sb-section">MAIN</div>
-  <div class="si" onclick="window.location.href='./index.html'"><i class="fa-solid fa-grip"></i><span class="si-label">Dashboard</span></div>
-  <div class="si" onclick="window.location.href='./live-tracking.html'"><i class="fa-solid fa-location-dot"></i><span class="si-label">Live Tracking</span></div>
-  <div class="sb-section">ORDER</div>
-  <div class="si active"><i class="fa-solid fa-boxes-stacked"></i><span class="si-label">Shipment Planning</span></div>
-  <div class="si"><i class="fa-solid fa-clipboard-list"></i><span class="si-label">Order Assignment</span></div>
-  <div class="si"><i class="fa-solid fa-route"></i><span class="si-label">Route Planning</span></div>
-  <div class="sb-section">ANALYTICS</div>
-  <div class="si" onclick="window.location.href='./history-tracking.html'"><i class="fa-solid fa-clock-rotate-left"></i><span class="si-label">History Tracking</span></div>
-  <div class="si"><i class="fa-solid fa-chart-line"></i><span class="si-label">Laporan Perjalanan</span></div>
-  <div class="si"><i class="fa-solid fa-chart-mixed"></i><span class="si-label">Analytics</span></div>
-  <div class="sb-section">FLEET</div>
-  <div class="si"><i class="fa-solid fa-truck"></i><span class="si-label">Kendaraan</span></div>
-  <div class="si"><i class="fa-regular fa-circle-user"></i><span class="si-label">Driver</span></div>
+  <div class="sb-top"><button class="sb-collapse-btn" onclick="toggleSidebar()" title="Collapse sidebar"><i class="fa-solid fa-angles-left"></i></button></div>
+  <div class="sb-section">Main Menu</div>
+  <a class="si" href="./index.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    <span class="si-label">Dashboard</span>
+  </a>
+  <a class="si" href="./live-tracking.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-7.58 7-12a7 7 0 00-14 0c0 4.42 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>
+    <span class="si-label">Live Tracking</span>
+  </a>
+  <a class="si" href="./history-tracking.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/><path d="M12 7v5l3.5 2"/></svg>
+    <span class="si-label">History Tracking</span>
+  </a>
+
+  <div class="sb-section">Order Management</div>
+  <a class="si active" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5h6a2 2 0 012 2v12a2 2 0 01-2 2H9a2 2 0 01-2-2V7a2 2 0 012-2z"/><path d="M9 3h6v4H9z"/></svg>
+    <span class="si-label">Order Management</span>
+    <span class="si-caret">▾</span>
+  </a>
+  <div class="nav-sub">
+    <a class="si active" href="./shipment-planning.html"><span class="si-label">Planning</span></a>
+    <a class="si" href="#"><span class="si-label">Assignment</span></a>
+    <a class="si" href="#"><span class="si-label">Tracking</span></a>
+    <a class="si" href="#"><span class="si-label">Review</span></a>
+  </div>
+
+  <div class="sb-section">Analytics</div>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v16h16"/><path d="M7 15l3.5-4 3 2.5L19 7"/></svg>
+    <span class="si-label">Laporan Perjalanan</span>
+  </a>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v16h16"/><rect x="7" y="12" width="2.6" height="5"/><rect x="12" y="9" width="2.6" height="8"/><rect x="17" y="6" width="2.6" height="11"/></svg>
+    <span class="si-label">Analytics</span>
+  </a>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+    <span class="si-label">Peringatan</span>
+    <span class="si-dot"></span>
+  </a>
+
+  <div class="sb-section">Fleet</div>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="7" width="12" height="9" rx="1"/><path d="M13 10h4l3.5 3.2V16H13z"/><circle cx="5.5" cy="17.5" r="1.6"/><circle cx="17" cy="17.5" r="1.6"/></svg>
+    <span class="si-label">Kendaraan</span>
+  </a>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2.5"/><circle cx="12" cy="10" r="2.3"/><path d="M7.5 16.8c.6-1.9 2.3-2.8 4.5-2.8s3.9.9 4.5 2.8"/></svg>
+    <span class="si-label">Driver</span>
+  </a>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+    <span class="si-label">Kamera</span>
+  </a>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0116 0"/></svg>
+    <span class="si-label">Roster Management</span>
+  </a>
+
+  <div class="sb-section">Admin</div>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg>
+    <span class="si-label">User &amp; Access</span>
+    <span class="si-caret">▾</span>
+  </a>
+  <div class="nav-sub">
+    <a class="si" href="./group-role.html"><span class="si-label">Group / Role</span></a>
+    <a class="si" href="./user-management.html"><span class="si-label">User Management</span></a>
+  </div>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09A1.65 1.65 0 0015 4.6a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    <span class="si-label">Configuration</span>
+  </a>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v6c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M3 11v6c0 1.66 4 3 9 3s9-1.34 9-3v-6"/></svg>
+    <span class="si-label">Master Data</span>
+    <span class="si-caret">▾</span>
+  </a>
+
   <div class="s-sp"></div>
   <div class="sb-divider"></div>
-  <div class="si"><i class="fa-solid fa-gear"></i><span class="si-label">Settings</span></div>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 015 0c0 1.5-2 2-2.5 3.5"/><path d="M12 17h.01"/></svg>
+    <span class="si-label">Bantuan</span>
+  </a>
 </nav>
 
 <!-- MAIN -->
 <div class="main">
+  <div class="content">
+    <div class="main-col">
 
-  <!-- Page header -->
-  <div class="page-hdr">
-    <div class="page-hdr-left">
-      <div class="page-breadcrumb">Order Management</div>
-      <div class="page-title">Shipment Planning</div>
-    </div>
-    <div class="hdr-spacer"></div>
-    <button class="btn btn-outline" onclick="doExport()"><i class="fa-solid fa-download"></i> Export</button>
-  </div>
-
-  <!-- Filter bar -->
-  <div class="filter-bar">
-    <div class="loc-selector-wrap">
-      <div class="loc-selector" id="locSelectorBtn">
-        <i class="fa-solid fa-location-dot"></i>
-        <span id="locContextText">3 Lokasi</span>
-        <span class="badge" id="locBadgeCount">3</span>
-        <i class="fa-solid fa-chevron-down" style="font-size:9px"></i>
-      </div>
-      <div class="loc-panel" id="locPanel">
-        <div class="loc-panel-title">Shipping Point yang di-assign ke akun Anda</div>
-        <label class="loc-option">
-          <input type="checkbox" class="loc-check" data-loc="banten" checked>
-          <span class="dot" style="background:#3b5bb8"></span>
-          <span class="lbl">DC Banten</span>
-          <span class="cnt">6 DO</span>
-        </label>
-        <label class="loc-option">
-          <input type="checkbox" class="loc-check" data-loc="jakarta" checked>
-          <span class="dot" style="background:#0e7c80"></span>
-          <span class="lbl">Depo Jakarta</span>
-          <span class="cnt">5 DO</span>
-        </label>
-        <label class="loc-option">
-          <input type="checkbox" class="loc-check" data-loc="serang" checked>
-          <span class="dot" style="background:#a8621f"></span>
-          <span class="lbl">Depo Serang</span>
-          <span class="cnt">4 DO</span>
-        </label>
-        <div class="loc-panel-footer">
-          <span style="color:var(--g400)">Filter data yang ditampilkan</span>
-          <a href="#" id="locSelectAll">Pilih Semua</a>
+      <div class="loc-bar">
+        <div>
+          <div class="loc-context-label">Shipping Point Aktif</div>
+          <div class="loc-context-value"><span class="pin"><i class="fa-solid fa-location-dot"></i></span> <span id="locContextText">3 Lokasi</span></div>
         </div>
-      </div>
-    </div>
-    <div class="filter-sep"></div>
-    <div class="filter-group">
-      <span class="filter-label">Status:</span>
-      <div class="ppill active" data-status="all" onclick="setStatusFilter(this,'all')">Semua</div>
-      <div class="ppill" data-status="goods_issued" onclick="setStatusFilter(this,'goods_issued')"><span class="dot" style="color:#15803d"></span>Goods Issued</div>
-      <div class="ppill" data-status="waiting_gi" onclick="setStatusFilter(this,'waiting_gi')"><span class="dot" style="color:#854d0e"></span>Waiting GI</div>
-      <div class="ppill" data-status="failed" onclick="setStatusFilter(this,'failed')"><span class="dot" style="color:#b91c1c"></span>Failed</div>
-    </div>
-    <div class="filter-group" style="margin-left:auto">
-      <div style="position:relative">
-        <i class="fa-solid fa-magnifying-glass" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);color:var(--g400);font-size:11px"></i>
-        <input class="filter-input" type="text" id="searchBox" placeholder="Cari no. dokumen, ship to..." style="padding-left:26px;width:220px">
-      </div>
-    </div>
-  </div>
-
-  <!-- Body -->
-  <div class="body-wrap">
-    <div class="content-grid">
-      <div class="main-col">
-
-        <!-- KPI Row -->
-        <div class="kpi-row">
-          <div class="kpi-card">
-            <div class="kpi-icon blue"><i class="fa-solid fa-file-lines"></i></div>
-            <div class="kpi-body">
-              <div class="kpi-label">Outstanding DO</div>
-              <div class="kpi-value" id="kpiDo">15</div>
-              <div class="kpi-sub" id="kpiDoSub">di 3 shipping point</div>
-            </div>
+        <div class="loc-selector-wrap">
+          <div class="loc-selector" id="locSelectorBtn">
+            <span>Ubah Lokasi</span>
+            <span class="badge" id="locBadgeCount">3</span>
+            <span class="caret">▼</span>
           </div>
-          <div class="kpi-card">
-            <div class="kpi-icon green"><i class="fa-solid fa-cubes"></i></div>
-            <div class="kpi-body">
-              <div class="kpi-label">Total SKU</div>
-              <div class="kpi-value">7</div>
-            </div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-icon purple"><i class="fa-solid fa-boxes-packing"></i></div>
-            <div class="kpi-body">
-              <div class="kpi-label">Shipping Units (SHU)</div>
-              <div class="kpi-value">19</div>
-            </div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-icon orange"><i class="fa-solid fa-layer-group"></i></div>
-            <div class="kpi-body">
-              <div class="kpi-label">Total Qty (pcs)</div>
-              <div class="kpi-value">417</div>
-            </div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-icon pink"><i class="fa-solid fa-map-location-dot"></i></div>
-            <div class="kpi-body">
-              <div class="kpi-label">Total Area Covered</div>
-              <div class="kpi-value">7 Areas</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Doc Panel -->
-        <div class="doc-panel">
-          <div class="doc-panel-hdr">
-            <div class="doc-panel-title">Daftar Dokumen</div>
-          </div>
-
-          <div class="doc-meta">
-            <div>Menampilkan <b id="showingText">1–10</b> dari <b id="totalText">15</b> dokumen</div>
-          </div>
-
-          <div class="doc-table-scroll">
-            <table class="doc-table">
-              <thead>
-                <tr>
-                  <th><input type="checkbox" id="checkAll"></th>
-                  <th>No. Dokumen</th>
-                  <th>Order Type</th>
-                  <th>Shipping Point</th>
-                  <th>Ship To ID</th>
-                  <th>Ship To</th>
-                  <th>Order Status</th>
-                  <th>Stage</th>
-                  <th>SHU / SKU</th>
-                  <th>Qty</th>
-                  <th>Kota</th>
-                  <th>Aging</th>
-                  <th>GI Status</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody id="tbody"></tbody>
-            </table>
-          </div>
-
-          <div class="doc-pagination">
-            <div style="font-size:11.5px;color:var(--g400)">Halaman 1 dari 2</div>
-            <div class="page-nums">
-              <button>‹ Prev</button>
-              <button class="active">1</button>
-              <button>2</button>
-              <button>Next ›</button>
+          <div class="loc-panel" id="locPanel">
+            <div class="loc-panel-title">Shipping Point yang di-assign ke akun Anda</div>
+            <label class="loc-option">
+              <input type="checkbox" class="loc-check" data-loc="banten" checked>
+              <span class="dot" style="background:var(--loc-banten)"></span>
+              <span class="lbl">DC Banten</span>
+              <span class="cnt">6 DO</span>
+            </label>
+            <label class="loc-option">
+              <input type="checkbox" class="loc-check" data-loc="jakarta" checked>
+              <span class="dot" style="background:var(--loc-jakarta)"></span>
+              <span class="lbl">Depo Jakarta</span>
+              <span class="cnt">5 DO</span>
+            </label>
+            <label class="loc-option">
+              <input type="checkbox" class="loc-check" data-loc="serang" checked>
+              <span class="dot" style="background:var(--loc-serang)"></span>
+              <span class="lbl">Depo Serang</span>
+              <span class="cnt">4 DO</span>
+            </label>
+            <div class="loc-panel-footer">
+              <span style="color:var(--ink-faint)">Filter data yang ditampilkan</span>
+              <a href="#" id="locSelectAll">Pilih Semua</a>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Summary side panel -->
-      <div class="side-col">
-        <div class="summary-panel">
-          <div class="summary-head"><i class="fa-solid fa-chart-simple"></i> Summary</div>
-          <div class="summary-stats">
-            <div><div class="summary-stat-label">Total Dok.</div><div class="summary-stat-value" id="ssDoc">0</div></div>
-            <div><div class="summary-stat-label">Total SHU</div><div class="summary-stat-value" id="ssShu">0</div></div>
-            <div><div class="summary-stat-label">Total SKU</div><div class="summary-stat-value" id="ssSku">0</div></div>
+      <div class="page-eyebrow">Order Management</div>
+      <h1 class="page-title">Planning</h1>
+
+      <!-- KPI Row -->
+      <div class="kpi-row">
+        <div class="kpi">
+          <div class="kpi-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="#4A6FBF" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg></div>
+          <div class="kpi-body">
+            <div class="kpi-label">Outstanding DO</div>
+            <div class="kpi-value" id="kpiDo">15</div>
+            <div class="kpi-sub" id="kpiDoSub">di 3 shipping point</div>
           </div>
-          <div class="summary-doc-hdr"><i class="fa-solid fa-file-lines"></i> Dokumen</div>
-          <div id="sideBody">
-            <div class="summary-empty" id="emptyState">
-              <div class="summary-empty-illust"><i class="fa-regular fa-file"></i></div>
-              <div class="summary-empty-title">Pilih Dokumen</div>
-              <div class="summary-empty-desc">Silakan pilih dokumen terlebih dulu melalui daftar tabel di samping.</div>
-            </div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="#4CAE7A" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 3v18"/></svg></div>
+          <div class="kpi-body">
+            <div class="kpi-label">Total SKU</div>
+            <div class="kpi-value">7</div>
           </div>
-          <div class="summary-actions">
-            <button class="btn btn-outline" id="btnReset">Reset</button>
-            <button class="btn btn-primary" id="btnDraft">Create Draft</button>
+        </div>
+        <div class="kpi">
+          <div class="kpi-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="#8A5FD8" stroke-width="2"><path d="M21 16V8l-9-5-9 5v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v10"/></svg></div>
+          <div class="kpi-body">
+            <div class="kpi-label">Shipping Units (SHU)</div>
+            <div class="kpi-value">19</div>
           </div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-icon orange"><svg viewBox="0 0 24 24" fill="none" stroke="#E8A045" stroke-width="2"><path d="M20 7l-8-4-8 4 8 4 8-4z"/><path d="M4 12l8 4 8-4M4 17l8 4 8-4"/></svg></div>
+          <div class="kpi-body">
+            <div class="kpi-label">Total Qty (pcs)</div>
+            <div class="kpi-value">417</div>
+          </div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-icon pink"><svg viewBox="0 0 24 24" fill="none" stroke="#D66678" stroke-width="2"><circle cx="12" cy="10" r="3"/><path d="M12 2a8 8 0 018 8c0 6-8 12-8 12s-8-6-8-12a8 8 0 018-8z"/></svg></div>
+          <div class="kpi-body">
+            <div class="kpi-label">Total Area Covered</div>
+            <div class="kpi-value">7 Areas</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Table Panel -->
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">Daftar Dokumen</div>
+        </div>
+
+        <div class="toolbar">
+          <div class="search">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" placeholder="Pencarian" id="searchBox">
+          </div>
+          <button class="p-btn"><i class="fa-solid fa-filter"></i> Filter</button>
+          <div class="toolbar-right">
+            <button class="p-btn" onclick="doExport()"><i class="fa-solid fa-download"></i> Export <span style="font-size:9px;margin-left:2px">▾</span></button>
+          </div>
+        </div>
+
+        <div class="quick-filter">
+          <span class="qf-label">Quick Filter:</span>
+          <button class="qf-chip active" data-status="all" onclick="setStatusFilter(this,'all')"><span class="dot"></span>Semua Status</button>
+          <button class="qf-chip" data-status="goods_issued" onclick="setStatusFilter(this,'goods_issued')"><span class="dot"></span>Goods Issued</button>
+          <button class="qf-chip" data-status="waiting_gi" onclick="setStatusFilter(this,'waiting_gi')"><span class="dot"></span>Waiting GI</button>
+          <button class="qf-chip" data-status="failed" onclick="setStatusFilter(this,'failed')"><span class="dot"></span>Failed</button>
+        </div>
+
+        <div class="table-meta">
+          <div>Showing <b id="showingText">1 to 10</b> of <b id="totalText">15 Entries</b></div>
+        </div>
+
+        <div class="table-scroll">
+          <table class="tms">
+            <thead>
+              <tr>
+                <th><input type="checkbox" id="checkAll"></th>
+                <th>No. Dokumen</th>
+                <th>Order Type</th>
+                <th>Shipping Point</th>
+                <th>Ship To ID</th>
+                <th>Ship To</th>
+                <th>Order Status</th>
+                <th>Stage</th>
+                <th>SHU / SKU</th>
+                <th>Qty</th>
+                <th>Kota</th>
+                <th>Aging</th>
+                <th>GI Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+
+        <div class="pagination">
+          <div style="font-size:12px;color:var(--ink-soft)">Halaman 1 dari 2</div>
+          <div class="page-nums">
+            <button>‹ Prev</button>
+            <button class="active">1</button>
+            <button>2</button>
+            <button>Next ›</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Summary Panel -->
+    <div class="side-col">
+      <div class="side-panel">
+        <div class="side-head"><span style="color:var(--primary);font-size:11px">»</span> Summary</div>
+        <div class="side-stats">
+          <div><div class="side-stat-label">Total Dok.</div><div class="side-stat-value" id="ssDoc">0</div></div>
+          <div><div class="side-stat-label">Total SHU</div><div class="side-stat-value" id="ssShu">0</div></div>
+          <div><div class="side-stat-label">Total SKU</div><div class="side-stat-value" id="ssSku">0</div></div>
+        </div>
+        <div class="side-doc-head"><i class="fa-solid fa-file-lines" style="font-size:12px"></i> Dokumen</div>
+        <div id="sideBody">
+          <div class="empty-state" id="emptyState">
+            <div class="empty-illust"><i class="fa-solid fa-question"></i></div>
+            <div class="empty-title">Pilih Dokumen</div>
+            <div class="empty-desc">Silakan pilih dokumen terlebih dulu melalui daftar tabel assignment.</div>
+          </div>
+        </div>
+        <div class="side-actions">
+          <button class="p-btn" id="btnReset">Reset</button>
+          <button class="p-btn primary" id="btnDraft">Create Draft Planning</button>
         </div>
       </div>
     </div>
@@ -459,194 +526,218 @@ table.doc-table tbody tr:last-child td{border-bottom:none}
 </div>
 
 <script>
+function toggleSidebar(){
+  const collapsed=document.body.classList.toggle('sb-collapsed');
+  document.documentElement.style.setProperty('--sw', collapsed?'64px':'220px');
+}
+
 const LOC = {
-  banten:  {name:'DC Banten',    cls:'banten'},
-  jakarta: {name:'Depo Jakarta', cls:'jakarta'},
-  serang:  {name:'Depo Serang',  cls:'serang'},
+  banten:  {name:"DC Banten",    cls:"loc-banten"},
+  jakarta: {name:"Depo Jakarta", cls:"loc-jakarta"},
+  serang:  {name:"Depo Serang",  cls:"loc-serang"},
 };
 
-// Sample data — mixed across 3 shipping points (Order Management demo dataset)
+// Sample data matching the platform's structure — mixed across 3 shipping points
 const DATA = [
- {doc:'PMTEST3006',type:'Drop',loc:'banten', shipId:'CUST001',    shipTo:'PT. Global Shipping',       status:'menyiapkan',stage:'Outstanding',shu:'7/3',qty:'52 Pcs(s)', kota:'Depok',                 aging:'9 hari', gi:'failed',      giLabel:'Failed',      shu_n:7,sku_n:3},
- {doc:'PMQA000025',type:'Drop',loc:'jakarta',shipId:'1000003956', shipTo:'APOTEK AR-RIDHO',           status:'draft',     stage:'Draft',      shu:'0/0',qty:'0 Pcs(s)',  kota:'KAB. PANDEGLANG',       aging:'10 hari',gi:'waiting_gi',  giLabel:'Waiting GI',  shu_n:0,sku_n:0},
- {doc:'PMQA000024',type:'Drop',loc:'serang', shipId:'1000003827', shipTo:'ANDARA TOKO',               status:'draft',     stage:'Draft',      shu:'0/0',qty:'0 Pcs(s)',  kota:'KOTA ADM. JAKSEL',      aging:'10 hari',gi:'waiting_gi',  giLabel:'Waiting GI',  shu_n:0,sku_n:0},
- {doc:'PMQA000023',type:'Drop',loc:'banten', shipId:'1000003528', shipTo:'212 MART TAMAN ROYAL 2',    status:'draft',     stage:'Draft',      shu:'0/0',qty:'0 Pcs(s)',  kota:'KOTA TANGERANG',        aging:'10 hari',gi:'waiting_gi',  giLabel:'Waiting GI',  shu_n:0,sku_n:0},
- {doc:'PMQA000022',type:'Drop',loc:'jakarta',shipId:'1000000136', shipTo:'KANTOR PELAYANAN PAJAK PRATAMA JAKARTA KEMBANGAN',status:'draft',stage:'Draft',shu:'0/0',qty:'0 Pcs(s)',kota:'KOTA ADM. JAKBAR',aging:'10 hari',gi:'waiting_gi',giLabel:'Waiting GI',shu_n:0,sku_n:0},
- {doc:'PMQA000021',type:'Drop',loc:'jakarta',shipId:'1000000074', shipTo:'BANK MANDIRI (PERSERO)',    status:'draft',     stage:'Draft',      shu:'0/0',qty:'0 Pcs(s)',  kota:'KOTA ADM. JAKSEL',      aging:'10 hari',gi:'goods_issued',giLabel:'Good Issued', shu_n:0,sku_n:0},
- {doc:'PMQA000020',type:'Drop',loc:'serang', shipId:'1000000023', shipTo:'ANEKA COSMETICS PANDEGLANG KONSINYASI',status:'draft',stage:'Draft',shu:'0/0',qty:'0 Pcs(s)', kota:'KAB. PANDEGLANG',       aging:'10 hari',gi:'goods_issued',giLabel:'Good Issued', shu_n:0,sku_n:0},
- {doc:'PMQA000019',type:'Drop',loc:'banten', shipId:'0000001307', shipTo:'PARAMA DC BANTEN',          status:'draft',     stage:'Draft',      shu:'0/0',qty:'0 Pcs(s)',  kota:'SERANG',                aging:'10 hari',gi:'goods_issued',giLabel:'Good Issued', shu_n:0,sku_n:0},
- {doc:'PMQA000012',type:'Drop',loc:'banten', shipId:'1000005687', shipTo:'IMAH KOSMETIK',             status:'menyiapkan',stage:'Outstanding',shu:'3/4',qty:'115 Pcs(s)',kota:'KAB. SERANG',           aging:'31 hari',gi:'failed',      giLabel:'Failed',      shu_n:3,sku_n:4},
- {doc:'PMQA000011',type:'Drop',loc:'jakarta',shipId:'1000005333', shipTo:'FAREL KOSMETIK',            status:'menyiapkan',stage:'Outstanding',shu:'2/3',qty:'30 Pcs(s)', kota:'KOTA TANGERANG',        aging:'29 hari',gi:'waiting_gi',  giLabel:'Waiting GI',  shu_n:2,sku_n:3},
- {doc:'PMQA000010',type:'Drop',loc:'serang', shipId:'1000004821', shipTo:'CV BINTANG TIMUR',          status:'menyiapkan',stage:'Outstanding',shu:'4/2',qty:'88 Pcs(s)', kota:'KAB. SERANG',           aging:'12 hari',gi:'goods_issued',giLabel:'Good Issued', shu_n:4,sku_n:2},
- {doc:'PMQA000009',type:'Drop',loc:'banten', shipId:'1000004500', shipTo:'TOKO SEJAHTERA MAKMUR',     status:'draft',     stage:'Draft',      shu:'0/0',qty:'0 Pcs(s)',  kota:'KOTA TANGERANG',        aging:'8 hari', gi:'waiting_gi',  giLabel:'Waiting GI',  shu_n:0,sku_n:0},
- {doc:'PMQA000008',type:'Drop',loc:'jakarta',shipId:'1000004230', shipTo:'MINIMARKET JAYA ABADI',     status:'menyiapkan',stage:'Outstanding',shu:'1/2',qty:'24 Pcs(s)', kota:'KOTA ADM. JAKPUS',      aging:'5 hari', gi:'goods_issued',giLabel:'Good Issued', shu_n:1,sku_n:2},
- {doc:'PMQA000007',type:'Drop',loc:'serang', shipId:'1000003980', shipTo:'WARUNG SEMBAKO 88',         status:'draft',     stage:'Draft',      shu:'0/0',qty:'0 Pcs(s)',  kota:'KAB. SERANG',           aging:'3 hari', gi:'waiting_gi',  giLabel:'Waiting GI',  shu_n:0,sku_n:0},
- {doc:'PMQA000006',type:'Drop',loc:'banten', shipId:'1000003745', shipTo:'PT KARYA UTAMA MAKMUR',     status:'menyiapkan',stage:'Outstanding',shu:'2/1',qty:'48 Pcs(s)', kota:'KOTA TANGERANG',        aging:'6 hari', gi:'failed',      giLabel:'Failed',      shu_n:2,sku_n:1},
+ {doc:"PMTEST3006", type:"Drop", loc:"banten",  shipId:"CUST001",    shipTo:"PT. Global Shipping",       status:"menyiapkan", stage:"Outstanding", shu:"7/3", qty:"52 Pcs(s)", kota:"Depok",                 aging:"9 hari",   gi:"failed",       giLabel:"Failed",       shu_n:7, sku_n:3},
+ {doc:"PMQA000025", type:"Drop", loc:"jakarta", shipId:"1000003956", shipTo:"APOTEK AR-RIDHO",           status:"draft",      stage:"Draft",       shu:"0/0", qty:"0 Pcs(s)",  kota:"KAB. PANDEGLANG",       aging:"10 hari",  gi:"waiting_gi",   giLabel:"Waiting GI",   shu_n:0, sku_n:0},
+ {doc:"PMQA000024", type:"Drop", loc:"serang",  shipId:"1000003827", shipTo:"ANDARA TOKO",               status:"draft",      stage:"Draft",       shu:"0/0", qty:"0 Pcs(s)",  kota:"KOTA ADM. JAKSEL",      aging:"10 hari",  gi:"waiting_gi",   giLabel:"Waiting GI",   shu_n:0, sku_n:0},
+ {doc:"PMQA000023", type:"Drop", loc:"banten",  shipId:"1000003528", shipTo:"212 MART TAMAN ROYAL 2",    status:"draft",      stage:"Draft",       shu:"0/0", qty:"0 Pcs(s)",  kota:"KOTA TANGERANG",        aging:"10 hari",  gi:"waiting_gi",   giLabel:"Waiting GI",   shu_n:0, sku_n:0},
+ {doc:"PMQA000022", type:"Drop", loc:"jakarta", shipId:"1000000136", shipTo:"KANTOR PELAYANAN PAJAK PRATAMA JAKARTA KEMBANGAN", status:"draft", stage:"Draft", shu:"0/0", qty:"0 Pcs(s)", kota:"KOTA ADM. JAKBAR", aging:"10 hari", gi:"waiting_gi", giLabel:"Waiting GI", shu_n:0, sku_n:0},
+ {doc:"PMQA000021", type:"Drop", loc:"jakarta", shipId:"1000000074", shipTo:"BANK MANDIRI (PERSERO)",    status:"draft",      stage:"Draft",       shu:"0/0", qty:"0 Pcs(s)",  kota:"KOTA ADM. JAKSEL",      aging:"10 hari",  gi:"goods_issued", giLabel:"Good Issued",  shu_n:0, sku_n:0},
+ {doc:"PMQA000020", type:"Drop", loc:"serang",  shipId:"1000000023", shipTo:"ANEKA COSMETICS PANDEGLANG KONSINYASI", status:"draft", stage:"Draft", shu:"0/0", qty:"0 Pcs(s)", kota:"KAB. PANDEGLANG", aging:"10 hari", gi:"goods_issued", giLabel:"Good Issued", shu_n:0, sku_n:0},
+ {doc:"PMQA000019", type:"Drop", loc:"banten",  shipId:"0000001307", shipTo:"PARAMA DC BANTEN",          status:"draft",      stage:"Draft",       shu:"0/0", qty:"0 Pcs(s)",  kota:"SERANG",                aging:"10 hari",  gi:"goods_issued", giLabel:"Good Issued",  shu_n:0, sku_n:0},
+ {doc:"PMQA000012", type:"Drop", loc:"banten",  shipId:"1000005687", shipTo:"IMAH KOSMETIK",             status:"menyiapkan", stage:"Outstanding", shu:"3/4", qty:"115 Pcs(s)", kota:"KAB. SERANG",           aging:"31 hari",  gi:"failed",       giLabel:"Failed",       shu_n:3, sku_n:4},
+ {doc:"PMQA000011", type:"Drop", loc:"jakarta", shipId:"1000005333", shipTo:"FAREL KOSMETIK",            status:"menyiapkan", stage:"Outstanding", shu:"2/3", qty:"30 Pcs(s)",  kota:"KOTA TANGERANG",        aging:"29 hari",  gi:"waiting_gi",   giLabel:"Waiting GI",   shu_n:2, sku_n:3},
+ {doc:"PMQA000010", type:"Drop", loc:"serang",  shipId:"1000004821", shipTo:"CV BINTANG TIMUR",          status:"menyiapkan", stage:"Outstanding", shu:"4/2", qty:"88 Pcs(s)",  kota:"KAB. SERANG",           aging:"12 hari",  gi:"goods_issued", giLabel:"Good Issued",  shu_n:4, sku_n:2},
+ {doc:"PMQA000009", type:"Drop", loc:"banten",  shipId:"1000004500", shipTo:"TOKO SEJAHTERA MAKMUR",     status:"draft",      stage:"Draft",       shu:"0/0", qty:"0 Pcs(s)",  kota:"KOTA TANGERANG",        aging:"8 hari",   gi:"waiting_gi",   giLabel:"Waiting GI",   shu_n:0, sku_n:0},
+ {doc:"PMQA000008", type:"Drop", loc:"jakarta", shipId:"1000004230", shipTo:"MINIMARKET JAYA ABADI",     status:"menyiapkan", stage:"Outstanding", shu:"1/2", qty:"24 Pcs(s)", kota:"KOTA ADM. JAKPUS",  aging:"5 hari",   gi:"goods_issued", giLabel:"Good Issued",  shu_n:1, sku_n:2},
+ {doc:"PMQA000007", type:"Drop", loc:"serang",  shipId:"1000003980", shipTo:"WARUNG SEMBAKO 88",        status:"draft",      stage:"Draft",       shu:"0/0", qty:"0 Pcs(s)",  kota:"KAB. SERANG",           aging:"3 hari",   gi:"waiting_gi",   giLabel:"Waiting GI",   shu_n:0, sku_n:0},
+ {doc:"PMQA000006", type:"Drop", loc:"banten",  shipId:"1000003745", shipTo:"PT KARYA UTAMA MAKMUR",    status:"menyiapkan", stage:"Outstanding", shu:"2/1", qty:"48 Pcs(s)", kota:"KOTA TANGERANG",        aging:"6 hari",   gi:"failed",       giLabel:"Failed",       shu_n:2, sku_n:1},
 ];
 
-let filters={status:'all',search:'',activeLocs:new Set(['banten','jakarta','serang'])};
-let selectedDoc=null;
-let selectedRows=new Set();
+let filters = { status:"all", search:"", activeLocs:new Set(["banten","jakarta","serang"]) };
+let selectedDoc = null;
+let selectedRows = new Set();
 
 function renderTable(){
-  const rows=DATA.filter(d=>{
-    if(!filters.activeLocs.has(d.loc)) return false;
-    if(filters.status!=='all' && d.gi!==filters.status) return false;
-    if(filters.search){
-      const q=filters.search.toLowerCase();
-      if(!(d.doc.toLowerCase().includes(q)||d.shipTo.toLowerCase().includes(q))) return false;
+  const rows = DATA.filter(d => {
+    if (!filters.activeLocs.has(d.loc)) return false;
+    if (filters.status !== "all" && d.gi !== filters.status) return false;
+    if (filters.search) {
+      const q = filters.search.toLowerCase();
+      if (!(d.doc.toLowerCase().includes(q) || d.shipTo.toLowerCase().includes(q))) return false;
     }
     return true;
   });
 
-  const tbody=document.getElementById('tbody');
-  if(!rows.length){
-    tbody.innerHTML=`<tr><td colspan="14" style="text-align:center;padding:36px;color:var(--g400)">Tidak ada dokumen sesuai filter.</td></tr>`;
-    document.getElementById('showingText').textContent='0';
-    document.getElementById('totalText').textContent='0';
+  const tbody = document.getElementById("tbody");
+  if (rows.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="14" style="text-align:center; padding:36px; color:var(--ink-faint);">Tidak ada dokumen sesuai filter.</td></tr>`;
+    document.getElementById("showingText").textContent = "0 to 0";
+    document.getElementById("totalText").textContent = "0 Entries";
     return;
   }
 
-  tbody.innerHTML=rows.slice(0,10).map(d=>{
-    const loc=LOC[d.loc];
-    return `<tr data-doc="${d.doc}" class="${selectedRows.has(d.doc)?'selected':''}">
-      <td><input type="checkbox" class="row-check" data-doc="${d.doc}" ${selectedRows.has(d.doc)?'checked':''}></td>
-      <td class="cell-doc">${d.doc}</td>
-      <td><span class="st-pill blue"><i class="fa-solid fa-arrow-down" style="font-size:8px"></i> ${d.type}</span></td>
-      <td><span class="loc-tag ${loc.cls}"><span class="dot"></span>${loc.name}</span></td>
-      <td>${d.shipId}</td>
-      <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis">${d.shipTo}</td>
-      <td>${d.status==='menyiapkan'?'<span class="st-pill orange">Menyiapkan Pengiriman</span>':'<span class="st-pill gray">Draft</span>'}</td>
-      <td>${d.stage==='Outstanding'?'<span class="st-pill orange">Outstanding</span>':'<span class="st-pill gray">Draft</span>'}</td>
-      <td>${d.shu}</td>
-      <td>${d.qty}</td>
-      <td>${d.kota}</td>
-      <td>${d.aging}</td>
-      <td>${d.gi==='goods_issued'?'<span class="st-pill green">Good Issued</span>':d.gi==='waiting_gi'?'<span class="st-pill yellow">Waiting GI</span>':'<span class="st-pill red">Failed</span>'}</td>
-      <td><button class="row-action" onclick="event.stopPropagation()"><i class="fa-solid fa-ellipsis-vertical"></i></button></td>
-    </tr>`;
-  }).join('');
+  tbody.innerHTML = rows.slice(0,10).map(d => {
+    const loc = LOC[d.loc];
+    return `
+      <tr data-doc="${d.doc}" class="${selectedRows.has(d.doc)?'selected':''}">
+        <td><input type="checkbox" class="row-check" data-doc="${d.doc}" ${selectedRows.has(d.doc)?'checked':''}></td>
+        <td class="cell-doc">${d.doc}</td>
+        <td><span class="pill pill-drop">⬇ ${d.type}</span></td>
+        <td><span class="loc-pill ${loc.cls}"><span class="dot"></span>${loc.name}</span></td>
+        <td>${d.shipId}</td>
+        <td style="max-width:220px; overflow:hidden; text-overflow:ellipsis;">${d.shipTo}</td>
+        <td>${d.status === 'menyiapkan'
+              ? '<span class="pill pill-orange">Menyiapkan Pengiriman</span>'
+              : '<span class="pill pill-gray">Draft</span>'}</td>
+        <td>${d.stage === 'Outstanding'
+              ? '<span class="pill pill-orange">Outstanding</span>'
+              : '<span class="pill pill-gray">Draft</span>'}</td>
+        <td>${d.shu}</td>
+        <td>${d.qty}</td>
+        <td>${d.kota}</td>
+        <td>${d.aging}</td>
+        <td>${
+          d.gi === 'goods_issued' ? '<span class="pill pill-green">Good Issued</span>'
+          : d.gi === 'waiting_gi' ? '<span class="pill pill-yellow">Waiting GI</span>'
+          : '<span class="pill pill-red">Failed</span>'
+        }</td>
+        <td><button class="row-action" onclick="event.stopPropagation()"><i class="fa-solid fa-ellipsis-vertical"></i></button></td>
+      </tr>
+    `;
+  }).join("");
 
-  document.getElementById('showingText').textContent=`1–${Math.min(rows.length,10)}`;
-  document.getElementById('totalText').textContent=rows.length;
-  document.getElementById('kpiDo').textContent=rows.length;
-  document.getElementById('kpiDoSub').textContent=`di ${filters.activeLocs.size} shipping point`;
+  document.getElementById("showingText").textContent = `1 to ${Math.min(rows.length,10)}`;
+  document.getElementById("totalText").textContent = `${rows.length} Entries`;
+  document.getElementById("kpiDo").textContent = rows.length;
+  document.getElementById("kpiDoSub").textContent = `di ${filters.activeLocs.size} shipping point`;
 
-  tbody.querySelectorAll('tr[data-doc]').forEach(tr=>{
-    tr.addEventListener('click',e=>{
-      if(e.target.closest('.row-check')||e.target.closest('.row-action')) return;
+  tbody.querySelectorAll("tr[data-doc]").forEach(tr => {
+    tr.addEventListener("click", e => {
+      if (e.target.closest(".row-check") || e.target.closest(".row-action")) return;
       selectDoc(tr.dataset.doc);
     });
   });
-  tbody.querySelectorAll('.row-check').forEach(cb=>{
-    cb.addEventListener('change',()=>{
-      const doc=cb.dataset.doc;
-      if(cb.checked) selectedRows.add(doc); else selectedRows.delete(doc);
+  tbody.querySelectorAll(".row-check").forEach(cb => {
+    cb.addEventListener("change", e => {
+      const doc = cb.dataset.doc;
+      if (cb.checked) selectedRows.add(doc); else selectedRows.delete(doc);
       updateSummaryStats();
-      tbody.querySelector(`tr[data-doc="${doc}"]`).classList.toggle('selected',cb.checked);
+      tbody.querySelector(`tr[data-doc="${doc}"]`).classList.toggle("selected", cb.checked);
     });
   });
 }
 
 function selectDoc(doc){
-  const d=DATA.find(x=>x.doc===doc);
-  if(!d) return;
-  selectedDoc=d;
-  const loc=LOC[d.loc];
-  document.getElementById('sideBody').innerHTML=`
-    <div class="summary-doc-no">${d.doc}</div>
-    <div class="summary-doc-cust">${d.shipTo}</div>
-    <div style="margin-bottom:14px"><span class="loc-tag ${loc.cls}"><span class="dot"></span>${loc.name}</span></div>
-    <div class="summary-fields">
-      <div class="summary-field"><span class="k">Ship To ID</span><span class="v">${d.shipId}</span></div>
-      <div class="summary-field"><span class="k">Order Type</span><span class="v"><span class="st-pill blue">${d.type}</span></span></div>
-      <div class="summary-field"><span class="k">Stage</span><span class="v">${d.stage}</span></div>
-      <div class="summary-field"><span class="k">SHU / SKU</span><span class="v">${d.shu}</span></div>
-      <div class="summary-field"><span class="k">Quantity</span><span class="v">${d.qty}</span></div>
-      <div class="summary-field"><span class="k">Kota</span><span class="v" style="max-width:130px;word-break:break-word">${d.kota}</span></div>
-      <div class="summary-field"><span class="k">Aging</span><span class="v">${d.aging}</span></div>
-      <div class="summary-field"><span class="k">GI Status</span><span class="v">${d.giLabel}</span></div>
-    </div>`;
+  const d = DATA.find(x => x.doc === doc);
+  if (!d) return;
+  selectedDoc = d;
+  const loc = LOC[d.loc];
+  document.getElementById("sideBody").innerHTML = `
+    <div class="selected-doc-block">
+      <div class="selected-doc-no">${d.doc}</div>
+      <div class="selected-doc-cust">${d.shipTo}</div>
+      <div style="margin-bottom:14px;"><span class="loc-pill ${loc.cls}"><span class="dot"></span>${loc.name}</span></div>
+      <div class="selected-fields">
+        <div class="selected-field"><span class="k">Ship To ID</span><span class="v">${d.shipId}</span></div>
+        <div class="selected-field"><span class="k">Order Type</span><span class="v"><span class="pill pill-drop">${d.type}</span></span></div>
+        <div class="selected-field"><span class="k">Stage</span><span class="v">${d.stage}</span></div>
+        <div class="selected-field"><span class="k">SHU / SKU</span><span class="v">${d.shu}</span></div>
+        <div class="selected-field"><span class="k">Quantity</span><span class="v">${d.qty}</span></div>
+        <div class="selected-field"><span class="k">Kota</span><span class="v" style="max-width:130px; word-break:break-word;">${d.kota}</span></div>
+        <div class="selected-field"><span class="k">Aging</span><span class="v">${d.aging}</span></div>
+        <div class="selected-field"><span class="k">GI Status</span><span class="v">${d.giLabel}</span></div>
+      </div>
+    </div>
+  `;
 }
 
 function updateSummaryStats(){
-  let shu=0,sku=0;
-  selectedRows.forEach(doc=>{
-    const d=DATA.find(x=>x.doc===doc);
-    if(d){shu+=d.shu_n;sku+=d.sku_n;}
+  let shu = 0, sku = 0;
+  selectedRows.forEach(doc => {
+    const d = DATA.find(x => x.doc === doc);
+    if (d) { shu += d.shu_n; sku += d.sku_n; }
   });
-  document.getElementById('ssDoc').textContent=selectedRows.size;
-  document.getElementById('ssShu').textContent=shu;
-  document.getElementById('ssSku').textContent=sku;
+  document.getElementById("ssDoc").textContent = selectedRows.size;
+  document.getElementById("ssShu").textContent = shu;
+  document.getElementById("ssSku").textContent = sku;
 }
 
 function setStatusFilter(el,status){
-  document.querySelectorAll('.ppill[data-status]').forEach(p=>p.classList.remove('active'));
-  el.classList.add('active');
-  filters.status=status;
+  document.querySelectorAll(".qf-chip[data-status]").forEach(x => x.classList.remove("active"));
+  el.classList.add("active");
+  filters.status = status;
   renderTable();
 }
 
-document.getElementById('searchBox').addEventListener('input',e=>{
-  filters.search=e.target.value;
+document.getElementById("searchBox").addEventListener("input", e => {
+  filters.search = e.target.value;
   renderTable();
 });
 
 // Location selector panel
-const locBtn=document.getElementById('locSelectorBtn');
-const locPanel=document.getElementById('locPanel');
-locBtn.addEventListener('click',e=>{ e.stopPropagation(); locPanel.classList.toggle('open'); });
-document.addEventListener('click',e=>{
-  if(!locPanel.contains(e.target) && !locBtn.contains(e.target)) locPanel.classList.remove('open');
+const locBtn = document.getElementById("locSelectorBtn");
+const locPanel = document.getElementById("locPanel");
+locBtn.addEventListener("click", e => {
+  e.stopPropagation();
+  locPanel.classList.toggle("open");
 });
-document.querySelectorAll('.loc-check').forEach(chk=>{
-  chk.addEventListener('change',()=>{
-    if(chk.checked) filters.activeLocs.add(chk.dataset.loc);
+document.addEventListener("click", e => {
+  if (!locPanel.contains(e.target) && !locBtn.contains(e.target)) locPanel.classList.remove("open");
+});
+document.querySelectorAll(".loc-check").forEach(chk => {
+  chk.addEventListener("change", () => {
+    if (chk.checked) filters.activeLocs.add(chk.dataset.loc);
     else filters.activeLocs.delete(chk.dataset.loc);
-    if(filters.activeLocs.size===0){ chk.checked=true; filters.activeLocs.add(chk.dataset.loc); return; }
+    if (filters.activeLocs.size === 0) { chk.checked = true; filters.activeLocs.add(chk.dataset.loc); return; }
     updateLocContext();
     renderTable();
   });
 });
-document.getElementById('locSelectAll').addEventListener('click',e=>{
+document.getElementById("locSelectAll").addEventListener("click", e => {
   e.preventDefault();
-  document.querySelectorAll('.loc-check').forEach(c=>{ c.checked=true; filters.activeLocs.add(c.dataset.loc); });
+  document.querySelectorAll(".loc-check").forEach(c => { c.checked = true; filters.activeLocs.add(c.dataset.loc); });
   updateLocContext();
   renderTable();
 });
 
 function updateLocContext(){
-  const n=filters.activeLocs.size;
-  document.getElementById('locBadgeCount').textContent=n;
-  const names=[...filters.activeLocs].map(k=>LOC[k].name);
-  document.getElementById('locContextText').textContent = n===3 ? '3 Lokasi' : (n===1 ? names[0] : `${n} Lokasi`);
+  const n = filters.activeLocs.size;
+  document.getElementById("locBadgeCount").textContent = n;
+  const names = [...filters.activeLocs].map(k => LOC[k].name);
+  document.getElementById("locContextText").textContent = n === 3
+    ? "3 Lokasi"
+    : (n === 1 ? names[0] : `${n} Lokasi: ${names.join(", ")}`);
 }
 
-document.getElementById('checkAll').addEventListener('change',e=>{
-  document.querySelectorAll('.row-check').forEach(cb=>{
-    cb.checked=e.target.checked;
-    if(e.target.checked) selectedRows.add(cb.dataset.doc); else selectedRows.delete(cb.dataset.doc);
-    cb.closest('tr').classList.toggle('selected',e.target.checked);
+document.getElementById("checkAll").addEventListener("change", e => {
+  document.querySelectorAll(".row-check").forEach(cb => {
+    cb.checked = e.target.checked;
+    if (e.target.checked) selectedRows.add(cb.dataset.doc);
+    else selectedRows.delete(cb.dataset.doc);
+    cb.closest("tr").classList.toggle("selected", e.target.checked);
   });
   updateSummaryStats();
 });
 
-document.getElementById('btnReset').addEventListener('click',()=>{
+document.getElementById("btnReset").addEventListener("click", () => {
   selectedRows.clear();
-  selectedDoc=null;
-  document.querySelectorAll('.row-check').forEach(cb=>cb.checked=false);
-  document.getElementById('checkAll').checked=false;
-  document.querySelectorAll('tr.selected').forEach(tr=>tr.classList.remove('selected'));
-  document.getElementById('sideBody').innerHTML=`
-    <div class="summary-empty" id="emptyState">
-      <div class="summary-empty-illust"><i class="fa-regular fa-file"></i></div>
-      <div class="summary-empty-title">Pilih Dokumen</div>
-      <div class="summary-empty-desc">Silakan pilih dokumen terlebih dulu melalui daftar tabel di samping.</div>
+  selectedDoc = null;
+  document.querySelectorAll(".row-check").forEach(cb => cb.checked = false);
+  document.getElementById("checkAll").checked = false;
+  document.querySelectorAll("tr.selected").forEach(tr => tr.classList.remove("selected"));
+  document.getElementById("sideBody").innerHTML = `
+    <div class="empty-state">
+      <div class="empty-illust"><i class="fa-solid fa-question"></i></div>
+      <div class="empty-title">Pilih Dokumen</div>
+      <div class="empty-desc">Silakan pilih dokumen terlebih dulu melalui daftar tabel assignment.</div>
     </div>`;
   updateSummaryStats();
 });
 
-document.getElementById('btnDraft').addEventListener('click',()=>{
+document.getElementById("btnDraft").addEventListener("click", () => {
   if(!selectedRows.size){ showToast('Pilih minimal satu dokumen terlebih dahulu.'); return; }
   showToast(`Draft planning dibuat untuk ${selectedRows.size} dokumen.`);
 });

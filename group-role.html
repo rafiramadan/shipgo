@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>User & Access — PT Parama Global Inspira</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --p50:#eef2ff;--p100:#e0e7ff;--p200:#c7d2fe;--p300:#a5b4fc;
+  --p400:#818cf8;--p500:#6366f1;--p600:#4f46e5;--p700:#4338ca;--p800:#3730a3;--p900:#312e81;
+  --sb:#1e1b4b;--sb2:#16134a;
+  --green:#16a34a;--red:#dc2626;--orange:#ea580c;--amber:#d97706;
+  --g50:#f8fafc;--g100:#f1f5f9;--g150:#eef0f4;--g200:#e2e8f0;
+  --g300:#cbd5e1;--g400:#94a3b8;--g500:#64748b;--g700:#334155;--g900:#0f172a;
+  --sw:220px;--th:60px;--r:8px;--r2:12px;
+  --sh:0 1px 3px rgba(0,0,0,.08);--shl:0 8px 24px rgba(0,0,0,.13);
+  --font:'Inter',sans-serif;
+}
+html,body{height:100%;font-family:var(--font);font-size:13px;color:var(--g900);overflow:hidden;background:var(--g100)}
+
+/* ── TOPBAR ── */
+.topbar{position:fixed;top:0;left:0;right:0;height:var(--th);background:#fff;border-bottom:1px solid var(--g200);display:flex;align-items:center;z-index:1000;padding:0 20px 0 0;box-shadow:0 1px 0 var(--g200)}
+.tb-logo{width:var(--sw);height:var(--th);background:var(--sb2);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;transition:width .2s ease}
+.tb-logo-inner{display:flex;align-items:center;gap:10px;padding:0 16px;white-space:nowrap}
+.tb-logo-icon{width:32px;height:32px;border-radius:8px;background:var(--p600);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.tb-logo-icon i{color:#fff;font-size:15px}
+.tb-logo-text{font-size:14px;font-weight:700;color:#fff;opacity:1;letter-spacing:-.3px;transition:opacity .15s}
+body.sb-collapsed .tb-logo-text{opacity:0;pointer-events:none}
+.tb-dc{display:flex;flex-direction:column;margin-left:16px}
+.tb-dc-label{font-size:10px;color:var(--g400);font-weight:500;letter-spacing:.3px}
+.tb-dc-val{display:flex;align-items:center;gap:5px;font-size:14px;font-weight:600;color:var(--g900)}
+.tb-dc-val i{color:var(--p600);font-size:12px}
+.tb-spacer{flex:1}
+.tb-actions{display:flex;align-items:center;gap:6px}
+.tb-icon{width:34px;height:34px;border-radius:var(--r);border:1px solid var(--g200);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--g500);font-size:14px;position:relative;background:#fff;transition:all .15s}
+.tb-icon:hover{background:var(--p50);border-color:var(--p200);color:var(--p600)}
+.tb-icon .bdg{position:absolute;top:4px;right:4px;width:8px;height:8px;background:var(--red);border-radius:50%;border:1.5px solid #fff}
+.tb-user-wrap{position:relative}
+.tb-user{display:flex;align-items:center;gap:10px;padding:6px 12px;border:1px solid var(--g200);border-radius:var(--r2);cursor:pointer;background:#fff;margin-left:4px;transition:all .15s}
+.tb-user:hover{background:var(--p50);border-color:var(--p200)}
+.tb-user-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;background:#fff;border:1px solid var(--g200);border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.14);min-width:170px;z-index:2000;overflow:hidden}
+.tb-user-menu.open{display:block}
+.tb-user-menu-item{padding:10px 14px;font-size:12px;color:var(--g700);cursor:pointer;display:flex;align-items:center;gap:8px}
+.tb-user-menu-item:hover{background:var(--g50)}
+.tb-user-menu-item i{color:var(--g400);width:14px}
+.tb-avatar{width:28px;height:28px;border-radius:50%;background:var(--p100);display:flex;align-items:center;justify-content:center;color:var(--p700);font-size:11px;font-weight:700;position:relative;flex-shrink:0}
+.tb-avatar .online{position:absolute;bottom:0;right:0;width:9px;height:9px;border-radius:50%;background:#10b981;border:2px solid #fff}
+.tb-user-info{display:flex;flex-direction:column}
+.tb-name{font-size:13px;font-weight:600;color:var(--g900)}
+.tb-role{font-size:11px;color:var(--g500)}
+
+/* ── SIDEBAR ── */
+.sidebar{position:fixed;top:var(--th);left:0;bottom:0;width:var(--sw);background:#fff;border-right:1px solid var(--g200);display:flex;flex-direction:column;padding:8px 10px 14px;z-index:900;overflow-x:hidden;overflow-y:auto;transition:width .2s ease}
+.sb-top{display:flex;justify-content:flex-end;padding:2px 2px 6px}
+.sb-collapse-btn{width:26px;height:26px;border:none;background:transparent;color:var(--g400);border-radius:6px;cursor:pointer;font-size:12px;flex-shrink:0}
+.sb-collapse-btn:hover{background:var(--g100);color:var(--g700)}
+.sb-section{font-size:10px;font-weight:600;color:var(--g400);letter-spacing:.6px;text-transform:uppercase;padding:12px 10px 4px;white-space:nowrap;overflow:hidden}
+.si{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;cursor:pointer;color:var(--g600);font-size:13px;font-weight:500;text-decoration:none;margin-bottom:1px;white-space:nowrap;overflow:hidden;position:relative;transition:all .15s}
+.si:hover{background:var(--p50);color:var(--p700)}
+.si.active{background:var(--p50);color:var(--p700);font-weight:600}
+.si svg{width:17px;height:17px;flex-shrink:0}
+.si-label{opacity:1;flex:1;overflow:hidden;text-overflow:ellipsis}
+.si-caret{margin-left:auto;font-size:9px;color:var(--g400);flex-shrink:0}
+.si-dot{width:7px;height:7px;border-radius:50%;background:#f97316;flex-shrink:0;margin-left:6px}
+.nav-sub{margin:1px 4px 8px 29px;padding-left:10px;border-left:1px solid var(--g200)}
+.nav-sub .si{padding:6px 10px;font-size:12.5px}
+.nav-sub .si.active{background:transparent;color:var(--p700)}
+.nav-sub .si.active::before{content:'';position:absolute;left:-11px;top:6px;bottom:6px;width:2px;background:var(--p600);border-radius:2px}
+.s-sp{flex:1}
+.sb-divider{height:1px;background:var(--g200);margin:6px 4px}
+body.sb-collapsed .sidebar{width:64px}
+body.sb-collapsed .si-label,body.sb-collapsed .sb-section,body.sb-collapsed .si-caret,body.sb-collapsed .si-dot,body.sb-collapsed .nav-sub{display:none}
+body.sb-collapsed .si{justify-content:center}
+body.sb-collapsed .sb-top{justify-content:center}
+
+/* ── MAIN LAYOUT ── */
+.main{position:fixed;top:var(--th);left:var(--sw);right:0;bottom:0;display:flex;flex-direction:column;overflow:hidden;transition:left .2s ease}
+
+/* ── PAGE HEADER ── */
+.page-hdr{background:#fff;border-bottom:1px solid var(--g200);padding:12px 24px;flex-shrink:0;display:flex;align-items:center;gap:12px}
+.page-hdr-left{display:flex;flex-direction:column;gap:2px}
+.page-breadcrumb{font-size:11px;color:var(--g400);font-weight:500}
+.page-title{font-size:20px;font-weight:700;color:var(--g900)}
+.hdr-spacer{flex:1}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--r);font-size:12px;font-weight:500;cursor:pointer;border:none;font-family:var(--font);transition:all .15s;white-space:nowrap}
+.btn-outline{background:#fff;color:var(--g700);border:1px solid var(--g200)}
+.btn-outline:hover{background:var(--g50);border-color:var(--p300);color:var(--p700)}
+.btn-primary{background:var(--p700);color:#fff}
+.btn-primary:hover{background:var(--p800)}
+.btn-ghost{background:transparent;color:var(--g600);border:1px solid var(--g200);font-size:11px}
+.btn-ghost:hover{background:var(--g50)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* ── FILTER BAR ── */
+.filter-bar{background:#fff;border-bottom:1px solid var(--g200);padding:10px 24px;flex-shrink:0;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.filter-input{border:1px solid var(--g200);border-radius:var(--r);padding:6px 10px;font-size:12px;color:var(--g700);outline:none;font-family:var(--font);background:#fff;transition:border-color .15s}
+.filter-input:focus{border-color:var(--p400)}
+
+/* ── BODY ── */
+.body-wrap{flex:1;overflow-y:auto;padding:20px 24px}
+.panel{background:#fff;border:1px solid var(--g200);border-radius:var(--r2);box-shadow:var(--sh)}
+.panel-meta{padding:12px 16px;border-bottom:1px solid var(--g200);font-size:12px;color:var(--g500)}
+.panel-meta b{color:var(--g900)}
+
+/* ── GROUP TABLE ── */
+.grp-table-scroll{overflow-x:auto}
+table.grp-table{width:100%;border-collapse:collapse;font-size:12.5px}
+table.grp-table thead th{text-align:left;font-size:11px;font-weight:600;color:var(--g400);padding:10px 16px;border-bottom:1px solid var(--g200);background:var(--g50);white-space:nowrap}
+table.grp-table tbody td{padding:12px 16px;border-bottom:1px solid var(--g100);vertical-align:middle}
+table.grp-table tbody tr:last-child td{border-bottom:none}
+table.grp-table tbody tr:hover{background:var(--g50)}
+.grp-name{font-weight:700;color:var(--g900)}
+.grp-desc{color:var(--g500);font-size:12px;max-width:320px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+.grp-modules-pill{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:12px;font-size:11px;font-weight:600;background:var(--p50);color:var(--p700)}
+.grp-modules-pill.none{background:var(--g100);color:var(--g500)}
+.grp-members{color:var(--g600)}
+.grp-updated{color:var(--g400);font-size:11.5px}
+.grp-actions{display:flex;align-items:center;gap:6px}
+.icon-btn{width:28px;height:28px;border-radius:6px;border:1px solid var(--g200);background:#fff;color:var(--g500);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;transition:all .15s}
+.icon-btn:hover{background:var(--p50);border-color:var(--p300);color:var(--p700)}
+
+/* Status toggle switch */
+.switch{position:relative;display:inline-flex;align-items:center;gap:8px}
+.switch input{position:absolute;opacity:0;width:0;height:0}
+.switch .track{position:relative;width:36px;height:20px;background:var(--g300);border-radius:20px;cursor:pointer;transition:background .2s;flex-shrink:0}
+.switch .track::before{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 2px rgba(0,0,0,.25)}
+.switch input:checked+.track{background:var(--green)}
+.switch input:checked+.track::before{transform:translateX(16px)}
+.switch .switch-label{font-size:11.5px;font-weight:600}
+.switch .switch-label.active{color:var(--green)}
+.switch .switch-label.inactive{color:var(--g400)}
+
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 24px;gap:10px}
+.empty-state i{font-size:36px;color:var(--p200)}
+.empty-title{font-size:15px;font-weight:600;color:var(--g700)}
+.empty-sub{font-size:12px;color:var(--g400);text-align:center;line-height:1.6;max-width:280px}
+
+/* ── MODAL (Create/Edit Group) ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:2000;display:none;align-items:center;justify-content:center;padding:24px}
+.modal-overlay.show{display:flex}
+.modal{background:#fff;border-radius:var(--r2);padding:0;overflow:hidden;box-shadow:var(--shl);display:flex;flex-direction:column;max-height:100%}
+.modal.modal-lg{width:840px;max-width:100%}
+.modal-head{padding:16px 20px;border-bottom:1px solid var(--g200);display:flex;align-items:center;gap:10px;flex-shrink:0}
+.modal-title{font-size:15px;font-weight:700;color:var(--g900);flex:1}
+.modal-close{width:28px;height:28px;border-radius:6px;border:1px solid var(--g200);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--g500);font-size:12px;background:#fff}
+.modal-close:hover{background:var(--g100)}
+.modal-body{padding:18px 20px;display:flex;flex-direction:column;gap:16px;overflow-y:auto}
+.modal-foot{padding:12px 20px;border-top:1px solid var(--g200);display:flex;gap:8px;justify-content:flex-end;flex-shrink:0}
+
+.field{display:flex;flex-direction:column;gap:5px}
+.field-row{display:flex;gap:16px}
+.field-row .field{flex:1}
+.field-label{font-size:12px;font-weight:600;color:var(--g700);display:flex;justify-content:space-between}
+.field-label .req{color:var(--red)}
+.field-label .counter{font-weight:500;color:var(--g400);font-size:11px}
+.field input[type=text],.field textarea{border:1px solid var(--g200);border-radius:var(--r);padding:8px 10px;font-size:12.5px;font-family:var(--font);color:var(--g900);outline:none;transition:border-color .15s;resize:vertical}
+.field input[type=text]:focus,.field textarea:focus{border-color:var(--p400);box-shadow:0 0 0 3px var(--p50)}
+.field input.err,.field textarea.err{border-color:var(--red)}
+.field input.err:focus,.field textarea.err:focus{box-shadow:0 0 0 3px #fee2e2}
+.field-error{font-size:11px;color:var(--red);display:none;align-items:center;gap:4px}
+.field-error.show{display:flex}
+
+.status-field{display:flex;align-items:center;gap:10px}
+
+.perm-section-hdr{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.perm-section-title{font-size:13px;font-weight:700;color:var(--g900);display:flex;align-items:center;gap:6px}
+.perm-search{margin-left:auto;position:relative;width:220px}
+.perm-search i{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--g400);font-size:11px}
+.perm-search input{width:100%;padding-left:26px}
+.perm-error-banner{display:none;align-items:center;gap:8px;background:#fef2f2;border:1px solid #fecaca;color:var(--red);font-size:11.5px;font-weight:500;padding:8px 12px;border-radius:var(--r)}
+.perm-error-banner.show{display:flex}
+
+.perm-table-wrap{border:1px solid var(--g200);border-radius:var(--r);overflow:hidden}
+table.perm-table{width:100%;border-collapse:collapse;font-size:12px}
+table.perm-table thead th{text-align:left;padding:8px 12px;background:var(--g50);border-bottom:1px solid var(--g200);font-size:10.5px;color:var(--g500);font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+table.perm-table th.perm-op{text-align:center;width:64px}
+table.perm-table td{padding:8px 12px;border-bottom:1px solid var(--g100);font-size:12.5px;color:var(--g800)}
+table.perm-table tbody tr:last-child td{border-bottom:none}
+table.perm-table tbody tr:hover{background:var(--p50)}
+td.perm-op{text-align:center}
+.perm-check{width:16px;height:16px;cursor:pointer;accent-color:var(--p600)}
+.perm-empty-row td{text-align:center;color:var(--g400);padding:20px}
+.perm-footer{display:flex;align-items:center;justify-content:space-between;padding:8px 4px 0;font-size:11.5px;color:var(--g400)}
+.perm-pagination{display:flex;gap:4px;align-items:center}
+.perm-pagination button{border:1px solid var(--g200);background:#fff;color:var(--g600);padding:4px 9px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:var(--font)}
+.perm-pagination button.active{background:var(--p700);color:#fff;border-color:var(--p700)}
+.perm-pagination button:hover:not(.active):not(:disabled){background:var(--g50)}
+.perm-pagination button:disabled{opacity:.4;cursor:not-allowed}
+
+#app-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--sb);color:#fff;padding:10px 20px;border-radius:10px;font-size:12px;font-weight:500;z-index:9999;transition:transform .3s ease,opacity .3s ease;opacity:0;pointer-events:none;display:flex;align-items:center;gap:8px;max-width:400px;box-shadow:0 4px 20px rgba(0,0,0,.25)}
+
+/* Confirm dialog (deactivate) */
+.confirm-modal .modal{width:380px}
+.confirm-body{font-size:12.5px;color:var(--g700);line-height:1.6}
+</style>
+</head>
+<body>
+<script src="/auth-guard.js"></script>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="tb-logo">
+    <div class="tb-logo-inner">
+      <div class="tb-logo-icon"><i class="fa-solid fa-map-location-dot"></i></div>
+      <span class="tb-logo-text">ShipGo TMS</span>
+    </div>
+  </div>
+  <div class="tb-dc">
+    <div class="tb-dc-label">Company</div>
+    <div class="tb-dc-val"><i class="fa-solid fa-building"></i> PT Parama Global Inspira</div>
+  </div>
+  <div class="tb-spacer"></div>
+  <div class="tb-actions">
+    <div class="tb-icon"><i class="fa-regular fa-bell"></i><span class="bdg"></span></div>
+    <div class="tb-icon"><i class="fa-regular fa-bullhorn"></i></div>
+    <div class="tb-user-wrap">
+      <div class="tb-user" id="tbUser">
+        <div class="tb-avatar"><span id="tbAvatarInitials">··</span><div class="online"></div></div>
+        <div class="tb-user-info">
+          <div class="tb-name" id="tbUserName">—</div>
+          <div class="tb-role" id="tbUserRole">—</div>
+        </div>
+        <i class="fa-solid fa-chevron-down" style="font-size:10px;color:var(--g400);margin-left:2px"></i>
+      </div>
+      <div class="tb-user-menu" id="tbUserMenu">
+        <div class="tb-user-menu-item" id="tbLogoutBtn"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sb-top"><button class="sb-collapse-btn" onclick="toggleSidebar()" title="Collapse sidebar"><i class="fa-solid fa-angles-left"></i></button></div>
+  <div class="sb-section">Main Menu</div>
+  <a class="si" href="./index.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    <span class="si-label">Dashboard</span>
+  </a>
+  <a class="si" href="./live-tracking.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-7.58 7-12a7 7 0 00-14 0c0 4.42 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>
+    <span class="si-label">Live Tracking</span>
+  </a>
+  <a class="si" href="./history-tracking.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/><path d="M12 7v5l3.5 2"/></svg>
+    <span class="si-label">History Tracking</span>
+  </a>
+
+  <div class="sb-section">Order Management</div>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5h6a2 2 0 012 2v12a2 2 0 01-2 2H9a2 2 0 01-2-2V7a2 2 0 012-2z"/><path d="M9 3h6v4H9z"/></svg>
+    <span class="si-label">Order Management</span>
+    <span class="si-caret">▾</span>
+  </a>
+  <div class="nav-sub">
+    <a class="si" href="./shipment-planning.html"><span class="si-label">Planning</span></a>
+    <a class="si" href="#"><span class="si-label">Assignment</span></a>
+    <a class="si" href="#"><span class="si-label">Tracking</span></a>
+    <a class="si" href="#"><span class="si-label">Review</span></a>
+  </div>
+
+  <div class="sb-section">Analytics</div>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v16h16"/><path d="M7 15l3.5-4 3 2.5L19 7"/></svg>
+    <span class="si-label">Laporan Perjalanan</span>
+  </a>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v16h16"/><rect x="7" y="12" width="2.6" height="5"/><rect x="12" y="9" width="2.6" height="8"/><rect x="17" y="6" width="2.6" height="11"/></svg>
+    <span class="si-label">Analytics</span>
+  </a>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+    <span class="si-label">Peringatan</span>
+    <span class="si-dot"></span>
+  </a>
+
+  <div class="sb-section">Fleet</div>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="7" width="12" height="9" rx="1"/><path d="M13 10h4l3.5 3.2V16H13z"/><circle cx="5.5" cy="17.5" r="1.6"/><circle cx="17" cy="17.5" r="1.6"/></svg>
+    <span class="si-label">Kendaraan</span>
+  </a>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2.5"/><circle cx="12" cy="10" r="2.3"/><path d="M7.5 16.8c.6-1.9 2.3-2.8 4.5-2.8s3.9.9 4.5 2.8"/></svg>
+    <span class="si-label">Driver</span>
+  </a>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+    <span class="si-label">Kamera</span>
+  </a>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0116 0"/></svg>
+    <span class="si-label">Roster Management</span>
+  </a>
+
+  <div class="sb-section">Admin</div>
+  <a class="si active" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg>
+    <span class="si-label">User &amp; Access</span>
+    <span class="si-caret">▾</span>
+  </a>
+  <div class="nav-sub">
+    <a class="si active" href="./group-role.html"><span class="si-label">Group / Role</span></a>
+    <a class="si" href="./user-management.html"><span class="si-label">User Management</span></a>
+  </div>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09A1.65 1.65 0 0015 4.6a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    <span class="si-label">Configuration</span>
+  </a>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v6c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M3 11v6c0 1.66 4 3 9 3s9-1.34 9-3v-6"/></svg>
+    <span class="si-label">Master Data</span>
+    <span class="si-caret">▾</span>
+  </a>
+
+  <div class="s-sp"></div>
+  <div class="sb-divider"></div>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 015 0c0 1.5-2 2-2.5 3.5"/><path d="M12 17h.01"/></svg>
+    <span class="si-label">Bantuan</span>
+  </a>
+</nav>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="page-hdr">
+    <div class="page-hdr-left">
+      <div class="page-breadcrumb">Admin · User &amp; Access</div>
+      <div class="page-title">Group / Role Management</div>
+    </div>
+    <div class="hdr-spacer"></div>
+    <button class="btn btn-primary" id="btnAddGroup"><i class="fa-solid fa-plus"></i> Add Group</button>
+  </div>
+
+  <div class="filter-bar">
+    <div style="position:relative">
+      <i class="fa-solid fa-magnifying-glass" style="position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--g400);font-size:11px"></i>
+      <input class="filter-input" type="text" id="groupSearch" placeholder="Cari nama group/role..." style="padding-left:26px;width:260px">
+    </div>
+  </div>
+
+  <div class="body-wrap">
+    <div class="panel">
+      <div class="panel-meta">Menampilkan <b id="groupCount">0</b> group/role</div>
+      <div class="grp-table-scroll">
+        <table class="grp-table">
+          <thead>
+            <tr>
+              <th>Group / Role</th>
+              <th>Deskripsi</th>
+              <th>Akses Modul</th>
+              <th>Anggota</th>
+              <th>Status</th>
+              <th>Diperbarui</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="groupTbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Create/Edit Group Modal -->
+<div class="modal-overlay" id="groupModal">
+  <div class="modal modal-lg">
+    <div class="modal-head">
+      <div class="modal-title" id="groupModalTitle">Add Group</div>
+      <div class="modal-close" onclick="closeGroupModal()"><i class="fa-solid fa-xmark"></i></div>
+    </div>
+    <div class="modal-body">
+
+      <div class="field-row">
+        <div class="field">
+          <label class="field-label">Group / Role Name <span class="req">*</span> <span class="counter" id="nameCounter">0/100</span></label>
+          <input type="text" id="fldName" maxlength="100" placeholder="mis. Dispatcher Regional">
+          <div class="field-error" id="nameError"><i class="fa-solid fa-circle-exclamation"></i> <span id="nameErrorText">Nama Group/Role wajib diisi.</span></div>
+        </div>
+        <div class="field" style="flex:0 0 180px">
+          <label class="field-label">Status</label>
+          <div class="status-field" style="height:34px">
+            <label class="switch">
+              <input type="checkbox" id="fldStatus" checked>
+              <span class="track"></span>
+            </label>
+            <span class="switch-label active" id="statusLabel">Active</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field-label">Description <span class="counter" id="descCounter">0/500</span></label>
+        <textarea id="fldDesc" maxlength="500" rows="2" placeholder="Deskripsi singkat peran group ini (opsional)"></textarea>
+      </div>
+
+      <div>
+        <div class="perm-section-hdr">
+          <div class="perm-section-title"><i class="fa-solid fa-table-cells" style="color:var(--p600);font-size:12px"></i> Permissions <span class="req">*</span></div>
+          <div class="perm-search">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" class="filter-input" id="permSearch" placeholder="Cari modul...">
+          </div>
+        </div>
+        <div class="perm-error-banner" id="permError" style="margin-top:8px">
+          <i class="fa-solid fa-circle-exclamation"></i> Pilih minimal satu permission untuk minimal satu modul.
+        </div>
+        <div class="perm-table-wrap" style="margin-top:8px">
+          <table class="perm-table">
+            <thead>
+              <tr>
+                <th>Module</th>
+                <th class="perm-op">Create</th>
+                <th class="perm-op">Read</th>
+                <th class="perm-op">Update</th>
+                <th class="perm-op">Delete</th>
+              </tr>
+            </thead>
+            <tbody id="permTbody"></tbody>
+          </table>
+        </div>
+        <div class="perm-footer">
+          <span id="permMeta">0 modul</span>
+          <div class="perm-pagination" id="permPagination"></div>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeGroupModal()">Cancel</button>
+      <button class="btn btn-primary" id="btnSaveGroup" onclick="saveGroup()"><i class="fa-solid fa-check"></i> Save Group</button>
+    </div>
+  </div>
+</div>
+
+<!-- Deactivate/Reactivate confirm modal -->
+<div class="modal-overlay confirm-modal" id="confirmModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="confirmTitle">Ubah Status Group</div>
+      <div class="modal-close" onclick="closeConfirmModal()"><i class="fa-solid fa-xmark"></i></div>
+    </div>
+    <div class="modal-body">
+      <div class="confirm-body" id="confirmBody"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeConfirmModal()">Batal</button>
+      <button class="btn btn-primary" id="confirmActionBtn">Konfirmasi</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function toggleSidebar(){
+  const collapsed=document.body.classList.toggle('sb-collapsed');
+  document.documentElement.style.setProperty('--sw', collapsed?'64px':'220px');
+}
+
+// ── MODULES (mirrors the platform's own nav structure) ──
+const MODULES=[
+  {id:'dashboard',name:'Dashboard'},
+  {id:'live-tracking',name:'Live Tracking'},
+  {id:'history-tracking',name:'History Tracking'},
+  {id:'planning',name:'Order Management - Planning'},
+  {id:'assignment',name:'Order Management - Assignment'},
+  {id:'order-tracking',name:'Order Management - Tracking'},
+  {id:'review',name:'Order Management - Review'},
+  {id:'laporan',name:'Laporan Perjalanan'},
+  {id:'analytics',name:'Analytics'},
+  {id:'peringatan',name:'Peringatan'},
+  {id:'kendaraan',name:'Kendaraan'},
+  {id:'driver',name:'Driver'},
+  {id:'kamera',name:'Kamera'},
+  {id:'roster',name:'Roster Management'},
+  {id:'user-access',name:'User & Access'},
+  {id:'configuration',name:'Configuration'},
+  {id:'master-data',name:'Master Data'},
+];
+const PERM_PAGE_SIZE=8;
+const OPS=['c','r','u','d'];
+
+function allTrue(mod){ return {c:true,r:true,u:true,d:true}; }
+function readOnly(){ return {c:false,r:true,u:false,d:false}; }
+
+let GROUPS=[
+  {id:'g1',name:'Super Admin',description:'Akses penuh ke seluruh modul sistem — untuk tim IT/Platform Admin.',status:'active',
+   members:3,updatedAt:'2026-07-01',
+   permissions:Object.fromEntries(MODULES.map(m=>[m.id,allTrue()]))},
+  {id:'g2',name:'Dispatcher',description:'Akses operasional harian: live tracking, planning, dan assignment pengiriman.',status:'active',
+   members:8,updatedAt:'2026-07-05',
+   permissions:{
+     'dashboard':{c:false,r:true,u:false,d:false},
+     'live-tracking':{c:true,r:true,u:true,d:false},
+     'history-tracking':{c:false,r:true,u:false,d:false},
+     'planning':{c:true,r:true,u:true,d:false},
+     'assignment':{c:true,r:true,u:true,d:false},
+   }},
+  {id:'g3',name:'Fleet Viewer',description:'Akses baca-saja untuk data armada, driver, dan kamera kendaraan.',status:'active',
+   members:12,updatedAt:'2026-06-28',
+   permissions:{
+     'kendaraan':readOnly(),
+     'driver':readOnly(),
+     'kamera':readOnly(),
+   }},
+  {id:'g4',name:'Auditor',description:'Akses baca-saja ke seluruh modul untuk keperluan audit kepatuhan.',status:'inactive',
+   members:2,updatedAt:'2026-05-15',
+   permissions:Object.fromEntries(MODULES.map(m=>[m.id,readOnly()]))},
+];
+
+let groupSearchTerm='';
+let editingGroupId=null;
+let draftPermissions={};
+let permSearchTerm='';
+let permPage=1;
+
+// ── GROUP LIST ──
+function renderGroupList(){
+  const q=groupSearchTerm.toLowerCase();
+  const rows=GROUPS.filter(g=>!q||g.name.toLowerCase().includes(q)||(g.description||'').toLowerCase().includes(q));
+  document.getElementById('groupCount').textContent=rows.length;
+  const tbody=document.getElementById('groupTbody');
+
+  if(!rows.length){
+    tbody.innerHTML=`<tr><td colspan="7"><div class="empty-state">
+      <i class="fa-solid fa-users-slash"></i>
+      <div class="empty-title">Tidak ada group ditemukan</div>
+      <div class="empty-sub">Coba ubah kata kunci pencarian, atau buat group/role baru.</div>
+    </div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML=rows.map(g=>{
+    const moduleCount=MODULES.filter(m=>{
+      const p=g.permissions[m.id];
+      return p && (p.c||p.r||p.u||p.d);
+    }).length;
+    return `<tr data-id="${g.id}">
+      <td class="grp-name">${escapeHtml(g.name)}</td>
+      <td><span class="grp-desc" title="${escapeHtml(g.description||'')}">${escapeHtml(g.description)||'—'}</span></td>
+      <td>${moduleCount>0?`<span class="grp-modules-pill">${moduleCount} modul</span>`:`<span class="grp-modules-pill none">Tidak ada akses</span>`}</td>
+      <td class="grp-members">${g.members} user</td>
+      <td>
+        <label class="switch">
+          <input type="checkbox" ${g.status==='active'?'checked':''} onclick="event.preventDefault();confirmStatusToggle('${g.id}')">
+          <span class="track"></span>
+        </label>
+        <span class="switch-label ${g.status==='active'?'active':'inactive'}" style="margin-left:6px">${g.status==='active'?'Active':'Inactive'}</span>
+      </td>
+      <td class="grp-updated">${g.updatedAt}</td>
+      <td class="grp-actions">
+        <button class="icon-btn" title="Edit" onclick="openGroupModal('${g.id}')"><i class="fa-solid fa-pen"></i></button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function escapeHtml(str){
+  const d=document.createElement('div');
+  d.textContent=str==null?'':String(str);
+  return d.innerHTML;
+}
+
+document.getElementById('groupSearch').addEventListener('input',e=>{
+  groupSearchTerm=e.target.value;
+  renderGroupList();
+});
+
+// ── DEACTIVATE / REACTIVATE (Scenario 9 & 10) ──
+let pendingStatusGroupId=null;
+function confirmStatusToggle(id){
+  const g=GROUPS.find(x=>x.id===id);
+  if(!g) return;
+  pendingStatusGroupId=id;
+  const goingInactive=g.status==='active';
+  document.getElementById('confirmTitle').textContent=goingInactive?'Nonaktifkan Group':'Aktifkan Kembali Group';
+  document.getElementById('confirmBody').innerHTML=goingInactive
+    ? `Menonaktifkan <b>${escapeHtml(g.name)}</b> akan mencegah group ini di-assign ke user baru, dan <b>${g.members} user</b> yang saat ini menjadi anggota akan kehilangan akses pada request berikutnya. Lanjutkan?`
+    : `Mengaktifkan kembali <b>${escapeHtml(g.name)}</b> akan memulihkan kemampuan group ini untuk di-assign ke user, dan <b>${g.members} user</b> anggota akan kembali mendapatkan akses sesuai permission group saat ini. Lanjutkan?`;
+  const btn=document.getElementById('confirmActionBtn');
+  btn.textContent=goingInactive?'Nonaktifkan':'Aktifkan';
+  document.getElementById('confirmModal').classList.add('show');
+}
+function closeConfirmModal(){
+  document.getElementById('confirmModal').classList.remove('show');
+  pendingStatusGroupId=null;
+}
+document.getElementById('confirmActionBtn').addEventListener('click',()=>{
+  const g=GROUPS.find(x=>x.id===pendingStatusGroupId);
+  if(!g){ closeConfirmModal(); return; }
+  const goingInactive=g.status==='active';
+  g.status=goingInactive?'inactive':'active';
+  g.updatedAt=todayStr();
+  closeConfirmModal();
+  renderGroupList();
+  showToast(goingInactive
+    ? `Group "${g.name}" dinonaktifkan. Anggota kehilangan akses pada request berikutnya.`
+    : `Group "${g.name}" diaktifkan kembali. Anggota memperoleh akses kembali.`);
+});
+
+function todayStr(){
+  const d=new Date();
+  return d.toISOString().slice(0,10);
+}
+
+// ── CREATE / EDIT GROUP MODAL ──
+document.getElementById('btnAddGroup').addEventListener('click',()=>openGroupModal(null));
+
+function openGroupModal(id){
+  editingGroupId=id;
+  const g=id?GROUPS.find(x=>x.id===id):null;
+  document.getElementById('groupModalTitle').textContent=g?`Edit Group — ${g.name}`:'Add Group';
+  document.getElementById('fldName').value=g?g.name:'';
+  document.getElementById('fldDesc').value=g?(g.description||''):'';
+  document.getElementById('fldStatus').checked=g?g.status==='active':true;
+  updateStatusLabel();
+  updateNameCounter();
+  updateDescCounter();
+  clearFieldError('name');
+  document.getElementById('permError').classList.remove('show');
+
+  draftPermissions=g?JSON.parse(JSON.stringify(g.permissions)):{};
+  permSearchTerm='';
+  permPage=1;
+  document.getElementById('permSearch').value='';
+  renderPermTable();
+
+  document.getElementById('groupModal').classList.add('show');
+  document.getElementById('fldName').focus();
+}
+
+function closeGroupModal(){
+  document.getElementById('groupModal').classList.remove('show');
+  editingGroupId=null;
+}
+
+document.getElementById('fldStatus').addEventListener('change',updateStatusLabel);
+function updateStatusLabel(){
+  const on=document.getElementById('fldStatus').checked;
+  const lbl=document.getElementById('statusLabel');
+  lbl.textContent=on?'Active':'Inactive';
+  lbl.className='switch-label '+(on?'active':'inactive');
+}
+
+document.getElementById('fldName').addEventListener('input',()=>{ updateNameCounter(); clearFieldError('name'); });
+function updateNameCounter(){
+  document.getElementById('nameCounter').textContent=document.getElementById('fldName').value.length+'/100';
+}
+document.getElementById('fldDesc').addEventListener('input',updateDescCounter);
+function updateDescCounter(){
+  document.getElementById('descCounter').textContent=document.getElementById('fldDesc').value.length+'/500';
+}
+
+function setFieldError(field,msg){
+  document.getElementById('fld'+field.charAt(0).toUpperCase()+field.slice(1)).classList.add('err');
+  const err=document.getElementById(field+'Error');
+  if(msg) document.getElementById(field+'ErrorText').textContent=msg;
+  err.classList.add('show');
+}
+function clearFieldError(field){
+  document.getElementById('fld'+field.charAt(0).toUpperCase()+field.slice(1)).classList.remove('err');
+  document.getElementById(field+'Error').classList.remove('show');
+}
+
+// ── PERMISSION MATRIX (search + pagination) ──
+document.getElementById('permSearch').addEventListener('input',e=>{
+  permSearchTerm=e.target.value;
+  permPage=1;
+  renderPermTable();
+});
+
+function getFilteredModules(){
+  const q=permSearchTerm.toLowerCase();
+  return q?MODULES.filter(m=>m.name.toLowerCase().includes(q)):MODULES;
+}
+
+function renderPermTable(){
+  const filtered=getFilteredModules();
+  const totalPages=Math.max(1,Math.ceil(filtered.length/PERM_PAGE_SIZE));
+  if(permPage>totalPages) permPage=totalPages;
+  const start=(permPage-1)*PERM_PAGE_SIZE;
+  const pageItems=filtered.slice(start,start+PERM_PAGE_SIZE);
+  const tbody=document.getElementById('permTbody');
+
+  if(!pageItems.length){
+    tbody.innerHTML=`<tr class="perm-empty-row"><td colspan="5">Tidak ada modul yang cocok dengan pencarian.</td></tr>`;
+  }else{
+    tbody.innerHTML=pageItems.map(m=>{
+      const p=draftPermissions[m.id]||{};
+      return `<tr data-mod="${m.id}">
+        <td>${escapeHtml(m.name)}</td>
+        ${OPS.map(op=>`<td class="perm-op"><input type="checkbox" class="perm-check" data-mod="${m.id}" data-op="${op}" ${p[op]?'checked':''} onchange="onPermCheck(this)"></td>`).join('')}
+      </tr>`;
+    }).join('');
+  }
+
+  document.getElementById('permMeta').textContent=`${filtered.length} modul${permSearchTerm?` (filter: "${escapeHtml(permSearchTerm)}")`:''}`;
+
+  const pagWrap=document.getElementById('permPagination');
+  if(totalPages<=1){ pagWrap.innerHTML=''; }
+  else{
+    let html=`<button ${permPage===1?'disabled':''} onclick="gotoPermPage(${permPage-1})">‹</button>`;
+    for(let i=1;i<=totalPages;i++){
+      html+=`<button class="${i===permPage?'active':''}" onclick="gotoPermPage(${i})">${i}</button>`;
+    }
+    html+=`<button ${permPage===totalPages?'disabled':''} onclick="gotoPermPage(${permPage+1})">›</button>`;
+    pagWrap.innerHTML=html;
+  }
+}
+function gotoPermPage(p){ permPage=p; renderPermTable(); }
+
+function onPermCheck(el){
+  const mod=el.dataset.mod, op=el.dataset.op;
+  if(!draftPermissions[mod]) draftPermissions[mod]={c:false,r:false,u:false,d:false};
+  draftPermissions[mod][op]=el.checked;
+  if(el.checked) document.getElementById('permError').classList.remove('show');
+}
+
+// ── VALIDATION + SAVE ──
+function hasAnyPermission(){
+  return Object.values(draftPermissions).some(p=>p&&(p.c||p.r||p.u||p.d));
+}
+
+function saveGroup(){
+  const name=document.getElementById('fldName').value.trim();
+  const description=document.getElementById('fldDesc').value.trim();
+  const status=document.getElementById('fldStatus').checked?'active':'inactive';
+  let valid=true;
+
+  clearFieldError('name');
+  document.getElementById('permError').classList.remove('show');
+
+  if(!name){
+    setFieldError('name','Nama Group/Role wajib diisi.');
+    valid=false;
+  }else{
+    const dup=GROUPS.some(g=>g.id!==editingGroupId && g.name.trim().toLowerCase()===name.toLowerCase());
+    if(dup){
+      setFieldError('name','Nama Group/Role ini sudah terdaftar. Gunakan nama lain.');
+      valid=false;
+    }
+  }
+
+  if(!hasAnyPermission()){
+    document.getElementById('permError').classList.add('show');
+    valid=false;
+  }
+
+  if(!valid) return;
+
+  if(editingGroupId){
+    const g=GROUPS.find(x=>x.id===editingGroupId);
+    g.name=name; g.description=description; g.status=status;
+    g.permissions=JSON.parse(JSON.stringify(draftPermissions));
+    g.updatedAt=todayStr();
+    showToast(`Group "${name}" berhasil diperbarui.`);
+  }else{
+    GROUPS.unshift({
+      id:'g'+Date.now(),
+      name, description, status,
+      members:0,
+      updatedAt:todayStr(),
+      permissions:JSON.parse(JSON.stringify(draftPermissions)),
+    });
+    showToast(`Group "${name}" berhasil dibuat.`);
+  }
+
+  closeGroupModal();
+  renderGroupList();
+}
+
+// ── TOAST ──
+function showToast(msg){
+  let t=document.getElementById('app-toast');
+  if(!t){
+    t=document.createElement('div');
+    t.id='app-toast';
+    document.body.appendChild(t);
+  }
+  t.innerHTML=`<i class="fa-solid fa-circle-check" style="color:#86efac;font-size:14px"></i> ${msg}`;
+  t.style.opacity='1';
+  t.style.transform='translateX(-50%) translateY(0)';
+  t.style.pointerEvents='auto';
+  clearTimeout(t._timer);
+  t._timer=setTimeout(()=>{
+    t.style.opacity='0';
+    t.style.transform='translateX(-50%) translateY(80px)';
+    t.style.pointerEvents='none';
+  },3400);
+}
+
+renderGroupList();
+</script>
+</body>
+</html>

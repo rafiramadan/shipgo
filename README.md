@@ -10,6 +10,8 @@ Prototype platform GPS Tracking untuk ShipGo TMS — PT Parama Global Inspira.
 | Live Tracking | `live-tracking.html` | `/live` |
 | History Tracking | `history-tracking.html` | `/history` |
 | Shipment Planning | `shipment-planning.html` | `/shipment` |
+| User & Access · Group / Role | `group-role.html` | `/roles` |
+| User & Access · User Management | `user-management.html` | `/users` |
 
 ## Fitur
 

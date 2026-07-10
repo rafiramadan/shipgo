@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>User Management — PT Parama Global Inspira</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --p50:#eef2ff;--p100:#e0e7ff;--p200:#c7d2fe;--p300:#a5b4fc;
+  --p400:#818cf8;--p500:#6366f1;--p600:#4f46e5;--p700:#4338ca;--p800:#3730a3;--p900:#312e81;
+  --sb:#1e1b4b;--sb2:#16134a;
+  --green:#16a34a;--red:#dc2626;--orange:#ea580c;--amber:#d97706;
+  --g50:#f8fafc;--g100:#f1f5f9;--g150:#eef0f4;--g200:#e2e8f0;
+  --g300:#cbd5e1;--g400:#94a3b8;--g500:#64748b;--g700:#334155;--g900:#0f172a;
+  --sw:220px;--th:60px;--r:8px;--r2:12px;
+  --sh:0 1px 3px rgba(0,0,0,.08);--shl:0 8px 24px rgba(0,0,0,.13);
+  --font:'Inter',sans-serif;
+}
+html,body{height:100%;font-family:var(--font);font-size:13px;color:var(--g900);overflow:hidden;background:var(--g100)}
+
+/* ── TOPBAR ── */
+.topbar{position:fixed;top:0;left:0;right:0;height:var(--th);background:#fff;border-bottom:1px solid var(--g200);display:flex;align-items:center;z-index:1000;padding:0 20px 0 0;box-shadow:0 1px 0 var(--g200)}
+.tb-logo{width:var(--sw);height:var(--th);background:var(--sb2);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;transition:width .2s ease}
+.tb-logo-inner{display:flex;align-items:center;gap:10px;padding:0 16px;white-space:nowrap}
+.tb-logo-icon{width:32px;height:32px;border-radius:8px;background:var(--p600);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.tb-logo-icon i{color:#fff;font-size:15px}
+.tb-logo-text{font-size:14px;font-weight:700;color:#fff;opacity:1;letter-spacing:-.3px;transition:opacity .15s}
+body.sb-collapsed .tb-logo-text{opacity:0;pointer-events:none}
+.tb-dc{display:flex;flex-direction:column;margin-left:16px}
+.tb-dc-label{font-size:10px;color:var(--g400);font-weight:500;letter-spacing:.3px}
+.tb-dc-val{display:flex;align-items:center;gap:5px;font-size:14px;font-weight:600;color:var(--g900)}
+.tb-dc-val i{color:var(--p600);font-size:12px}
+.tb-spacer{flex:1}
+.tb-actions{display:flex;align-items:center;gap:6px}
+.tb-icon{width:34px;height:34px;border-radius:var(--r);border:1px solid var(--g200);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--g500);font-size:14px;position:relative;background:#fff;transition:all .15s}
+.tb-icon:hover{background:var(--p50);border-color:var(--p200);color:var(--p600)}
+.tb-icon .bdg{position:absolute;top:4px;right:4px;width:8px;height:8px;background:var(--red);border-radius:50%;border:1.5px solid #fff}
+.tb-user-wrap{position:relative}
+.tb-user{display:flex;align-items:center;gap:10px;padding:6px 12px;border:1px solid var(--g200);border-radius:var(--r2);cursor:pointer;background:#fff;margin-left:4px;transition:all .15s}
+.tb-user:hover{background:var(--p50);border-color:var(--p200)}
+.tb-user-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;background:#fff;border:1px solid var(--g200);border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.14);min-width:170px;z-index:2000;overflow:hidden}
+.tb-user-menu.open{display:block}
+.tb-user-menu-item{padding:10px 14px;font-size:12px;color:var(--g700);cursor:pointer;display:flex;align-items:center;gap:8px}
+.tb-user-menu-item:hover{background:var(--g50)}
+.tb-user-menu-item i{color:var(--g400);width:14px}
+.tb-avatar{width:28px;height:28px;border-radius:50%;background:var(--p100);display:flex;align-items:center;justify-content:center;color:var(--p700);font-size:11px;font-weight:700;position:relative;flex-shrink:0}
+.tb-avatar .online{position:absolute;bottom:0;right:0;width:9px;height:9px;border-radius:50%;background:#10b981;border:2px solid #fff}
+.tb-user-info{display:flex;flex-direction:column}
+.tb-name{font-size:13px;font-weight:600;color:var(--g900)}
+.tb-role{font-size:11px;color:var(--g500)}
+
+/* ── SIDEBAR ── */
+.sidebar{position:fixed;top:var(--th);left:0;bottom:0;width:var(--sw);background:#fff;border-right:1px solid var(--g200);display:flex;flex-direction:column;padding:8px 10px 14px;z-index:900;overflow-x:hidden;overflow-y:auto;transition:width .2s ease}
+.sb-top{display:flex;justify-content:flex-end;padding:2px 2px 6px}
+.sb-collapse-btn{width:26px;height:26px;border:none;background:transparent;color:var(--g400);border-radius:6px;cursor:pointer;font-size:12px;flex-shrink:0}
+.sb-collapse-btn:hover{background:var(--g100);color:var(--g700)}
+.sb-section{font-size:10px;font-weight:600;color:var(--g400);letter-spacing:.6px;text-transform:uppercase;padding:12px 10px 4px;white-space:nowrap;overflow:hidden}
+.si{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;cursor:pointer;color:var(--g600);font-size:13px;font-weight:500;text-decoration:none;margin-bottom:1px;white-space:nowrap;overflow:hidden;position:relative;transition:all .15s}
+.si:hover{background:var(--p50);color:var(--p700)}
+.si.active{background:var(--p50);color:var(--p700);font-weight:600}
+.si svg{width:17px;height:17px;flex-shrink:0}
+.si-label{opacity:1;flex:1;overflow:hidden;text-overflow:ellipsis}
+.si-caret{margin-left:auto;font-size:9px;color:var(--g400);flex-shrink:0}
+.si-dot{width:7px;height:7px;border-radius:50%;background:#f97316;flex-shrink:0;margin-left:6px}
+.nav-sub{margin:1px 4px 8px 29px;padding-left:10px;border-left:1px solid var(--g200)}
+.nav-sub .si{padding:6px 10px;font-size:12.5px}
+.nav-sub .si.active{background:transparent;color:var(--p700)}
+.nav-sub .si.active::before{content:'';position:absolute;left:-11px;top:6px;bottom:6px;width:2px;background:var(--p600);border-radius:2px}
+.s-sp{flex:1}
+.sb-divider{height:1px;background:var(--g200);margin:6px 4px}
+body.sb-collapsed .sidebar{width:64px}
+body.sb-collapsed .si-label,body.sb-collapsed .sb-section,body.sb-collapsed .si-caret,body.sb-collapsed .si-dot,body.sb-collapsed .nav-sub{display:none}
+body.sb-collapsed .si{justify-content:center}
+body.sb-collapsed .sb-top{justify-content:center}
+
+/* ── MAIN LAYOUT ── */
+.main{position:fixed;top:var(--th);left:var(--sw);right:0;bottom:0;display:flex;flex-direction:column;overflow:hidden;transition:left .2s ease}
+
+/* ── PAGE HEADER ── */
+.page-hdr{background:#fff;border-bottom:1px solid var(--g200);padding:12px 24px;flex-shrink:0;display:flex;align-items:center;gap:12px}
+.page-hdr-left{display:flex;flex-direction:column;gap:2px}
+.page-breadcrumb{font-size:11px;color:var(--g400);font-weight:500}
+.page-title{font-size:20px;font-weight:700;color:var(--g900)}
+.hdr-spacer{flex:1}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--r);font-size:12px;font-weight:500;cursor:pointer;border:none;font-family:var(--font);transition:all .15s;white-space:nowrap}
+.btn-outline{background:#fff;color:var(--g700);border:1px solid var(--g200)}
+.btn-outline:hover{background:var(--g50);border-color:var(--p300);color:var(--p700)}
+.btn-primary{background:var(--p700);color:#fff}
+.btn-primary:hover{background:var(--p800)}
+.btn-ghost{background:transparent;color:var(--g600);border:1px solid var(--g200);font-size:11px}
+.btn-ghost:hover{background:var(--g50)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* ── FILTER BAR ── */
+.filter-bar{background:#fff;border-bottom:1px solid var(--g200);padding:10px 24px;flex-shrink:0;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.filter-input{border:1px solid var(--g200);border-radius:var(--r);padding:6px 10px;font-size:12px;color:var(--g700);outline:none;font-family:var(--font);background:#fff;transition:border-color .15s}
+.filter-input:focus{border-color:var(--p400)}
+.filter-select{border:1px solid var(--g200);border-radius:var(--r);padding:6px 26px 6px 10px;font-size:12px;color:var(--g700);background:#fff;outline:none;font-family:var(--font);cursor:pointer;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%2364748b' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center}
+
+/* ── BODY ── */
+.body-wrap{flex:1;overflow-y:auto;padding:20px 24px}
+.panel{background:#fff;border:1px solid var(--g200);border-radius:var(--r2);box-shadow:var(--sh)}
+.panel-meta{padding:12px 16px;border-bottom:1px solid var(--g200);font-size:12px;color:var(--g500)}
+.panel-meta b{color:var(--g900)}
+
+/* ── USER TABLE ── */
+.usr-table-scroll{overflow-x:auto}
+table.usr-table{width:100%;border-collapse:collapse;font-size:12.5px}
+table.usr-table thead th{text-align:left;font-size:11px;font-weight:600;color:var(--g400);padding:10px 16px;border-bottom:1px solid var(--g200);background:var(--g50);white-space:nowrap}
+table.usr-table tbody td{padding:12px 16px;border-bottom:1px solid var(--g100);vertical-align:middle;white-space:nowrap}
+table.usr-table tbody tr:last-child td{border-bottom:none}
+table.usr-table tbody tr:hover{background:var(--g50)}
+.usr-name{font-weight:700;color:var(--g900)}
+.usr-name-sub{font-weight:400;color:var(--g400);font-size:11px}
+.usr-email{color:var(--g600)}
+.usr-empid{font-family:ui-monospace,monospace;font-size:11.5px;color:var(--g600);background:var(--g100);padding:2px 6px;border-radius:4px}
+.role-pill{display:inline-flex;align-items:center;padding:2px 9px;border-radius:12px;font-size:11px;font-weight:600;background:var(--p50);color:var(--p700)}
+.loc-tags{display:flex;flex-wrap:wrap;gap:4px;max-width:200px}
+.loc-tag-sm{font-size:10.5px;font-weight:600;background:var(--g100);color:var(--g600);padding:2px 7px;border-radius:4px;white-space:nowrap}
+.loc-tag-sm.more{background:var(--p50);color:var(--p700)}
+.auth-badges{display:flex;gap:4px}
+.auth-badge{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:600;padding:2px 7px;border-radius:4px}
+.auth-badge.local{background:#e0f2fe;color:#075985}
+.auth-badge.sso{background:#ede9fe;color:#6d28d9}
+.usr-updated{color:var(--g400);font-size:11.5px}
+.usr-actions{display:flex;align-items:center;gap:6px}
+.icon-btn{width:28px;height:28px;border-radius:6px;border:1px solid var(--g200);background:#fff;color:var(--g500);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;transition:all .15s}
+.icon-btn:hover{background:var(--p50);border-color:var(--p300);color:var(--p700)}
+
+/* Status toggle switch */
+.switch{position:relative;display:inline-flex;align-items:center;gap:8px}
+.switch input{position:absolute;opacity:0;width:0;height:0}
+.switch .track{position:relative;width:36px;height:20px;background:var(--g300);border-radius:20px;cursor:pointer;transition:background .2s;flex-shrink:0}
+.switch .track::before{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 2px rgba(0,0,0,.25)}
+.switch input:checked+.track{background:var(--green)}
+.switch input:checked+.track::before{transform:translateX(16px)}
+.switch .switch-label{font-size:11.5px;font-weight:600}
+.switch .switch-label.active{color:var(--green)}
+.switch .switch-label.inactive{color:var(--g400)}
+
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 24px;gap:10px}
+.empty-state i{font-size:36px;color:var(--p200)}
+.empty-title{font-size:15px;font-weight:600;color:var(--g700)}
+.empty-sub{font-size:12px;color:var(--g400);text-align:center;line-height:1.6;max-width:280px}
+
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:2000;display:none;align-items:center;justify-content:center;padding:24px}
+.modal-overlay.show{display:flex}
+.modal{background:#fff;border-radius:var(--r2);padding:0;overflow:hidden;box-shadow:var(--shl);display:flex;flex-direction:column;max-height:100%}
+.modal.modal-lg{width:760px;max-width:100%}
+.modal-head{padding:16px 20px;border-bottom:1px solid var(--g200);display:flex;align-items:center;gap:10px;flex-shrink:0}
+.modal-title{font-size:15px;font-weight:700;color:var(--g900);flex:1}
+.modal-close{width:28px;height:28px;border-radius:6px;border:1px solid var(--g200);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--g500);font-size:12px;background:#fff}
+.modal-close:hover{background:var(--g100)}
+.modal-body{padding:18px 20px;display:flex;flex-direction:column;gap:16px;overflow-y:auto}
+.modal-foot{padding:12px 20px;border-top:1px solid var(--g200);display:flex;gap:8px;justify-content:flex-end;flex-shrink:0}
+
+.field{display:flex;flex-direction:column;gap:5px}
+.field-row{display:flex;gap:16px}
+.field-row .field{flex:1}
+.field-label{font-size:12px;font-weight:600;color:var(--g700);display:flex;justify-content:space-between}
+.field-label .req{color:var(--red)}
+.field-label .counter{font-weight:500;color:var(--g400);font-size:11px}
+.field input[type=text],.field input[type=email],.field input[type=tel],.field select{border:1px solid var(--g200);border-radius:var(--r);padding:8px 10px;font-size:12.5px;font-family:var(--font);color:var(--g900);outline:none;transition:border-color .15s;background:#fff}
+.field select{cursor:pointer;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%2364748b' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
+.field input:focus,.field select:focus{border-color:var(--p400);box-shadow:0 0 0 3px var(--p50)}
+.field input.err,.field select.err{border-color:var(--red)}
+.field input.err:focus,.field select.err:focus{box-shadow:0 0 0 3px #fee2e2}
+.field-error{font-size:11px;color:var(--red);display:none;align-items:center;gap:4px}
+.field-error.show{display:flex}
+.field-hint{font-size:10.5px;color:var(--g400)}
+
+.status-field{display:flex;align-items:center;gap:10px}
+
+/* Location Scope — searchable multi-select combobox (scales to 30+ options) */
+.ms-select{position:relative}
+.ms-chips-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px;border:1px solid var(--g200);border-radius:var(--r);padding:6px 8px;min-height:38px;cursor:text;background:#fff;transition:border-color .15s}
+.ms-select.open .ms-chips-row{border-color:var(--p400);box-shadow:0 0 0 3px var(--p50)}
+.ms-chip{display:inline-flex;align-items:center;gap:6px;background:var(--p50);color:var(--p700);font-size:11.5px;font-weight:600;padding:4px 6px 4px 10px;border-radius:14px;white-space:nowrap}
+.ms-chip .rm{cursor:pointer;color:var(--p400);font-size:9px;width:15px;height:15px;display:flex;align-items:center;justify-content:center;border-radius:50%;flex-shrink:0}
+.ms-chip .rm:hover{background:var(--p200);color:var(--p800)}
+.ms-search-input{border:none;outline:none;flex:1;min-width:140px;font-size:12.5px;font-family:var(--font);padding:3px 4px;background:transparent}
+.ms-dropdown{display:none;position:absolute;top:calc(100% + 6px);left:0;right:0;background:#fff;border:1px solid var(--g200);border-radius:var(--r);box-shadow:var(--shl);z-index:60;max-height:280px;flex-direction:column}
+.ms-select.open .ms-dropdown{display:flex}
+.ms-dropdown-actions{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-bottom:1px solid var(--g200);flex-shrink:0}
+.ms-dropdown-actions button{background:none;border:none;color:var(--p700);font-size:11px;font-weight:600;cursor:pointer;font-family:var(--font);padding:2px}
+.ms-dropdown-actions button:hover{text-decoration:underline}
+.ms-options{overflow-y:auto;flex:1}
+.ms-option{display:flex;align-items:center;gap:9px;padding:8px 12px;cursor:pointer;font-size:12.5px;color:var(--g700)}
+.ms-option:hover{background:var(--p50)}
+.ms-option.selected{color:var(--p700);font-weight:600}
+.ms-option .chk{width:15px;height:15px;border:1.5px solid var(--g300);border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:9px;color:#fff}
+.ms-option.selected .chk{background:var(--p600);border-color:var(--p600)}
+.ms-empty{padding:16px;text-align:center;color:var(--g400);font-size:12px}
+
+.auth-opt-row{display:flex;gap:12px}
+.auth-opt{flex:1;display:flex;align-items:flex-start;gap:10px;border:1px solid var(--g200);border-radius:var(--r);padding:12px;cursor:pointer;transition:all .15s}
+.auth-opt:hover{border-color:var(--p300)}
+.auth-opt.checked{border-color:var(--p600);background:var(--p50)}
+.auth-opt input{margin-top:2px}
+.auth-opt-body{display:flex;flex-direction:column;gap:2px}
+.auth-opt-title{font-size:12.5px;font-weight:700;color:var(--g900)}
+.auth-opt-desc{font-size:11px;color:var(--g500);line-height:1.5}
+
+#app-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--sb);color:#fff;padding:10px 20px;border-radius:10px;font-size:12px;font-weight:500;z-index:9999;transition:transform .3s ease,opacity .3s ease;opacity:0;pointer-events:none;display:flex;align-items:center;gap:8px;max-width:420px;box-shadow:0 4px 20px rgba(0,0,0,.25)}
+
+/* Confirm / activation-email modal */
+.confirm-modal .modal{width:400px}
+.confirm-body{font-size:12.5px;color:var(--g700);line-height:1.6}
+
+.email-preview{border:1px solid var(--g200);border-radius:var(--r);overflow:hidden}
+.email-preview-hdr{background:var(--g50);padding:10px 14px;border-bottom:1px solid var(--g200);font-size:11.5px;color:var(--g500);display:flex;flex-direction:column;gap:3px}
+.email-preview-hdr b{color:var(--g900)}
+.email-preview-body{padding:16px;font-size:12.5px;color:var(--g700);line-height:1.7}
+.email-preview-link{display:inline-block;margin:8px 0;padding:8px 16px;background:var(--p700);color:#fff;border-radius:var(--r);font-size:12px;font-weight:600;text-decoration:none}
+.pwd-standard{background:var(--g50);border:1px solid var(--g200);border-radius:var(--r);padding:10px 14px;margin-top:8px}
+.pwd-standard-title{font-size:11px;font-weight:700;color:var(--g700);margin-bottom:6px}
+.pwd-standard ul{margin:0;padding-left:18px;font-size:11.5px;color:var(--g600);line-height:1.8}
+</style>
+</head>
+<body>
+<script src="/auth-guard.js"></script>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="tb-logo">
+    <div class="tb-logo-inner">
+      <div class="tb-logo-icon"><i class="fa-solid fa-map-location-dot"></i></div>
+      <span class="tb-logo-text">ShipGo TMS</span>
+    </div>
+  </div>
+  <div class="tb-dc">
+    <div class="tb-dc-label">Company</div>
+    <div class="tb-dc-val"><i class="fa-solid fa-building"></i> PT Parama Global Inspira</div>
+  </div>
+  <div class="tb-spacer"></div>
+  <div class="tb-actions">
+    <div class="tb-icon"><i class="fa-regular fa-bell"></i><span class="bdg"></span></div>
+    <div class="tb-icon"><i class="fa-regular fa-bullhorn"></i></div>
+    <div class="tb-user-wrap">
+      <div class="tb-user" id="tbUser">
+        <div class="tb-avatar"><span id="tbAvatarInitials">··</span><div class="online"></div></div>
+        <div class="tb-user-info">
+          <div class="tb-name" id="tbUserName">—</div>
+          <div class="tb-role" id="tbUserRole">—</div>
+        </div>
+        <i class="fa-solid fa-chevron-down" style="font-size:10px;color:var(--g400);margin-left:2px"></i>
+      </div>
+      <div class="tb-user-menu" id="tbUserMenu">
+        <div class="tb-user-menu-item" id="tbLogoutBtn"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sb-top"><button class="sb-collapse-btn" onclick="toggleSidebar()" title="Collapse sidebar"><i class="fa-solid fa-angles-left"></i></button></div>
+  <div class="sb-section">Main Menu</div>
+  <a class="si" href="./index.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    <span class="si-label">Dashboard</span>
+  </a>
+  <a class="si" href="./live-tracking.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-7.58 7-12a7 7 0 00-14 0c0 4.42 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>
+    <span class="si-label">Live Tracking</span>
+  </a>
+  <a class="si" href="./history-tracking.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/><path d="M12 7v5l3.5 2"/></svg>
+    <span class="si-label">History Tracking</span>
+  </a>
+
+  <div class="sb-section">Order Management</div>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5h6a2 2 0 012 2v12a2 2 0 01-2 2H9a2 2 0 01-2-2V7a2 2 0 012-2z"/><path d="M9 3h6v4H9z"/></svg>
+    <span class="si-label">Order Management</span>
+    <span class="si-caret">▾</span>
+  </a>
+  <div class="nav-sub">
+    <a class="si" href="./shipment-planning.html"><span class="si-label">Planning</span></a>
+    <a class="si" href="#"><span class="si-label">Assignment</span></a>
+    <a class="si" href="#"><span class="si-label">Tracking</span></a>
+    <a class="si" href="#"><span class="si-label">Review</span></a>
+  </div>
+
+  <div class="sb-section">Analytics</div>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v16h16"/><path d="M7 15l3.5-4 3 2.5L19 7"/></svg>
+    <span class="si-label">Laporan Perjalanan</span>
+  </a>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v16h16"/><rect x="7" y="12" width="2.6" height="5"/><rect x="12" y="9" width="2.6" height="8"/><rect x="17" y="6" width="2.6" height="11"/></svg>
+    <span class="si-label">Analytics</span>
+  </a>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+    <span class="si-label">Peringatan</span>
+    <span class="si-dot"></span>
+  </a>
+
+  <div class="sb-section">Fleet</div>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="7" width="12" height="9" rx="1"/><path d="M13 10h4l3.5 3.2V16H13z"/><circle cx="5.5" cy="17.5" r="1.6"/><circle cx="17" cy="17.5" r="1.6"/></svg>
+    <span class="si-label">Kendaraan</span>
+  </a>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2.5"/><circle cx="12" cy="10" r="2.3"/><path d="M7.5 16.8c.6-1.9 2.3-2.8 4.5-2.8s3.9.9 4.5 2.8"/></svg>
+    <span class="si-label">Driver</span>
+  </a>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+    <span class="si-label">Kamera</span>
+  </a>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0116 0"/></svg>
+    <span class="si-label">Roster Management</span>
+  </a>
+
+  <div class="sb-section">Admin</div>
+  <a class="si active" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg>
+    <span class="si-label">User &amp; Access</span>
+    <span class="si-caret">▾</span>
+  </a>
+  <div class="nav-sub">
+    <a class="si" href="./group-role.html"><span class="si-label">Group / Role</span></a>
+    <a class="si active" href="./user-management.html"><span class="si-label">User Management</span></a>
+  </div>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09A1.65 1.65 0 0015 4.6a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    <span class="si-label">Configuration</span>
+  </a>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v6c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M3 11v6c0 1.66 4 3 9 3s9-1.34 9-3v-6"/></svg>
+    <span class="si-label">Master Data</span>
+    <span class="si-caret">▾</span>
+  </a>
+
+  <div class="s-sp"></div>
+  <div class="sb-divider"></div>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 015 0c0 1.5-2 2-2.5 3.5"/><path d="M12 17h.01"/></svg>
+    <span class="si-label">Bantuan</span>
+  </a>
+</nav>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="page-hdr">
+    <div class="page-hdr-left">
+      <div class="page-breadcrumb">Admin · User &amp; Access</div>
+      <div class="page-title">User Management</div>
+    </div>
+    <div class="hdr-spacer"></div>
+    <button class="btn btn-primary" id="btnAddUser"><i class="fa-solid fa-user-plus"></i> Add User</button>
+  </div>
+
+  <div class="filter-bar">
+    <div style="position:relative">
+      <i class="fa-solid fa-magnifying-glass" style="position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--g400);font-size:11px"></i>
+      <input class="filter-input" type="text" id="userSearch" placeholder="Cari nama, email, employee ID..." style="padding-left:26px;width:260px">
+    </div>
+    <select class="filter-select" id="roleFilter">
+      <option value="">Semua Role</option>
+    </select>
+    <select class="filter-select" id="statusFilter">
+      <option value="">Semua Status</option>
+      <option value="active">Active</option>
+      <option value="inactive">Inactive</option>
+    </select>
+  </div>
+
+  <div class="body-wrap">
+    <div class="panel">
+      <div class="panel-meta">Menampilkan <b id="userCount">0</b> user</div>
+      <div class="usr-table-scroll">
+        <table class="usr-table">
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Employee ID</th>
+              <th>Email</th>
+              <th>Role / Group</th>
+              <th>Location Scope</th>
+              <th>Auth Method</th>
+              <th>Status</th>
+              <th>Diperbarui</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="userTbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Create/Edit User Modal -->
+<div class="modal-overlay" id="userModal">
+  <div class="modal modal-lg">
+    <div class="modal-head">
+      <div class="modal-title" id="userModalTitle">Add User</div>
+      <div class="modal-close" onclick="closeUserModal()"><i class="fa-solid fa-xmark"></i></div>
+    </div>
+    <div class="modal-body">
+
+      <div class="field-row">
+        <div class="field">
+          <label class="field-label">Full Name <span class="req">*</span> <span class="counter" id="nameCounter">0/100</span></label>
+          <input type="text" id="fldName" maxlength="100" placeholder="mis. Budi Santoso">
+          <div class="field-error" id="nameError"><i class="fa-solid fa-circle-exclamation"></i> <span id="nameErrorText">Full Name wajib diisi.</span></div>
+        </div>
+        <div class="field" style="flex:0 0 200px">
+          <label class="field-label">Employee ID <span class="req">*</span></label>
+          <input type="text" id="fldEmpId" placeholder="mis. EMP0005">
+          <div class="field-error" id="empIdError"><i class="fa-solid fa-circle-exclamation"></i> <span id="empIdErrorText">Employee ID wajib diisi.</span></div>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label class="field-label">Email <span class="req">*</span></label>
+          <input type="email" id="fldEmail" placeholder="nama@shipgo.id">
+          <div class="field-error" id="emailError"><i class="fa-solid fa-circle-exclamation"></i> <span id="emailErrorText">Email wajib diisi.</span></div>
+        </div>
+        <div class="field">
+          <label class="field-label">Phone Number</label>
+          <input type="tel" id="fldPhone" placeholder="+6281234567890">
+          <div class="field-error" id="phoneError"><i class="fa-solid fa-circle-exclamation"></i> <span id="phoneErrorText">Format nomor tidak valid (gunakan format E.164, mis. +6281234567890).</span></div>
+          <div class="field-hint">Opsional. Format E.164, mis. +6281234567890.</div>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label class="field-label">Role / Group <span class="req">*</span></label>
+          <select id="fldRole">
+            <option value="">Pilih role/group...</option>
+          </select>
+          <div class="field-error" id="roleError"><i class="fa-solid fa-circle-exclamation"></i> Role/Group wajib dipilih.</div>
+        </div>
+        <div class="field" style="flex:0 0 180px">
+          <label class="field-label">Status</label>
+          <div class="status-field" style="height:34px">
+            <label class="switch">
+              <input type="checkbox" id="fldStatus" checked>
+              <span class="track"></span>
+            </label>
+            <span class="switch-label active" id="statusLabel">Active</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field-label">Location Scope <span class="req">*</span> <span class="counter" id="locSelectedCount">0 dipilih</span></label>
+        <div class="ms-select" id="locMultiSelect">
+          <div class="ms-chips-row" id="locChipsRow">
+            <input type="text" class="ms-search-input" id="locSearchInput" placeholder="Cari atau pilih lokasi...">
+          </div>
+          <div class="ms-dropdown">
+            <div class="ms-dropdown-actions">
+              <button type="button" onclick="selectAllLocations()">Pilih Semua</button>
+              <button type="button" onclick="clearAllLocations()">Hapus Semua</button>
+            </div>
+            <div class="ms-options" id="locOptionsList"></div>
+          </div>
+        </div>
+        <div class="field-error" id="locError"><i class="fa-solid fa-circle-exclamation"></i> Pilih minimal satu lokasi.</div>
+      </div>
+
+      <div class="field">
+        <label class="field-label">Authentication Method <span class="req">*</span></label>
+        <div class="auth-opt-row">
+          <label class="auth-opt checked" id="authOptLocal">
+            <input type="checkbox" id="fldAuthLocal" checked onchange="onAuthChange()">
+            <div class="auth-opt-body">
+              <div class="auth-opt-title">Local Password</div>
+              <div class="auth-opt-desc">Metode standar. Sistem membuat password default dan mengirim email aktivasi berisi link reset password.</div>
+            </div>
+          </label>
+          <label class="auth-opt" id="authOptSso">
+            <input type="checkbox" id="fldAuthSso" onchange="onAuthChange()">
+            <div class="auth-opt-body">
+              <div class="auth-opt-title">Microsoft SSO (ENTRA)</div>
+              <div class="auth-opt-desc">Tautkan ke akun Microsoft Entra ID. Perlu email yang sama terdaftar di ENTRA organisasi.</div>
+            </div>
+          </label>
+        </div>
+        <div class="field-error" id="authError"><i class="fa-solid fa-circle-exclamation"></i> Pilih minimal satu metode autentikasi.</div>
+      </div>
+
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeUserModal()">Cancel</button>
+      <button class="btn btn-primary" id="btnSaveUser" onclick="saveUser()"><i class="fa-solid fa-check"></i> Save User</button>
+    </div>
+  </div>
+</div>
+
+<!-- Deactivate/Reactivate confirm modal -->
+<div class="modal-overlay confirm-modal" id="confirmModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="confirmTitle">Ubah Status User</div>
+      <div class="modal-close" onclick="closeConfirmModal()"><i class="fa-solid fa-xmark"></i></div>
+    </div>
+    <div class="modal-body">
+      <div class="confirm-body" id="confirmBody"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeConfirmModal()">Batal</button>
+      <button class="btn btn-primary" id="confirmActionBtn">Konfirmasi</button>
+    </div>
+  </div>
+</div>
+
+<!-- Activation email preview modal -->
+<div class="modal-overlay confirm-modal" id="activationModal">
+  <div class="modal" style="width:460px">
+    <div class="modal-head">
+      <div class="modal-title"><i class="fa-solid fa-paper-plane" style="color:var(--p600);margin-right:6px;font-size:13px"></i>Activation Email Terkirim</div>
+      <div class="modal-close" onclick="closeActivationModal()"><i class="fa-solid fa-xmark"></i></div>
+    </div>
+    <div class="modal-body">
+      <div class="email-preview">
+        <div class="email-preview-hdr">
+          <div>To: <b id="actEmailTo">—</b></div>
+          <div>Subject: <b>Aktivasi Akun ShipGo TMS</b></div>
+        </div>
+        <div class="email-preview-body">
+          Halo <b id="actEmailName">—</b>,<br>
+          Akun Anda telah dibuat. Klik tombol di bawah untuk mengatur password dan mengaktifkan akun:
+          <div><a class="email-preview-link" href="#" onclick="return false">Set Password &amp; Aktifkan Akun</a></div>
+          <div style="font-size:11px;color:var(--g400)">Link berlaku hingga digunakan satu kali atau kedaluwarsa (masa berlaku token dapat dikonfigurasi oleh backend).</div>
+          <div class="pwd-standard">
+            <div class="pwd-standard-title">Password harus memenuhi standar berikut:</div>
+            <ul>
+              <li>Minimal 8 karakter</li>
+              <li>Minimal 1 huruf besar</li>
+              <li>Minimal 1 huruf kecil</li>
+              <li>Minimal 1 angka</li>
+              <li>Minimal 1 simbol</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-primary" onclick="closeActivationModal()">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function toggleSidebar(){
+  const collapsed=document.body.classList.toggle('sb-collapsed');
+  document.documentElement.style.setProperty('--sw', collapsed?'64px':'220px');
+}
+
+// ── REFERENCE DATA (mirrors Group/Role + shipping-point locations elsewhere in the app) ──
+const ROLES=['Super Admin','Dispatcher','Fleet Viewer','Auditor'];
+
+function slugify(s){ return s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,''); }
+const LOCATION_NAMES=[
+  'DC Aceh','DC Ambon','DC Bali','DC Bangka','DC Banten','DC Bengkulu','DC Bogor','DC Bukittinggi',
+  'DC Jambi','DC Kendari','DC Lampung','DC Manado','DC Mataram','DC Palangkaraya','DC Palu','DC Pontianak',
+  'DC Purwokerto','DC Rantau Prapat','DC Samarinda','DC Semarang','DC Solo','DC Sukabumi','DC Surabaya',
+  'DC Tanjung Pinang','DC Tasikmalaya','DC Bandung','DC Banjarmasin','DC Cirebon','DC Jember','DC Kediri',
+  'DC Makassar','DC Medan','DC Palembang','DC Pekanbaru',
+].sort((a,b)=>a.localeCompare(b));
+const LOCATIONS=LOCATION_NAMES.map(name=>({id:slugify(name),name}));
+const ALL_LOCATION_IDS=LOCATIONS.map(l=>l.id);
+
+let USERS=[
+  {id:'u1',name:'Rafi Ramadani',employeeId:'EMP0001',email:'dispatcher@shipgo.id',phone:'+6281234567890',role:'Dispatcher',locations:['dc-solo','dc-semarang','dc-surabaya'],auth:{local:true,sso:false},status:'active',updatedAt:'2026-07-01'},
+  {id:'u2',name:'Admin ShipGo',employeeId:'EMP0002',email:'admin@shipgo.id',phone:'',role:'Super Admin',locations:[...ALL_LOCATION_IDS],auth:{local:true,sso:true},status:'active',updatedAt:'2026-07-03'},
+  {id:'u3',name:'Siti Aminah',employeeId:'EMP0003',email:'siti.aminah@shipgo.id',phone:'+6281298765432',role:'Fleet Viewer',locations:['dc-bandung'],auth:{local:true,sso:false},status:'active',updatedAt:'2026-06-20'},
+  {id:'u4',name:'Budi Santoso',employeeId:'EMP0004',email:'budi.santoso@shipgo.id',phone:'',role:'Auditor',locations:[...ALL_LOCATION_IDS],auth:{local:false,sso:true},status:'inactive',updatedAt:'2026-05-10'},
+];
+
+let userSearchTerm='';
+let roleFilterVal='';
+let statusFilterVal='';
+let editingUserId=null;
+let draftLocations=new Set();
+
+// ── populate role dropdown/filter ──
+(function initRoleOptions(){
+  const filterSel=document.getElementById('roleFilter');
+  const formSel=document.getElementById('fldRole');
+  ROLES.forEach(r=>{
+    filterSel.insertAdjacentHTML('beforeend', `<option value="${r}">${r}</option>`);
+    formSel.insertAdjacentHTML('beforeend', `<option value="${r}">${r}</option>`);
+  });
+})();
+
+function escapeHtml(str){
+  const d=document.createElement('div');
+  d.textContent=str==null?'':String(str);
+  return d.innerHTML;
+}
+function initials(name){
+  const p=(name||'').trim().split(/\s+/);
+  return ((p[0]?.[0]||'')+(p[1]?.[0]||'')).toUpperCase();
+}
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+
+// ── USER LIST ──
+function renderUserList(){
+  const q=userSearchTerm.toLowerCase();
+  const rows=USERS.filter(u=>{
+    if(roleFilterVal && u.role!==roleFilterVal) return false;
+    if(statusFilterVal && u.status!==statusFilterVal) return false;
+    if(q && !(u.name.toLowerCase().includes(q)||u.email.toLowerCase().includes(q)||u.employeeId.toLowerCase().includes(q))) return false;
+    return true;
+  });
+  document.getElementById('userCount').textContent=rows.length;
+  const tbody=document.getElementById('userTbody');
+
+  if(!rows.length){
+    tbody.innerHTML=`<tr><td colspan="9"><div class="empty-state">
+      <i class="fa-solid fa-users-slash"></i>
+      <div class="empty-title">Tidak ada user ditemukan</div>
+      <div class="empty-sub">Coba ubah kata kunci pencarian atau filter, atau buat user baru.</div>
+    </div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML=rows.map(u=>{
+    const locNames=u.locations.map(id=>LOCATIONS.find(l=>l.id===id)?.name).filter(Boolean);
+    const shown=locNames.slice(0,2);
+    const extra=locNames.length-shown.length;
+    return `<tr data-id="${u.id}">
+      <td>
+        <div class="usr-name">${escapeHtml(u.name)}</div>
+        <div class="usr-name-sub">${initials(u.name)}</div>
+      </td>
+      <td><span class="usr-empid">${escapeHtml(u.employeeId)}</span></td>
+      <td class="usr-email">${escapeHtml(u.email)}</td>
+      <td><span class="role-pill">${escapeHtml(u.role)}</span></td>
+      <td><div class="loc-tags">${shown.map(n=>`<span class="loc-tag-sm">${escapeHtml(n)}</span>`).join('')}${extra>0?`<span class="loc-tag-sm more">+${extra}</span>`:''}</div></td>
+      <td><div class="auth-badges">${u.auth.local?'<span class="auth-badge local"><i class="fa-solid fa-key" style="font-size:9px"></i> Local</span>':''}${u.auth.sso?'<span class="auth-badge sso"><i class="fa-brands fa-microsoft" style="font-size:9px"></i> SSO</span>':''}</div></td>
+      <td>
+        <label class="switch">
+          <input type="checkbox" ${u.status==='active'?'checked':''} onclick="event.preventDefault();confirmStatusToggle('${u.id}')">
+          <span class="track"></span>
+        </label>
+        <span class="switch-label ${u.status==='active'?'active':'inactive'}" style="margin-left:6px">${u.status==='active'?'Active':'Inactive'}</span>
+      </td>
+      <td class="usr-updated">${u.updatedAt}</td>
+      <td class="usr-actions">
+        <button class="icon-btn" title="Edit" onclick="openUserModal('${u.id}')"><i class="fa-solid fa-pen"></i></button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+document.getElementById('userSearch').addEventListener('input',e=>{ userSearchTerm=e.target.value; renderUserList(); });
+document.getElementById('roleFilter').addEventListener('change',e=>{ roleFilterVal=e.target.value; renderUserList(); });
+document.getElementById('statusFilter').addEventListener('change',e=>{ statusFilterVal=e.target.value; renderUserList(); });
+
+// ── DEACTIVATE / REACTIVATE (Scenario 8 & 9) ──
+let pendingStatusUserId=null;
+function confirmStatusToggle(id){
+  const u=USERS.find(x=>x.id===id);
+  if(!u) return;
+  pendingStatusUserId=id;
+  const goingInactive=u.status==='active';
+  document.getElementById('confirmTitle').textContent=goingInactive?'Nonaktifkan User':'Aktifkan Kembali User';
+  document.getElementById('confirmBody').innerHTML=goingInactive
+    ? `Menonaktifkan <b>${escapeHtml(u.name)}</b> akan mencegah user ini login (menampilkan pesan "akun tidak aktif"), dan sesi aktif yang sedang berjalan akan diakhiri pada request berikutnya. Lanjutkan?`
+    : `Mengaktifkan kembali <b>${escapeHtml(u.name)}</b> akan memulihkan kemampuan login dengan kredensial dan role assignment yang sudah ada. Lanjutkan?`;
+  const btn=document.getElementById('confirmActionBtn');
+  btn.textContent=goingInactive?'Nonaktifkan':'Aktifkan';
+  document.getElementById('confirmModal').classList.add('show');
+}
+function closeConfirmModal(){
+  document.getElementById('confirmModal').classList.remove('show');
+  pendingStatusUserId=null;
+}
+document.getElementById('confirmActionBtn').addEventListener('click',()=>{
+  const u=USERS.find(x=>x.id===pendingStatusUserId);
+  if(!u){ closeConfirmModal(); return; }
+  const goingInactive=u.status==='active';
+  u.status=goingInactive?'inactive':'active';
+  u.updatedAt=todayStr();
+  closeConfirmModal();
+  renderUserList();
+  showToast(goingInactive
+    ? `User "${u.name}" dinonaktifkan. Sesi aktif akan diakhiri pada request berikutnya.`
+    : `User "${u.name}" diaktifkan kembali. Login dipulihkan dengan role & kredensial saat ini.`);
+});
+
+// ── CREATE / EDIT USER MODAL ──
+document.getElementById('btnAddUser').addEventListener('click',()=>openUserModal(null));
+
+// ── Location Scope — searchable multi-select combobox ──
+let locSearchTerm='';
+
+function renderLocMultiSelect(){
+  // Selected chips (rendered before the search input, which stays last in the row)
+  const chipsRow=document.getElementById('locChipsRow');
+  const searchInput=document.getElementById('locSearchInput');
+  chipsRow.querySelectorAll('.ms-chip').forEach(c=>c.remove());
+  const selected=[...draftLocations].map(id=>LOCATIONS.find(l=>l.id===id)).filter(Boolean)
+    .sort((a,b)=>a.name.localeCompare(b.name));
+  selected.forEach(l=>{
+    const chip=document.createElement('span');
+    chip.className='ms-chip';
+    chip.innerHTML=`${escapeHtml(l.name)} <span class="rm" onclick="event.stopPropagation();removeLocation('${l.id}')"><i class="fa-solid fa-xmark"></i></span>`;
+    chipsRow.insertBefore(chip,searchInput);
+  });
+  searchInput.placeholder=selected.length?'Cari lokasi lain...':'Cari atau pilih lokasi...';
+  document.getElementById('locSelectedCount').textContent=`${draftLocations.size} dipilih`;
+
+  // Filtered option list
+  const q=locSearchTerm.toLowerCase();
+  const filtered=q?LOCATIONS.filter(l=>l.name.toLowerCase().includes(q)):LOCATIONS;
+  const optsList=document.getElementById('locOptionsList');
+  optsList.innerHTML=filtered.length?filtered.map(l=>{
+    const sel=draftLocations.has(l.id);
+    return `<div class="ms-option ${sel?'selected':''}" onclick="toggleLocationOption('${l.id}')">
+      <span class="chk">${sel?'<i class="fa-solid fa-check"></i>':''}</span>
+      ${escapeHtml(l.name)}
+    </div>`;
+  }).join(''):`<div class="ms-empty">Tidak ada lokasi cocok dengan "${escapeHtml(locSearchTerm)}".</div>`;
+}
+
+function toggleLocationOption(id){
+  if(draftLocations.has(id)) draftLocations.delete(id); else draftLocations.add(id);
+  if(draftLocations.size>0) clearFieldError('loc');
+  renderLocMultiSelect();
+}
+function removeLocation(id){
+  draftLocations.delete(id);
+  renderLocMultiSelect();
+}
+function selectAllLocations(){
+  LOCATIONS.forEach(l=>draftLocations.add(l.id));
+  clearFieldError('loc');
+  renderLocMultiSelect();
+}
+function clearAllLocations(){
+  draftLocations.clear();
+  renderLocMultiSelect();
+}
+function openLocDropdown(){ document.getElementById('locMultiSelect').classList.add('open'); }
+function closeLocDropdown(){
+  document.getElementById('locMultiSelect').classList.remove('open');
+  locSearchTerm='';
+  document.getElementById('locSearchInput').value='';
+  renderLocMultiSelect();
+}
+document.getElementById('locChipsRow').addEventListener('click',()=>{
+  document.getElementById('locSearchInput').focus();
+  openLocDropdown();
+});
+document.getElementById('locSearchInput').addEventListener('focus',openLocDropdown);
+document.getElementById('locSearchInput').addEventListener('input',e=>{
+  locSearchTerm=e.target.value;
+  renderLocMultiSelect();
+});
+document.getElementById('locSearchInput').addEventListener('keydown',e=>{
+  if(e.key==='Escape') closeLocDropdown();
+});
+document.addEventListener('click',e=>{
+  const wrap=document.getElementById('locMultiSelect');
+  if(wrap && wrap.classList.contains('open') && !wrap.contains(e.target)) closeLocDropdown();
+});
+
+function onAuthChange(){
+  const localChecked=document.getElementById('fldAuthLocal').checked;
+  const ssoChecked=document.getElementById('fldAuthSso').checked;
+  document.getElementById('authOptLocal').classList.toggle('checked',localChecked);
+  document.getElementById('authOptSso').classList.toggle('checked',ssoChecked);
+  if(localChecked||ssoChecked) clearFieldError('auth');
+}
+
+function openUserModal(id){
+  editingUserId=id;
+  const u=id?USERS.find(x=>x.id===id):null;
+  document.getElementById('userModalTitle').textContent=u?`Edit User — ${u.name}`:'Add User';
+  document.getElementById('fldName').value=u?u.name:'';
+  document.getElementById('fldEmpId').value=u?u.employeeId:'';
+  document.getElementById('fldEmail').value=u?u.email:'';
+  document.getElementById('fldPhone').value=u?(u.phone||''):'';
+  document.getElementById('fldRole').value=u?u.role:'';
+  document.getElementById('fldStatus').checked=u?u.status==='active':true;
+  document.getElementById('fldAuthLocal').checked=u?u.auth.local:true;
+  document.getElementById('fldAuthSso').checked=u?u.auth.sso:false;
+  updateStatusLabel();
+  onAuthChange();
+  updateNameCounter();
+  ['name','empId','email','phone','role','loc','auth'].forEach(clearFieldError);
+
+  draftLocations=new Set(u?u.locations:[]);
+  locSearchTerm='';
+  document.getElementById('locSearchInput').value='';
+  document.getElementById('locMultiSelect').classList.remove('open');
+  renderLocMultiSelect();
+
+  document.getElementById('userModal').classList.add('show');
+  document.getElementById('fldName').focus();
+}
+
+function closeUserModal(){
+  document.getElementById('userModal').classList.remove('show');
+  editingUserId=null;
+}
+
+document.getElementById('fldStatus').addEventListener('change',updateStatusLabel);
+function updateStatusLabel(){
+  const on=document.getElementById('fldStatus').checked;
+  const lbl=document.getElementById('statusLabel');
+  lbl.textContent=on?'Active':'Inactive';
+  lbl.className='switch-label '+(on?'active':'inactive');
+}
+document.getElementById('fldName').addEventListener('input',()=>{ updateNameCounter(); clearFieldError('name'); });
+function updateNameCounter(){ document.getElementById('nameCounter').textContent=document.getElementById('fldName').value.length+'/100'; }
+document.getElementById('fldEmpId').addEventListener('input',()=>clearFieldError('empId'));
+document.getElementById('fldEmail').addEventListener('input',()=>clearFieldError('email'));
+document.getElementById('fldPhone').addEventListener('input',()=>clearFieldError('phone'));
+document.getElementById('fldRole').addEventListener('change',()=>clearFieldError('role'));
+
+function setFieldError(field,msg){
+  const el=document.getElementById('fld'+field.charAt(0).toUpperCase()+field.slice(1));
+  if(el) el.classList.add('err');
+  const err=document.getElementById(field+'Error');
+  if(msg){
+    const textEl=document.getElementById(field+'ErrorText');
+    if(textEl) textEl.textContent=msg;
+  }
+  if(err) err.classList.add('show');
+}
+function clearFieldError(field){
+  const el=document.getElementById('fld'+field.charAt(0).toUpperCase()+field.slice(1));
+  if(el) el.classList.remove('err');
+  const err=document.getElementById(field+'Error');
+  if(err) err.classList.remove('show');
+}
+
+// ── VALIDATION + SAVE ──
+function isValidEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+function isValidEmployeeId(v){ return /^[A-Za-z0-9]+$/.test(v); }
+function isValidE164(v){ return /^\+[1-9]\d{6,14}$/.test(v); }
+
+function saveUser(){
+  const name=document.getElementById('fldName').value.trim();
+  const employeeId=document.getElementById('fldEmpId').value.trim();
+  const email=document.getElementById('fldEmail').value.trim();
+  const phone=document.getElementById('fldPhone').value.trim();
+  const role=document.getElementById('fldRole').value;
+  const status=document.getElementById('fldStatus').checked?'active':'inactive';
+  const authLocal=document.getElementById('fldAuthLocal').checked;
+  const authSso=document.getElementById('fldAuthSso').checked;
+  let valid=true;
+
+  ['name','empId','email','phone','role','loc','auth'].forEach(clearFieldError);
+
+  if(!name){ setFieldError('name','Full Name wajib diisi.'); valid=false; }
+
+  if(!employeeId){ setFieldError('empId','Employee ID wajib diisi.'); valid=false; }
+  else if(!isValidEmployeeId(employeeId)){ setFieldError('empId','Employee ID hanya boleh huruf dan angka.'); valid=false; }
+  else if(USERS.some(u=>u.id!==editingUserId && u.employeeId.toLowerCase()===employeeId.toLowerCase())){ setFieldError('empId','Employee ID ini sudah terdaftar.'); valid=false; }
+
+  if(!email){ setFieldError('email','Email wajib diisi.'); valid=false; }
+  else if(!isValidEmail(email)){ setFieldError('email','Format email tidak valid. Gunakan format: nama@domain.com'); valid=false; }
+  else if(USERS.some(u=>u.id!==editingUserId && u.email.toLowerCase()===email.toLowerCase())){ setFieldError('email','Email ini sudah terdaftar.'); valid=false; }
+
+  if(phone && !isValidE164(phone)){ setFieldError('phone'); valid=false; }
+
+  if(!role){ setFieldError('role'); valid=false; }
+
+  if(draftLocations.size===0){ setFieldError('loc'); valid=false; }
+
+  if(!authLocal && !authSso){ setFieldError('auth'); valid=false; }
+
+  if(!valid) return;
+
+  const isNewLocalUser=!editingUserId && authLocal;
+
+  if(editingUserId){
+    const u=USERS.find(x=>x.id===editingUserId);
+    u.name=name; u.employeeId=employeeId; u.email=email; u.phone=phone;
+    u.role=role; u.status=status; u.locations=[...draftLocations];
+    u.auth={local:authLocal,sso:authSso};
+    u.updatedAt=todayStr();
+    showToast(`User "${name}" berhasil diperbarui. Perubahan berlaku pada login berikutnya.`);
+  }else{
+    USERS.unshift({
+      id:'u'+Date.now(),
+      name, employeeId, email, phone, role, status,
+      locations:[...draftLocations],
+      auth:{local:authLocal,sso:authSso},
+      updatedAt:todayStr(),
+    });
+    if(isNewLocalUser){
+      showActivationEmail(name,email);
+    }else{
+      showToast(`User "${name}" berhasil dibuat dan ditautkan ke Microsoft SSO. Tidak ada password default dibuat.`);
+    }
+  }
+
+  closeUserModal();
+  renderUserList();
+}
+
+// ── ACTIVATION EMAIL (Scenario 6 & 10) ──
+function showActivationEmail(name,email){
+  document.getElementById('actEmailTo').textContent=email;
+  document.getElementById('actEmailName').textContent=name;
+  document.getElementById('activationModal').classList.add('show');
+}
+function closeActivationModal(){
+  document.getElementById('activationModal').classList.remove('show');
+}
+
+// ── TOAST ──
+function showToast(msg){
+  let t=document.getElementById('app-toast');
+  if(!t){
+    t=document.createElement('div');
+    t.id='app-toast';
+    document.body.appendChild(t);
+  }
+  t.innerHTML=`<i class="fa-solid fa-circle-check" style="color:#86efac;font-size:14px"></i> ${msg}`;
+  t.style.opacity='1';
+  t.style.transform='translateX(-50%) translateY(0)';
+  t.style.pointerEvents='auto';
+  clearTimeout(t._timer);
+  t._timer=setTimeout(()=>{
+    t.style.opacity='0';
+    t.style.transform='translateX(-50%) translateY(80px)';
+    t.style.pointerEvents='none';
+  },3800);
+}
+
+renderUserList();
+</script>
+</body>
+</html>

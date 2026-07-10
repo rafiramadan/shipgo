@@ -13,6 +13,10 @@ export const config = {
     '/history-tracking.html',
     '/shipment',
     '/shipment-planning.html',
+    '/roles',
+    '/group-role.html',
+    '/users',
+    '/user-management.html',
   ],
 };
 

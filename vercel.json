@@ -5,7 +5,9 @@
     { "source": "/", "destination": "/index.html" },
     { "source": "/live", "destination": "/live-tracking.html" },
     { "source": "/history", "destination": "/history-tracking.html" },
-    { "source": "/shipment", "destination": "/shipment-planning.html" }
+    { "source": "/shipment", "destination": "/shipment-planning.html" },
+    { "source": "/roles", "destination": "/group-role.html" },
+    { "source": "/users", "destination": "/user-management.html" }
   ],
   "headers": [
     {
