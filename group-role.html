@@ -162,6 +162,8 @@ table.grp-table tbody tr:hover{background:var(--g50)}
 .field input.err:focus,.field textarea.err:focus{box-shadow:0 0 0 3px #fee2e2}
 .field-error{font-size:11px;color:var(--red);display:none;align-items:center;gap:4px}
 .field-error.show{display:flex}
+.field-error.banner{align-items:flex-start;gap:8px;background:#fef2f2;border:1px solid #fecaca;color:#991b1b;font-size:11.5px;font-weight:500;line-height:1.6;padding:9px 12px;border-radius:var(--r)}
+.field-error.banner i{margin-top:2px;color:var(--red)}
 
 .status-field{display:flex;align-items:center;gap:10px}
 
@@ -195,6 +197,8 @@ td.perm-op{text-align:center}
 /* Confirm dialog (deactivate) */
 .confirm-modal .modal{width:380px}
 .confirm-body{font-size:12.5px;color:var(--g700);line-height:1.6}
+.confirm-blocked{display:flex;align-items:flex-start;gap:8px;background:#fef2f2;border:1px solid #fecaca;color:#991b1b;font-size:12px;line-height:1.6;padding:10px 12px;border-radius:var(--r)}
+.confirm-blocked i{margin-top:2px;color:var(--red)}
 </style>
 </head>
 <body>
@@ -394,6 +398,7 @@ td.perm-op{text-align:center}
           </div>
         </div>
       </div>
+      <div class="field-error banner" id="statusError"><i class="fa-solid fa-triangle-exclamation"></i> <span id="statusErrorText">Group ini masih digunakan oleh user aktif dan tidak dapat dinonaktifkan.</span></div>
 
       <div class="field">
         <label class="field-label">Description <span class="counter" id="descCounter">0/500</span></label>
@@ -450,7 +455,7 @@ td.perm-op{text-align:center}
       <div class="confirm-body" id="confirmBody"></div>
     </div>
     <div class="modal-foot">
-      <button class="btn btn-outline" onclick="closeConfirmModal()">Batal</button>
+      <button class="btn btn-outline" id="confirmCancelBtn" onclick="closeConfirmModal()">Batal</button>
       <button class="btn btn-primary" id="confirmActionBtn">Konfirmasi</button>
     </div>
   </div>
@@ -576,8 +581,21 @@ let pendingStatusGroupId=null;
 function confirmStatusToggle(id){
   const g=GROUPS.find(x=>x.id===id);
   if(!g) return;
-  pendingStatusGroupId=id;
   const goingInactive=g.status==='active';
+
+  if(goingInactive && g.members>0){
+    pendingStatusGroupId=null;
+    document.getElementById('confirmTitle').textContent='Tidak Dapat Menonaktifkan Group';
+    document.getElementById('confirmBody').innerHTML=`<div class="confirm-blocked"><i class="fa-solid fa-triangle-exclamation"></i> Group <b>${escapeHtml(g.name)}</b> masih digunakan oleh <b>${g.members} user</b> aktif dan tidak dapat dinonaktifkan. Pindahkan atau ubah role user tersebut ke group lain terlebih dahulu.</div>`;
+    document.getElementById('confirmActionBtn').style.display='none';
+    document.getElementById('confirmCancelBtn').textContent='Tutup';
+    document.getElementById('confirmModal').classList.add('show');
+    return;
+  }
+
+  pendingStatusGroupId=id;
+  document.getElementById('confirmActionBtn').style.display='';
+  document.getElementById('confirmCancelBtn').textContent='Batal';
   document.getElementById('confirmTitle').textContent=goingInactive?'Nonaktifkan Group':'Aktifkan Kembali Group';
   document.getElementById('confirmBody').innerHTML=goingInactive
     ? `Menonaktifkan <b>${escapeHtml(g.name)}</b> akan mencegah group ini di-assign ke user baru, dan <b>${g.members} user</b> yang saat ini menjadi anggota akan kehilangan akses pada request berikutnya. Lanjutkan?`
@@ -622,6 +640,7 @@ function openGroupModal(id){
   updateNameCounter();
   updateDescCounter();
   clearFieldError('name');
+  clearFieldError('status');
   document.getElementById('permError').classList.remove('show');
 
   draftPermissions=g?JSON.parse(JSON.stringify(g.permissions)):{};
@@ -733,6 +752,7 @@ function saveGroup(){
   let valid=true;
 
   clearFieldError('name');
+  clearFieldError('status');
   document.getElementById('permError').classList.remove('show');
 
   if(!name){
@@ -748,6 +768,12 @@ function saveGroup(){
 
   if(!hasAnyPermission()){
     document.getElementById('permError').classList.add('show');
+    valid=false;
+  }
+
+  const editingGroup=editingGroupId?GROUPS.find(x=>x.id===editingGroupId):null;
+  if(status==='inactive' && editingGroup && editingGroup.status==='active' && editingGroup.members>0){
+    setFieldError('status',`Group "${escapeHtml(editingGroup.name)}" masih digunakan oleh ${editingGroup.members} user aktif dan tidak dapat dinonaktifkan. Pindahkan atau ubah role user tersebut terlebih dahulu.`);
     valid=false;
   }
 
