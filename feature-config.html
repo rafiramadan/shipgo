@@ -95,22 +95,20 @@ body.sb-collapsed .sb-top{justify-content:center}
 .btn-sm{padding:5px 10px;font-size:11.5px}
 .btn:disabled{opacity:.5;cursor:not-allowed}
 
-/* ── FEATURE TABS ── */
-.feature-tab-bar{background:#fff;border-bottom:1px solid var(--g200);padding:10px 24px;flex-shrink:0;display:flex;gap:8px;flex-wrap:wrap}
-.feature-tab{display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:var(--r);border:1px solid var(--g200);background:#fff;color:var(--g600);font-size:12.5px;font-weight:600;cursor:pointer;transition:all .15s}
-.feature-tab:hover{border-color:var(--p300);color:var(--p700)}
-.feature-tab.active{background:var(--p700);border-color:var(--p700);color:#fff}
-.feature-tab i{font-size:12px}
-.feature-tab .ft-count{font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;background:rgba(255,255,255,.25)}
-.feature-tab:not(.active) .ft-count{background:var(--p50);color:var(--p700)}
-
 /* ── BODY ── */
 .body-wrap{flex:1;overflow-y:auto;padding:18px 24px}
-.feature-banner{display:flex;align-items:flex-start;gap:12px;background:var(--p50);border:1px solid var(--p200);border-radius:var(--r2);padding:12px 16px;margin-bottom:16px}
-.feature-banner-icon{width:34px;height:34px;border-radius:9px;background:var(--p700);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px}
-.feature-banner-title{font-size:13.5px;font-weight:700;color:var(--g900);margin-bottom:3px}
-.feature-banner-desc{font-size:12px;color:var(--g600);line-height:1.6}
-.feature-banner-rule{font-size:11.5px;color:var(--p700);background:#fff;border:1px solid var(--p200);border-radius:6px;padding:6px 10px;margin-top:8px;display:inline-flex;align-items:center;gap:6px}
+
+/* ── FEATURE LEGEND (always-visible summary of all 4 features) ── */
+.feature-legend{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px}
+.feature-legend-card{display:flex;gap:10px;background:#fff;border:1px solid var(--g200);border-radius:var(--r2);padding:12px 14px;box-shadow:var(--sh)}
+.feature-legend-icon{width:32px;height:32px;border-radius:9px;background:var(--p50);color:var(--p700);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px}
+.feature-legend-body{min-width:0}
+.feature-legend-title-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.feature-legend-title{font-size:12.5px;font-weight:700;color:var(--g900)}
+.feature-legend-count{font-size:10px;font-weight:700;padding:1px 7px;border-radius:9px;background:#dcfce7;color:#15803d;white-space:nowrap}
+.feature-legend-count.zero{background:var(--g100);color:var(--g500)}
+.feature-legend-desc{font-size:11px;color:var(--g500);line-height:1.55;margin-top:2px}
+@media (max-width:900px){ .feature-legend{grid-template-columns:1fr} }
 
 .content-grid{display:flex;gap:16px;align-items:flex-start}
 .main-col{flex:1;min-width:0}
@@ -121,16 +119,11 @@ body.sb-collapsed .sb-top{justify-content:center}
 .panel-title{font-size:14px;font-weight:700;color:var(--g900)}
 .panel-sub{font-size:11px;color:var(--g400);margin-top:2px}
 
-.stat-pills{display:flex;gap:8px;margin-left:auto}
-.stat-pill{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:3px 10px;border-radius:12px}
-.stat-pill.on{background:#dcfce7;color:#15803d}
-.stat-pill.off{background:var(--g100);color:var(--g500)}
-
 .toolbar-row{display:flex;align-items:center;gap:10px;padding:12px 16px;flex-wrap:wrap;border-bottom:1px solid var(--g100)}
 .filter-select{border:1px solid var(--g200);border-radius:var(--r);padding:6px 26px 6px 10px;font-size:12px;color:var(--g700);background:#fff;outline:none;font-family:var(--font);cursor:pointer;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%2364748b' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center}
 .filter-input{border:1px solid var(--g200);border-radius:var(--r);padding:6px 10px;font-size:12px;color:var(--g700);outline:none;font-family:var(--font);background:#fff}
 .filter-input:focus,.filter-select:focus{border-color:var(--p400)}
-.bulk-bar{display:flex;align-items:center;gap:8px;margin-left:auto;background:var(--p50);border:1px solid var(--p200);border-radius:var(--r);padding:5px 10px}
+.bulk-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-left:auto;background:var(--p50);border:1px solid var(--p200);border-radius:var(--r);padding:5px 10px}
 .bulk-bar span{font-size:11.5px;font-weight:600;color:var(--p700)}
 
 table.drv-table{width:100%;border-collapse:collapse;font-size:12.5px}
@@ -141,6 +134,11 @@ table.drv-table tbody tr:hover{background:var(--g50)}
 .drv-name{font-weight:700;color:var(--g900)}
 .drv-id{color:var(--g400);font-size:11px}
 .dc-pill{display:inline-flex;align-items:center;font-size:11px;font-weight:600;background:var(--p50);color:var(--p700);padding:2px 9px;border-radius:12px}
+
+.feat-check-list{display:flex;flex-direction:column;gap:6px}
+.feat-check-item{display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--g600);cursor:pointer}
+.feat-check-item input{width:14px;height:14px;accent-color:var(--p600);cursor:pointer;flex-shrink:0}
+.feat-check-item.on{color:var(--g900);font-weight:600}
 
 .switch{position:relative;display:inline-flex;align-items:center;gap:8px}
 .switch input{position:absolute;opacity:0;width:0;height:0}
@@ -338,10 +336,8 @@ table.audit-table tbody tr:last-child td{border-bottom:none}
     <button class="btn btn-outline" onclick="openAuditModal()"><i class="fa-solid fa-clock-rotate-left"></i> Audit Log</button>
   </div>
 
-  <div class="feature-tab-bar" id="featureTabBar"></div>
-
   <div class="body-wrap">
-    <div class="feature-banner" id="featureBanner"></div>
+    <div class="feature-legend" id="featureLegend"></div>
 
     <div class="content-grid">
       <div class="main-col">
@@ -349,9 +345,8 @@ table.audit-table tbody tr:last-child td{border-bottom:none}
           <div class="panel-hdr-row">
             <div>
               <div class="panel-title">Driver Configuration</div>
-              <div class="panel-sub">Atur akses fitur per driver. Perubahan berlaku pada sesi/pengiriman berikutnya.</div>
+              <div class="panel-sub">Pilih fitur yang aktif untuk masing-masing driver. Perubahan berlaku pada sesi/pengiriman berikutnya.</div>
             </div>
-            <div class="stat-pills" id="driverStatPills"></div>
           </div>
           <div class="toolbar-row">
             <select class="filter-select" id="dcFilter"></select>
@@ -361,6 +356,7 @@ table.audit-table tbody tr:last-child td{border-bottom:none}
             </div>
             <div class="bulk-bar" id="bulkBar" style="display:none">
               <span id="bulkCount">0 driver dipilih</span>
+              <select class="filter-select" id="bulkFeatureSelect" style="min-width:170px"></select>
               <button class="btn btn-outline btn-sm" onclick="bulkSetStatus(true)"><i class="fa-solid fa-toggle-on"></i> Enable</button>
               <button class="btn btn-outline btn-sm" onclick="bulkSetStatus(false)"><i class="fa-solid fa-toggle-off"></i> Disable</button>
             </div>
@@ -372,7 +368,7 @@ table.audit-table tbody tr:last-child td{border-bottom:none}
                   <th style="width:30px"><input type="checkbox" id="checkAllDrivers"></th>
                   <th>Driver</th>
                   <th>DC</th>
-                  <th>Status</th>
+                  <th>Features</th>
                 </tr>
               </thead>
               <tbody id="driverTbody"></tbody>
@@ -386,7 +382,7 @@ table.audit-table tbody tr:last-child td{border-bottom:none}
           <div class="panel-hdr-row" style="border-bottom:1px solid var(--g200)">
             <div>
               <div class="panel-title">DO Type Configuration</div>
-              <div class="panel-sub">Berlaku untuk semua DO ke depan dengan tipe ini.</div>
+              <div class="panel-sub">Khusus untuk fitur <b>Auto POD Validation</b> — berlaku untuk semua DO ke depan dengan tipe ini.</div>
             </div>
           </div>
           <div id="doTypeList"></div>
@@ -410,16 +406,20 @@ table.audit-table tbody tr:last-child td{border-bottom:none}
 <div class="modal-overlay" id="auditModal">
   <div class="modal modal-lg">
     <div class="modal-head">
-      <div class="modal-title"><i class="fa-solid fa-clock-rotate-left" style="color:var(--p600);margin-right:6px;font-size:13px"></i>Configuration Audit Log — <span id="auditModalFeature"></span></div>
+      <div class="modal-title"><i class="fa-solid fa-clock-rotate-left" style="color:var(--p600);margin-right:6px;font-size:13px"></i>Configuration Audit Log</div>
       <div class="modal-close" onclick="closeAuditModal()"><i class="fa-solid fa-xmark"></i></div>
     </div>
     <div class="modal-body">
+      <div class="toolbar-row" style="border-bottom:1px solid var(--g200)">
+        <select class="filter-select" id="auditFeatureFilter"></select>
+      </div>
       <div style="overflow-x:auto">
         <table class="audit-table">
           <thead>
             <tr>
               <th>Waktu</th>
               <th>Admin</th>
+              <th>Fitur</th>
               <th>Scope</th>
               <th>Target</th>
               <th>DC</th>
@@ -460,7 +460,6 @@ const FEATURES=[
   {key:'pod_ai_result',name:'POD with AI Result',icon:'fa-solid fa-wand-magic-sparkles',
    desc:'Menyertakan hasil deteksi AI (kualitas foto, coretan faktur) sebagai bagian dari proses POD driver.'},
 ];
-let currentFeature=FEATURES[0].key;
 
 const DC_NAMES=[
   'DC Aceh','DC Ambon','DC Bali','DC Bangka','DC Banten','DC Bengkulu','DC Bogor','DC Bukittinggi',
@@ -513,36 +512,23 @@ let auditLog=[]; // {id,ts,feature,admin,scope,targetId,targetName,dc,before,aft
 let dcFilterVal='';
 let driverSearchTerm='';
 let selectedDriverIds=new Set();
+let auditFeatureFilterVal='';
 
-// ── FEATURE TABS ──
-function renderFeatureTabs(){
-  document.getElementById('featureTabBar').innerHTML=FEATURES.map(f=>{
-    const enabledCount=Object.values(featureConfig[f.key].driver).filter(Boolean).length;
-    return `<div class="feature-tab ${f.key===currentFeature?'active':''}" onclick="switchFeature('${f.key}')">
-      <i class="${f.icon}"></i> ${f.name} <span class="ft-count">${enabledCount}</span>
+// ── FEATURE LEGEND (always-visible summary of all 4 features) ──
+function renderFeatureLegend(){
+  document.getElementById('featureLegend').innerHTML=FEATURES.map(f=>{
+    const count=Object.values(featureConfig[f.key].driver).filter(Boolean).length;
+    return `<div class="feature-legend-card">
+      <div class="feature-legend-icon"><i class="${f.icon}"></i></div>
+      <div class="feature-legend-body">
+        <div class="feature-legend-title-row">
+          <span class="feature-legend-title">${f.name}</span>
+          <span class="feature-legend-count ${count===0?'zero':''}">${count} driver aktif</span>
+        </div>
+        <div class="feature-legend-desc">${f.desc}</div>
+      </div>
     </div>`;
   }).join('');
-}
-
-function switchFeature(key){
-  currentFeature=key;
-  selectedDriverIds.clear();
-  dcFilterVal='';
-  driverSearchTerm='';
-  document.getElementById('dcFilter').value='';
-  document.getElementById('driverSearch').value='';
-  renderAll();
-}
-
-function renderFeatureBanner(){
-  const f=FEATURES.find(x=>x.key===currentFeature);
-  document.getElementById('featureBanner').innerHTML=`
-    <div class="feature-banner-icon"><i class="${f.icon}"></i></div>
-    <div>
-      <div class="feature-banner-title">${f.name}</div>
-      <div class="feature-banner-desc">${f.desc}</div>
-      ${f.rule?`<div class="feature-banner-rule"><i class="fa-solid fa-circle-info"></i> ${f.rule}</div>`:''}
-    </div>`;
 }
 
 // ── DC FILTER ──
@@ -570,14 +556,7 @@ function getFilteredDrivers(){
 
 // ── DRIVER PANEL ──
 function renderDriverPanel(){
-  const cfg=featureConfig[currentFeature];
   const rows=getFilteredDrivers();
-
-  const onCount=rows.filter(d=>cfg.driver[d.id]).length;
-  const offCount=rows.length-onCount;
-  document.getElementById('driverStatPills').innerHTML=`
-    <span class="stat-pill on"><i class="fa-solid fa-toggle-on"></i> ${onCount} Enabled</span>
-    <span class="stat-pill off"><i class="fa-solid fa-toggle-off"></i> ${offCount} Disabled</span>`;
 
   const tbody=document.getElementById('driverTbody');
   if(!rows.length){
@@ -589,18 +568,18 @@ function renderDriverPanel(){
   }else{
     tbody.innerHTML=rows.map(d=>{
       const dc=DCS.find(x=>x.id===d.dc);
-      const on=cfg.driver[d.id];
+      const featChecks=FEATURES.map(f=>{
+        const on=featureConfig[f.key].driver[d.id];
+        return `<label class="feat-check-item ${on?'on':''}">
+          <input type="checkbox" ${on?'checked':''} onchange="setDriverFeatureStatus('${d.id}','${f.key}',this.checked)">
+          ${escapeHtml(f.name)}
+        </label>`;
+      }).join('');
       return `<tr>
         <td><input type="checkbox" class="drv-check" data-id="${d.id}" ${selectedDriverIds.has(d.id)?'checked':''} onchange="onDriverCheck('${d.id}',this.checked)"></td>
         <td><div class="drv-name">${escapeHtml(d.name)}</div><div class="drv-id">${d.id.toUpperCase()}</div></td>
         <td><span class="dc-pill">${escapeHtml(dc?dc.name:d.dc)}</span></td>
-        <td>
-          <label class="switch">
-            <input type="checkbox" ${on?'checked':''} onchange="setDriverStatus('${d.id}',this.checked)">
-            <span class="track"></span>
-          </label>
-          <span class="switch-label ${on?'active':'inactive'}" style="margin-left:6px">${on?'Enabled':'Disabled'}</span>
-        </td>
+        <td><div class="feat-check-list">${featChecks}</div></td>
       </tr>`;
     }).join('');
   }
@@ -631,22 +610,34 @@ function renderBulkBar(){
   }
 }
 
-// ── ENABLE / DISABLE (Scenario 3, 4, 8) ──
-function setDriverStatus(driverId,newVal){
-  const cfg=featureConfig[currentFeature];
+function initBulkFeatureSelect(){
+  const sel=document.getElementById('bulkFeatureSelect');
+  sel.innerHTML='<option value="">Pilih fitur...</option>'+FEATURES.map(f=>`<option value="${f.key}">${escapeHtml(f.name)}</option>`).join('');
+}
+
+// ── ENABLE / DISABLE per driver + feature (Scenario 3, 4, 8) ──
+function setDriverFeatureStatus(driverId,featureKey,newVal){
+  const cfg=featureConfig[featureKey];
   const before=cfg.driver[driverId];
   if(before===newVal) return;
   cfg.driver[driverId]=newVal;
   const driver=DRIVERS.find(d=>d.id===driverId);
   const dc=DCS.find(x=>x.id===driver.dc);
-  logAudit({scope:'Driver',targetId:driver.id,targetName:driver.name,dc:dc?dc.name:driver.dc,before,after:newVal});
-  showToast(`${FEATURES.find(f=>f.key===currentFeature).name} untuk ${driver.name} diubah menjadi ${newVal?'Enabled':'Disabled'}.`);
+  const featureName=FEATURES.find(f=>f.key===featureKey).name;
+  logAudit({feature:featureKey,scope:'Driver',targetId:driver.id,targetName:driver.name,dc:dc?dc.name:driver.dc,before,after:newVal});
+  showToast(`${featureName} untuk ${driver.name} diubah menjadi ${newVal?'Enabled':'Disabled'}.`);
   renderAll();
 }
 
-// ── BULK TOGGLE (Scenario 7) ──
+// ── BULK TOGGLE (Scenario 7) — applies to one chosen feature at a time ──
 function bulkSetStatus(newVal){
-  const cfg=featureConfig[currentFeature];
+  const featureKey=document.getElementById('bulkFeatureSelect').value;
+  if(!featureKey){
+    showToast('Pilih fitur terlebih dahulu sebelum melakukan bulk action.');
+    return;
+  }
+  const cfg=featureConfig[featureKey];
+  const featureName=FEATURES.find(f=>f.key===featureKey).name;
   let changed=0;
   selectedDriverIds.forEach(driverId=>{
     const before=cfg.driver[driverId];
@@ -655,22 +646,17 @@ function bulkSetStatus(newVal){
     changed++;
     const driver=DRIVERS.find(d=>d.id===driverId);
     const dc=DCS.find(x=>x.id===driver.dc);
-    logAudit({scope:'Driver',targetId:driver.id,targetName:driver.name,dc:dc?dc.name:driver.dc,before,after:newVal});
+    logAudit({feature:featureKey,scope:'Driver',targetId:driver.id,targetName:driver.name,dc:dc?dc.name:driver.dc,before,after:newVal});
   });
-  showToast(changed?`${changed} driver diperbarui menjadi ${newVal?'Enabled':'Disabled'}.`:'Tidak ada perubahan — driver terpilih sudah dalam status tersebut.');
+  showToast(changed?`${changed} driver diperbarui untuk ${featureName} menjadi ${newVal?'Enabled':'Disabled'}.`:'Tidak ada perubahan — driver terpilih sudah dalam status tersebut.');
   selectedDriverIds.clear();
+  document.getElementById('bulkFeatureSelect').value='';
   renderAll();
 }
 
-// ── DO TYPE CONFIGURATION (Scenario 10) — only applicable to Auto POD Validation ──
+// ── DO TYPE CONFIGURATION (Scenario 10) — always tied to Auto POD Validation ──
 function renderDoTypePanel(){
-  const panel=document.getElementById('doTypePanel');
-  if(currentFeature!=='auto_pod_validation'){
-    panel.style.display='none';
-    return;
-  }
-  panel.style.display='';
-  const cfg=featureConfig[currentFeature];
+  const cfg=featureConfig['auto_pod_validation'];
   document.getElementById('doTypeList').innerHTML=DO_TYPES.map(t=>{
     const on=cfg.doType[t.code];
     return `<div class="do-type-row">
@@ -686,14 +672,14 @@ function renderDoTypePanel(){
   }).join('');
 }
 function setDoTypeStatus(doTypeCode,newVal){
-  const cfg=featureConfig[currentFeature];
+  const cfg=featureConfig['auto_pod_validation'];
   const before=cfg.doType[doTypeCode];
   if(before===newVal) return;
   const t=DO_TYPES.find(x=>x.code===doTypeCode);
   const label=`${t.code} - ${t.name}`;
   cfg.doType[doTypeCode]=newVal;
-  logAudit({scope:'DO Type',targetId:doTypeCode,targetName:label,dc:'—',before,after:newVal});
-  showToast(`${FEATURES.find(f=>f.key===currentFeature).name} untuk DO Type "${label}" diubah menjadi ${newVal?'Enabled':'Disabled'}.`);
+  logAudit({feature:'auto_pod_validation',scope:'DO Type',targetId:doTypeCode,targetName:label,dc:'—',before,after:newVal});
+  showToast(`Auto POD Validation untuk DO Type "${label}" diubah menjadi ${newVal?'Enabled':'Disabled'}.`);
   renderAll();
 }
 
@@ -702,37 +688,44 @@ function logAudit(entry){
   auditLog.unshift({
     id:'log'+Date.now()+Math.random().toString(36).slice(2,6),
     ts:todayStr(),
-    feature:currentFeature,
     admin:(window.shipgoUser&&window.shipgoUser.name)||'Admin',
     ...entry,
   });
 }
 function renderRecentActivity(){
-  const entries=auditLog.filter(e=>e.feature===currentFeature).slice(0,5);
+  const entries=auditLog.slice(0,5);
   const el=document.getElementById('recentActivity');
   if(!entries.length){
     el.innerHTML=`<div class="empty-state" style="padding:24px 16px">
       <i class="fa-regular fa-clock"></i>
-      <div class="empty-sub">Belum ada perubahan konfigurasi untuk fitur ini.</div>
+      <div class="empty-sub">Belum ada perubahan konfigurasi.</div>
     </div>`;
     return;
   }
-  el.innerHTML=entries.map(e=>`
-    <div class="activity-item">
-      <span class="who">${escapeHtml(e.admin)}</span> <span class="what">mengubah ${e.scope==='Driver'?'driver':'DO Type'} <b>${escapeHtml(e.targetName)}</b> menjadi</span>
+  el.innerHTML=entries.map(e=>{
+    const featureName=(FEATURES.find(f=>f.key===e.feature)||{}).name||e.feature;
+    return `<div class="activity-item">
+      <span class="who">${escapeHtml(e.admin)}</span> <span class="what">mengubah ${e.scope==='Driver'?'driver':'DO Type'} <b>${escapeHtml(e.targetName)}</b> untuk <b>${escapeHtml(featureName)}</b> menjadi</span>
       <span class="activity-badge ${e.after?'on':'off'}">${e.after?'Enabled':'Disabled'}</span>
       <div class="when">${e.ts}</div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
-function openAuditModal(){
-  document.getElementById('auditModalFeature').textContent=FEATURES.find(f=>f.key===currentFeature).name;
-  const entries=auditLog.filter(e=>e.feature===currentFeature);
+function initAuditFeatureFilter(){
+  const sel=document.getElementById('auditFeatureFilter');
+  sel.innerHTML='<option value="">Semua Fitur</option>'+FEATURES.map(f=>`<option value="${f.key}">${escapeHtml(f.name)}</option>`).join('');
+  sel.addEventListener('change',e=>{ auditFeatureFilterVal=e.target.value; renderAuditTable(); });
+}
+function renderAuditTable(){
+  const entries=auditFeatureFilterVal?auditLog.filter(e=>e.feature===auditFeatureFilterVal):auditLog;
   const tbody=document.getElementById('auditTbody');
-  tbody.innerHTML=entries.length?entries.map(e=>`
-    <tr>
+  tbody.innerHTML=entries.length?entries.map(e=>{
+    const featureName=(FEATURES.find(f=>f.key===e.feature)||{}).name||e.feature;
+    return `<tr>
       <td>${e.ts}</td>
       <td>${escapeHtml(e.admin)}</td>
+      <td>${escapeHtml(featureName)}</td>
       <td>${e.scope}</td>
       <td>${escapeHtml(e.targetName)}</td>
       <td>${escapeHtml(e.dc)}</td>
@@ -741,11 +734,15 @@ function openAuditModal(){
         <i class="fa-solid fa-arrow-right audit-arrow"></i>
         <span class="activity-badge ${e.after?'on':'off'}">${e.after?'Enabled':'Disabled'}</span>
       </div></td>
-    </tr>`).join(''):`<tr><td colspan="6"><div class="empty-state">
+    </tr>`;
+  }).join(''):`<tr><td colspan="7"><div class="empty-state">
       <i class="fa-regular fa-clock"></i>
       <div class="empty-title">Belum ada log perubahan</div>
-      <div class="empty-sub">Log akan muncul di sini setiap kali konfigurasi fitur ini diubah.</div>
+      <div class="empty-sub">Log akan muncul di sini setiap kali konfigurasi fitur diubah.</div>
     </div></td></tr>`;
+}
+function openAuditModal(){
+  renderAuditTable();
   document.getElementById('auditModal').classList.add('show');
 }
 function closeAuditModal(){ document.getElementById('auditModal').classList.remove('show'); }
@@ -771,14 +768,15 @@ function showToast(msg){
 }
 
 function renderAll(){
-  renderFeatureTabs();
-  renderFeatureBanner();
+  renderFeatureLegend();
   renderDriverPanel();
   renderDoTypePanel();
   renderRecentActivity();
 }
 
 initDcFilter();
+initBulkFeatureSelect();
+initAuditFeatureFilter();
 renderAll();
 </script>
 </body>
