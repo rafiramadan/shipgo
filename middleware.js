@@ -19,6 +19,10 @@ export const config = {
     '/user-management.html',
     '/config',
     '/feature-config.html',
+    '/shipping-point',
+    '/shipping-point.html',
+    '/app-monitoring',
+    '/app-monitoring.html',
   ],
 };
 

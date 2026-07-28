@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shipping Point — PT Parama Global Inspira</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --p50:#eef2ff;--p100:#e0e7ff;--p200:#c7d2fe;--p300:#a5b4fc;
+  --p400:#818cf8;--p500:#6366f1;--p600:#4f46e5;--p700:#4338ca;--p800:#3730a3;--p900:#312e81;
+  --sb:#1e1b4b;--sb2:#16134a;
+  --green:#16a34a;--red:#dc2626;--orange:#ea580c;--amber:#d97706;
+  --g50:#f8fafc;--g100:#f1f5f9;--g150:#eef0f4;--g200:#e2e8f0;
+  --g300:#cbd5e1;--g400:#94a3b8;--g500:#64748b;--g700:#334155;--g900:#0f172a;
+  --sw:220px;--th:60px;--r:8px;--r2:12px;
+  --sh:0 1px 3px rgba(0,0,0,.08);--shl:0 8px 24px rgba(0,0,0,.13);
+  --font:'Inter',sans-serif;
+}
+html,body{height:100%;font-family:var(--font);font-size:13px;color:var(--g900);overflow:hidden;background:var(--g100)}
+
+/* ── TOPBAR ── */
+.topbar{position:fixed;top:0;left:0;right:0;height:var(--th);background:#fff;border-bottom:1px solid var(--g200);display:flex;align-items:center;z-index:1000;padding:0 20px 0 0;box-shadow:0 1px 0 var(--g200)}
+.tb-logo{width:var(--sw);height:var(--th);background:var(--sb2);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;transition:width .2s ease}
+.tb-logo-inner{display:flex;align-items:center;gap:10px;padding:0 16px;white-space:nowrap}
+.tb-logo-icon{width:32px;height:32px;border-radius:8px;background:var(--p600);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.tb-logo-icon i{color:#fff;font-size:15px}
+.tb-logo-text{font-size:14px;font-weight:700;color:#fff;opacity:1;letter-spacing:-.3px;transition:opacity .15s}
+body.sb-collapsed .tb-logo-text{opacity:0;pointer-events:none}
+.tb-dc{display:flex;flex-direction:column;margin-left:16px}
+.tb-dc-label{font-size:10px;color:var(--g400);font-weight:500;letter-spacing:.3px}
+.tb-dc-val{display:flex;align-items:center;gap:5px;font-size:14px;font-weight:600;color:var(--g900)}
+.tb-dc-val i{color:var(--p600);font-size:12px}
+.tb-spacer{flex:1}
+.tb-actions{display:flex;align-items:center;gap:6px}
+.tb-icon{width:34px;height:34px;border-radius:var(--r);border:1px solid var(--g200);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--g500);font-size:14px;position:relative;background:#fff;transition:all .15s}
+.tb-icon:hover{background:var(--p50);border-color:var(--p200);color:var(--p600)}
+.tb-icon .bdg{position:absolute;top:4px;right:4px;width:8px;height:8px;background:var(--red);border-radius:50%;border:1.5px solid #fff}
+.tb-user-wrap{position:relative}
+.tb-user{display:flex;align-items:center;gap:10px;padding:6px 12px;border:1px solid var(--g200);border-radius:var(--r2);cursor:pointer;background:#fff;margin-left:4px;transition:all .15s}
+.tb-user:hover{background:var(--p50);border-color:var(--p200)}
+.tb-user-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;background:#fff;border:1px solid var(--g200);border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.14);min-width:170px;z-index:2000;overflow:hidden}
+.tb-user-menu.open{display:block}
+.tb-user-menu-item{padding:10px 14px;font-size:12px;color:var(--g700);cursor:pointer;display:flex;align-items:center;gap:8px}
+.tb-user-menu-item:hover{background:var(--g50)}
+.tb-user-menu-item i{color:var(--g400);width:14px}
+.tb-avatar{width:28px;height:28px;border-radius:50%;background:var(--p100);display:flex;align-items:center;justify-content:center;color:var(--p700);font-size:11px;font-weight:700;position:relative;flex-shrink:0}
+.tb-avatar .online{position:absolute;bottom:0;right:0;width:9px;height:9px;border-radius:50%;background:#10b981;border:2px solid #fff}
+.tb-user-info{display:flex;flex-direction:column}
+.tb-name{font-size:13px;font-weight:600;color:var(--g900)}
+.tb-role{font-size:11px;color:var(--g500)}
+
+/* ── SIDEBAR ── */
+.sidebar{position:fixed;top:var(--th);left:0;bottom:0;width:var(--sw);background:#fff;border-right:1px solid var(--g200);display:flex;flex-direction:column;padding:8px 10px 14px;z-index:900;overflow-x:hidden;overflow-y:auto;transition:width .2s ease}
+.sb-top{display:flex;justify-content:flex-end;padding:2px 2px 6px}
+.sb-collapse-btn{width:26px;height:26px;border:none;background:transparent;color:var(--g400);border-radius:6px;cursor:pointer;font-size:12px;flex-shrink:0}
+.sb-collapse-btn:hover{background:var(--g100);color:var(--g700)}
+.sb-section{font-size:10px;font-weight:600;color:var(--g400);letter-spacing:.6px;text-transform:uppercase;padding:12px 10px 4px;white-space:nowrap;overflow:hidden}
+.si{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;cursor:pointer;color:var(--g600);font-size:13px;font-weight:500;text-decoration:none;margin-bottom:1px;white-space:nowrap;overflow:hidden;position:relative;transition:all .15s}
+.si:hover{background:var(--p50);color:var(--p700)}
+.si.active{background:var(--p50);color:var(--p700);font-weight:600}
+.si svg{width:17px;height:17px;flex-shrink:0}
+.si-label{opacity:1;flex:1;overflow:hidden;text-overflow:ellipsis}
+.si-caret{margin-left:auto;font-size:9px;color:var(--g400);flex-shrink:0}
+.si-dot{width:7px;height:7px;border-radius:50%;background:#f97316;flex-shrink:0;margin-left:6px}
+.nav-sub{margin:1px 4px 8px 29px;padding-left:10px;border-left:1px solid var(--g200)}
+.nav-sub .si{padding:6px 10px;font-size:12.5px}
+.nav-sub .si.active{background:transparent;color:var(--p700)}
+.nav-sub .si.active::before{content:'';position:absolute;left:-11px;top:6px;bottom:6px;width:2px;background:var(--p600);border-radius:2px}
+.s-sp{flex:1}
+.sb-divider{height:1px;background:var(--g200);margin:6px 4px}
+body.sb-collapsed .sidebar{width:64px}
+body.sb-collapsed .si-label,body.sb-collapsed .sb-section,body.sb-collapsed .si-caret,body.sb-collapsed .si-dot,body.sb-collapsed .nav-sub{display:none}
+body.sb-collapsed .si{justify-content:center}
+body.sb-collapsed .sb-top{justify-content:center}
+
+/* ── MAIN LAYOUT ── */
+.main{position:fixed;top:var(--th);left:var(--sw);right:0;bottom:0;display:flex;flex-direction:column;overflow:hidden;transition:left .2s ease}
+
+/* ── PAGE HEADER ── */
+.page-hdr{background:#fff;border-bottom:1px solid var(--g200);padding:12px 24px;flex-shrink:0;display:flex;align-items:center;gap:12px}
+.page-hdr-left{display:flex;flex-direction:column;gap:2px}
+.page-breadcrumb{font-size:11px;color:var(--g400);font-weight:500}
+.page-title{font-size:20px;font-weight:700;color:var(--g900)}
+.hdr-spacer{flex:1}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--r);font-size:12px;font-weight:500;cursor:pointer;border:none;font-family:var(--font);transition:all .15s;white-space:nowrap}
+.btn-outline{background:#fff;color:var(--g700);border:1px solid var(--g200)}
+.btn-outline:hover{background:var(--g50);border-color:var(--p300);color:var(--p700)}
+.btn-primary{background:var(--p700);color:#fff}
+.btn-primary:hover{background:var(--p800)}
+.btn-ghost{background:transparent;color:var(--p700);border:none;font-size:11.5px;font-weight:600;padding:6px 4px}
+.btn-ghost:hover{text-decoration:underline}
+.btn-sm{padding:5px 10px;font-size:11.5px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* ── BODY ── */
+.body-wrap{flex:1;overflow-y:auto;padding:18px 24px}
+
+.content-grid{display:flex;gap:16px;align-items:flex-start}
+.main-col{flex:1;min-width:0}
+.side-col{width:220px;flex-shrink:0;display:flex;flex-direction:column;gap:16px}
+
+.panel{background:#fff;border:1px solid var(--g200);border-radius:var(--r2);box-shadow:var(--sh)}
+.panel-hdr-row{padding:14px 16px 10px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--g200)}
+.panel-title{font-size:14px;font-weight:700;color:var(--g900)}
+.panel-sub{font-size:11px;color:var(--g400);margin-top:2px;line-height:1.6}
+
+.toolbar-row{display:flex;align-items:center;gap:10px;padding:12px 16px;flex-wrap:wrap;border-bottom:1px solid var(--g100)}
+.filter-select{border:1px solid var(--g200);border-radius:var(--r);padding:6px 26px 6px 10px;font-size:12px;color:var(--g700);background:#fff;outline:none;font-family:var(--font);cursor:pointer;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%2364748b' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center}
+.filter-input{border:1px solid var(--g200);border-radius:var(--r);padding:6px 10px;font-size:12px;color:var(--g700);outline:none;font-family:var(--font);background:#fff}
+.filter-input:focus,.filter-select:focus{border-color:var(--p400)}
+
+table.drv-table{width:100%;border-collapse:collapse;font-size:12.5px}
+table.drv-table thead th{text-align:left;font-size:11px;font-weight:600;color:var(--g400);padding:9px 16px;border-bottom:1px solid var(--g200);background:var(--g50);white-space:nowrap}
+table.drv-table tbody td{padding:10px 16px;border-bottom:1px solid var(--g100);vertical-align:middle}
+table.drv-table tbody tr:last-child td{border-bottom:none}
+table.drv-table tbody tr:hover{background:var(--g50)}
+.drv-name{font-weight:700;color:var(--g900)}
+.drv-id{color:var(--g400);font-size:11px;margin-top:1px}
+.bay-info-btn{display:inline-flex;align-items:center;gap:5px;margin-left:8px;font-size:10.5px;font-weight:600;color:var(--p700);background:var(--p50);border:1px solid var(--p200);border-radius:12px;padding:2px 9px;cursor:pointer;font-family:var(--font)}
+.bay-info-btn:hover{background:var(--p100)}
+.owner-pill{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;color:var(--g700)}
+.switch{position:relative;display:inline-flex;align-items:center;gap:8px}
+.switch input{position:absolute;opacity:0;width:0;height:0}
+.switch .track{position:relative;width:36px;height:20px;background:var(--g300);border-radius:20px;cursor:pointer;transition:background .2s;flex-shrink:0}
+.switch .track::before{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 2px rgba(0,0,0,.25)}
+.switch input:checked+.track{background:var(--green)}
+.switch input:checked+.track::before{transform:translateX(16px)}
+.owner-pill-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.bay-detail-card{margin-top:14px;padding:14px 16px;border:1px solid var(--g200);border-radius:var(--r2);background:var(--g50)}
+.bay-detail-name{font-size:14px;font-weight:700;color:var(--g900)}
+.bay-detail-city{font-size:11px;color:var(--g500);margin-top:2px}
+.bay-detail-kec-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.kec-chip{display:inline-flex;align-items:center;font-size:11px;font-weight:600;background:#fff;border:1px solid var(--g200);color:var(--g700);padding:3px 9px;border-radius:12px}
+.bay-detail-assign{margin-top:14px}
+.bay-detail-assign label{display:block;font-size:11px;font-weight:700;color:var(--g500);text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px}
+.bay-empty-hint{color:var(--g400);font-size:12px;padding:2px 0}
+
+.sp-type-badge{display:inline-flex;align-items:center;font-size:11px;font-weight:600;padding:2px 9px;border-radius:12px;cursor:help}
+.sp-type-badge.main_warehouse{background:var(--p50);color:var(--p700)}
+.sp-type-badge.depo{background:#fff7ed;color:#c2410c}
+
+.status-pill{display:inline-flex;align-items:center;font-size:11px;font-weight:600;padding:2px 9px;border-radius:12px}
+.status-pill.active{background:#dcfce7;color:#15803d}
+.status-pill.inactive{background:var(--g100);color:var(--g500)}
+
+.cov-count-pill{display:inline-flex;align-items:center;font-size:11px;font-weight:600;padding:2px 9px;border-radius:12px;background:var(--p50);color:var(--p700)}
+.cov-count-pill.zero{background:var(--g100);color:var(--g500)}
+
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;gap:10px}
+.empty-state i{font-size:32px;color:var(--p200)}
+.empty-title{font-size:14px;font-weight:600;color:var(--g700)}
+.empty-sub{font-size:11.5px;color:var(--g400);text-align:center;line-height:1.6;max-width:280px}
+
+/* ── DETAIL / COVERAGE VIEW ── */
+.detail-back-row{padding:10px 16px}
+.detail-hdr{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.detail-hdr-code{font-size:11px;color:var(--g400);font-weight:600}
+.detail-hdr-name{font-size:18px;font-weight:700;color:var(--g900)}
+.detail-country{font-size:11px;color:var(--g500);margin-left:auto}
+
+.city-nav{display:flex;flex-direction:column;gap:2px}
+.city-nav-item{padding:8px 10px;border-radius:6px;font-size:12px;font-weight:600;color:var(--g600);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.city-nav-item:hover{background:var(--g50)}
+.city-nav-item.active{background:var(--p50);color:var(--p700)}
+.city-nav-add{padding:8px 10px;font-size:11.5px;font-weight:600;color:var(--p700);cursor:pointer;display:flex;align-items:center;gap:6px;margin-top:8px;border-top:1px solid var(--g200);padding-top:12px}
+.city-nav-add:hover{text-decoration:underline}
+
+.city-group{margin-bottom:22px}
+.city-group:last-child{margin-bottom:0}
+.city-group-hdr{font-size:12.5px;font-weight:700;color:var(--g900);letter-spacing:.3px;border-left:3px solid var(--p600);padding:2px 0 2px 10px;margin-bottom:10px}
+
+
+/* ── EXPORT DROPDOWN ── */
+.export-wrap{position:relative}
+.export-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;background:#fff;border:1px solid var(--g200);border-radius:var(--r);box-shadow:var(--shl);min-width:210px;z-index:60;overflow:hidden}
+.export-menu.open{display:block}
+.export-menu button{width:100%;text-align:left;padding:9px 14px;font-size:12px;font-weight:500;color:var(--g700);background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:8px;font-family:var(--font)}
+.export-menu button:hover{background:var(--g50)}
+
+#app-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--sb);color:#fff;padding:10px 20px;border-radius:10px;font-size:12px;font-weight:500;z-index:9999;transition:transform .3s ease,opacity .3s ease;opacity:0;pointer-events:none;display:flex;align-items:center;gap:8px;max-width:440px;box-shadow:0 4px 20px rgba(0,0,0,.25)}
+
+/* ── COVERAGE MAP ── */
+.map-panel{margin-bottom:16px}
+#coverageMap{height:320px;z-index:1}
+.map-legend{display:flex;gap:16px;padding:10px 16px;border-top:1px solid var(--g100);flex-wrap:wrap}
+.map-legend-item{display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;color:var(--g700)}
+.map-legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.leaflet-popup-content-wrapper{border-radius:var(--r2)!important;box-shadow:var(--shl)!important;border:1px solid var(--g200)!important;font-family:var(--font)!important}
+.leaflet-popup-content{margin:10px 12px!important;font-size:12px}
+.map-popup-title{font-weight:700;color:var(--g900);margin-bottom:3px}
+.map-popup-row{color:var(--g600);font-size:11.5px;margin-top:2px}
+.leaflet-control-layers{border-radius:var(--r)!important;box-shadow:var(--shl)!important;border:1px solid var(--g200)!important;font-family:var(--font)!important;font-size:12px!important}
+
+@media (max-width:1000px){ .content-grid{flex-direction:column} .side-col{width:100%} }
+</style>
+</head>
+<body>
+<script src="/auth-guard.js"></script>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="tb-logo">
+    <div class="tb-logo-inner">
+      <div class="tb-logo-icon"><i class="fa-solid fa-map-location-dot"></i></div>
+      <span class="tb-logo-text">ShipGo TMS</span>
+    </div>
+  </div>
+  <div class="tb-dc">
+    <div class="tb-dc-label">Company</div>
+    <div class="tb-dc-val"><i class="fa-solid fa-building"></i> PT Parama Global Inspira</div>
+  </div>
+  <div class="tb-spacer"></div>
+  <div class="tb-actions">
+    <div class="tb-icon"><i class="fa-regular fa-bell"></i><span class="bdg"></span></div>
+    <div class="tb-icon"><i class="fa-regular fa-bullhorn"></i></div>
+    <div class="tb-user-wrap">
+      <div class="tb-user" id="tbUser">
+        <div class="tb-avatar"><span id="tbAvatarInitials">··</span><div class="online"></div></div>
+        <div class="tb-user-info">
+          <div class="tb-name" id="tbUserName">—</div>
+          <div class="tb-role" id="tbUserRole">—</div>
+        </div>
+        <i class="fa-solid fa-chevron-down" style="font-size:10px;color:var(--g400);margin-left:2px"></i>
+      </div>
+      <div class="tb-user-menu" id="tbUserMenu">
+        <div class="tb-user-menu-item" id="tbLogoutBtn"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sb-top"><button class="sb-collapse-btn" onclick="toggleSidebar()" title="Collapse sidebar"><i class="fa-solid fa-angles-left"></i></button></div>
+  <div class="sb-section">Main Menu</div>
+  <a class="si" href="./index.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    <span class="si-label">Dashboard</span>
+  </a>
+  <a class="si" href="./live-tracking.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-7.58 7-12a7 7 0 00-14 0c0 4.42 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>
+    <span class="si-label">Live Tracking</span>
+  </a>
+  <a class="si" href="./history-tracking.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/><path d="M12 7v5l3.5 2"/></svg>
+    <span class="si-label">History Tracking</span>
+  </a>
+
+  <div class="sb-section">Order Management</div>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5h6a2 2 0 012 2v12a2 2 0 01-2 2H9a2 2 0 01-2-2V7a2 2 0 012-2z"/><path d="M9 3h6v4H9z"/></svg>
+    <span class="si-label">Order Management</span>
+    <span class="si-caret">▾</span>
+  </a>
+  <div class="nav-sub">
+    <a class="si" href="./shipment-planning.html"><span class="si-label">Planning</span></a>
+    <a class="si" href="#"><span class="si-label">Assignment</span></a>
+    <a class="si" href="#"><span class="si-label">Tracking</span></a>
+    <a class="si" href="#"><span class="si-label">Review</span></a>
+  </div>
+
+  <div class="sb-section">Analytics</div>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v16h16"/><path d="M7 15l3.5-4 3 2.5L19 7"/></svg>
+    <span class="si-label">Laporan Perjalanan</span>
+  </a>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v16h16"/><rect x="7" y="12" width="2.6" height="5"/><rect x="12" y="9" width="2.6" height="8"/><rect x="17" y="6" width="2.6" height="11"/></svg>
+    <span class="si-label">Analytics</span>
+  </a>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+    <span class="si-label">Peringatan</span>
+    <span class="si-dot"></span>
+  </a>
+
+  <div class="sb-section">Fleet</div>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="7" width="12" height="9" rx="1"/><path d="M13 10h4l3.5 3.2V16H13z"/><circle cx="5.5" cy="17.5" r="1.6"/><circle cx="17" cy="17.5" r="1.6"/></svg>
+    <span class="si-label">Kendaraan</span>
+  </a>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2.5"/><circle cx="12" cy="10" r="2.3"/><path d="M7.5 16.8c.6-1.9 2.3-2.8 4.5-2.8s3.9.9 4.5 2.8"/></svg>
+    <span class="si-label">Driver</span>
+  </a>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+    <span class="si-label">Kamera</span>
+  </a>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0116 0"/></svg>
+    <span class="si-label">Roster Management</span>
+  </a>
+  <a class="si" href="./app-monitoring.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>
+    <span class="si-label">App Monitoring</span>
+  </a>
+
+  <div class="sb-section">Admin</div>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg>
+    <span class="si-label">User &amp; Access</span>
+    <span class="si-caret">▾</span>
+  </a>
+  <div class="nav-sub">
+    <a class="si" href="./group-role.html"><span class="si-label">Group / Role</span></a>
+    <a class="si" href="./user-management.html"><span class="si-label">User Management</span></a>
+  </div>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09A1.65 1.65 0 0015 4.6a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    <span class="si-label">Configuration</span>
+    <span class="si-caret">▾</span>
+  </a>
+  <div class="nav-sub">
+    <a class="si" href="./feature-config.html"><span class="si-label">Feature Config</span></a>
+  </div>
+  <a class="si active" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v6c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M3 11v6c0 1.66 4 3 9 3s9-1.34 9-3v-6"/></svg>
+    <span class="si-label">Master Data</span>
+    <span class="si-caret">▾</span>
+  </a>
+  <div class="nav-sub">
+    <a class="si active" href="./shipping-point.html"><span class="si-label">Shipping Point</span></a>
+  </div>
+
+  <div class="s-sp"></div>
+  <div class="sb-divider"></div>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 015 0c0 1.5-2 2-2.5 3.5"/><path d="M12 17h.01"/></svg>
+    <span class="si-label">Bantuan</span>
+  </a>
+</nav>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="page-hdr">
+    <div class="page-hdr-left">
+      <div class="page-breadcrumb">Master Data</div>
+      <div class="page-title">Shipping Point</div>
+    </div>
+    <div class="hdr-spacer"></div>
+    <div class="export-wrap">
+      <button class="btn btn-outline" onclick="toggleExportMenu()"><i class="fa-solid fa-download"></i> Export <span style="font-size:9px;margin-left:2px">▾</span></button>
+      <div class="export-menu" id="exportMenu">
+        <button onclick="doExport('csv')"><i class="fa-solid fa-file-csv" style="color:#15803d"></i> Export CSV (.csv)</button>
+        <button onclick="doExport('xlsx')"><i class="fa-solid fa-file-excel" style="color:#15803d"></i> Export Excel (.xlsx)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── LIST VIEW ── -->
+  <div class="body-wrap" id="listView">
+    <div class="panel">
+      <div class="panel-hdr-row">
+        <div>
+          <div class="panel-title">Semua Shipping Point</div>
+          <div class="panel-sub">Main Warehouse dibuat otomatis untuk setiap Plant / DC sebagai lokasi penerima DO dari SAP. Depo / Cross Dock ditambahkan sebagai shipping point tambahan untuk re-dispatch shipment.<br>Status mengikuti konfigurasi DC / Depo terkait — jika data Depo / Cross Dock dihapus, shipping point terkait ikut terhapus.</div>
+        </div>
+      </div>
+      <div class="toolbar-row">
+        <div style="position:relative">
+          <i class="fa-solid fa-magnifying-glass" style="position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--g400);font-size:11px"></i>
+          <input class="filter-input" type="text" id="spSearch" placeholder="Cari shipping point / DC..." style="padding-left:26px;width:220px">
+        </div>
+        <select class="filter-select" id="spTypeFilter">
+          <option value="">Semua Tipe</option>
+          <option value="main_warehouse">Main Warehouse</option>
+          <option value="depo">Depo / Cross Dock</option>
+        </select>
+        <select class="filter-select" id="spDcFilter"></select>
+        <select class="filter-select" id="spStatusFilter">
+          <option value="">Semua Status</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="drv-table">
+          <thead>
+            <tr>
+              <th>Shipping Point</th>
+              <th>Tipe</th>
+              <th>Distribution Center</th>
+              <th>Coverage Area</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="spTbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DETAIL / COVERAGE VIEW ── -->
+  <div class="body-wrap" id="detailView" style="display:none">
+    <div class="detail-back-row" style="padding:0 0 12px">
+      <button class="btn-ghost" onclick="showListView()"><i class="fa-solid fa-arrow-left"></i> Kembali ke Shipping Point</button>
+    </div>
+
+    <div class="detail-hdr">
+      <div>
+        <div class="detail-hdr-code" id="detailDcCode"></div>
+        <div class="detail-hdr-name" id="detailDcName"></div>
+      </div>
+      <span class="status-pill" id="detailDcStatus"></span>
+      <div class="detail-country"><i class="fa-solid fa-earth-asia"></i> Negara: Indonesia</div>
+    </div>
+
+    <div class="content-grid">
+      <div class="side-col">
+        <div class="panel">
+          <div class="panel-hdr-row"><div class="panel-title" style="font-size:12.5px">Kota / Kabupaten</div></div>
+          <div style="padding:10px 12px">
+            <div style="position:relative;margin-bottom:8px">
+              <i class="fa-solid fa-magnifying-glass" style="position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--g400);font-size:10px"></i>
+              <input class="filter-input" type="text" id="citySearch" placeholder="Pencarian" style="padding-left:24px;width:100%;font-size:11.5px">
+            </div>
+            <div class="city-nav" id="cityNav"></div>
+            <div class="city-nav-add" onclick="showToast('Kelola master Kota / Kabupaten melalui menu Master Data &gt; Wilayah.')"><i class="fa-solid fa-circle-plus"></i> Tambah Kota</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="main-col">
+        <div class="panel map-panel">
+          <div class="panel-hdr-row">
+            <div>
+              <div class="panel-title" style="font-size:12.5px">Peta Coverage Area</div>
+              <div class="panel-sub">Area kecamatan ditandai dengan garis batas berwarna sesuai shipping point pemilik. Klik area untuk detail, atau ganti tampilan peta di pojok kanan atas.</div>
+            </div>
+            <div class="hdr-spacer"></div>
+            <label class="switch">
+              <input type="checkbox" id="showBoundariesToggle" checked onchange="toggleBoundariesVisibility(this.checked)">
+              <span class="track"></span>
+            </label>
+            <span style="font-size:11.5px;font-weight:600;color:var(--g600)">Show Boundaries</span>
+          </div>
+          <div id="coverageMap"></div>
+          <div class="map-legend" id="mapLegend"></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-hdr-row">
+            <div class="panel-title">Pilih Staging Bay</div>
+          </div>
+          <div style="padding:14px 16px">
+            <select class="filter-select" id="bayPicker" style="width:100%;max-width:520px"></select>
+            <div id="bayDetailPanel"></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-hdr-row">
+            <div class="panel-title" id="coverageTitle">SEMUA KOTA / KABUPATEN</div>
+          </div>
+          <div class="toolbar-row">
+            <div style="position:relative">
+              <i class="fa-solid fa-magnifying-glass" style="position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--g400);font-size:11px"></i>
+              <input class="filter-input" type="text" id="baySearch" placeholder="Pencarian" style="padding-left:26px;width:220px">
+            </div>
+            <select class="filter-select" id="provinceFilter"></select>
+          </div>
+          <div id="coverageGroups" style="padding:14px 16px"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function toggleSidebar(){
+  const collapsed=document.body.classList.toggle('sb-collapsed');
+  document.documentElement.style.setProperty('--sw', collapsed?'64px':'220px');
+}
+function escapeHtml(str){
+  const d=document.createElement('div');
+  d.textContent=str==null?'':String(str);
+  return d.innerHTML;
+}
+
+// ── REFERENCE DATA ──
+// Distribution Centers (Plant / DC). Full DC master list lives in User Management's
+// Location Scope — this page focuses on a subset that has real coverage configured.
+const DCS=[
+  {id:'dc-mataram',code:'1336',name:'PARAMA DC MATARAM',status:'active'},
+  {id:'dc-bandung',code:'1204',name:'PARAMA DC BANDUNG',status:'active'},
+  {id:'dc-solo',code:'1105',name:'PARAMA DC SOLO',status:'active'},
+];
+
+// Depo / Cross Dock master — each depo is fed by exactly one parent DC (Scenario 2).
+const DEPOS=[
+  {id:'depo-prabumulih-01',name:'Depo Prabumulih 01',dcId:'dc-mataram',status:'active'},
+  {id:'depo-sukabumi',name:'Depo Sukabumi',dcId:'dc-bandung',status:'active'},
+];
+
+// Shipping Points are derived, not manually created (Scenario 1 & 2):
+// every DC gets exactly one Main Warehouse, plus one shipping point per active Depo.
+function buildShippingPoints(){
+  const pts=[];
+  DCS.forEach(dc=>{
+    pts.push({id:`sp-main-${dc.id}`,type:'main_warehouse',name:`Main Warehouse - ${dc.name}`,dcId:dc.id,status:dc.status});
+  });
+  DEPOS.forEach(depo=>{
+    pts.push({id:`sp-depo-${depo.id}`,type:'depo',name:depo.name,dcId:depo.dcId,depoId:depo.id,status:depo.status});
+  });
+  return pts;
+}
+const SHIPPING_POINTS=buildShippingPoints();
+
+// Staging Bay master — the unit of coverage assignment (Scenario 3). A bay groups one
+// or more routes/kecamatan; DC Mataram's bays happen to be single-route (matching the
+// legacy per-kecamatan platform), while DC Bandung's bays group multiple routes
+// (the target staging-bay concept) — both are the same data shape at different granularity.
+const STAGING_BAYS=[
+  {id:'sb-serang-cipocok',dcId:'dc-mataram',province:'Banten',city:'KOTA SERANG',name:'Cipocok Jaya',routes:[{name:'Cipocok Jaya',postalCode:'42116',lat:-6.1102,lng:106.1660}]},
+  {id:'sb-serang-curug',dcId:'dc-mataram',province:'Banten',city:'KOTA SERANG',name:'Curug',routes:[{name:'Curug',postalCode:'42171',lat:-6.0651,lng:106.0938}]},
+  {id:'sb-serang-kasemen',dcId:'dc-mataram',province:'Banten',city:'KOTA SERANG',name:'Kasemen',routes:[{name:'Kasemen',postalCode:'42191',lat:-6.0778,lng:106.1479}]},
+  {id:'sb-serang-serang',dcId:'dc-mataram',province:'Banten',city:'KOTA SERANG',name:'Serang',routes:[{name:'Serang',postalCode:'42111',lat:-6.1149,lng:106.1503}]},
+  {id:'sb-serang-taktakan',dcId:'dc-mataram',province:'Banten',city:'KOTA SERANG',name:'Taktakan',routes:[{name:'Taktakan',postalCode:'42162',lat:-6.1256,lng:106.1211}]},
+  {id:'sb-serang-walantaka',dcId:'dc-mataram',province:'Banten',city:'KOTA SERANG',name:'Walantaka',routes:[{name:'Walantaka',postalCode:'42183',lat:-6.1584,lng:106.1868}]},
+
+  {id:'sb-kabserang-anyar',dcId:'dc-mataram',province:'Banten',city:'KABUPATEN SERANG',name:'Anyar',routes:[{name:'Anyar',postalCode:'42466',lat:-6.0733,lng:105.9214}]},
+  {id:'sb-kabserang-bandung',dcId:'dc-mataram',province:'Banten',city:'KABUPATEN SERANG',name:'Bandung',routes:[{name:'Bandung',postalCode:'42177',lat:-6.2350,lng:106.1050}]},
+  {id:'sb-kabserang-ciruas',dcId:'dc-mataram',province:'Banten',city:'KABUPATEN SERANG',name:'Ciruas',routes:[{name:'Ciruas',postalCode:'42182',lat:-6.0658,lng:106.1108}]},
+  {id:'sb-kabserang-kragilan',dcId:'dc-mataram',province:'Banten',city:'KABUPATEN SERANG',name:'Kragilan',routes:[{name:'Kragilan',postalCode:'42184',lat:-6.0234,lng:106.1934}]},
+
+  // DC Bandung staging bays — routes named after real Kota Bandung kecamatan (district), grouped west/central/east.
+  {id:'sb-bandung-a',dcId:'dc-bandung',province:'Jawa Barat',city:'KOTA BANDUNG',name:'Staging Bay A',routes:[
+    {name:'Coblong',postalCode:'40132',lat:-6.8915,lng:107.6107},
+    {name:'Sukajadi',postalCode:'40164',lat:-6.8894,lng:107.5924},
+    {name:'Cidadap',postalCode:'40142',lat:-6.8677,lng:107.5987},
+  ]},
+  {id:'sb-bandung-b',dcId:'dc-bandung',province:'Jawa Barat',city:'KOTA BANDUNG',name:'Staging Bay B',routes:[
+    {name:'Bandung Wetan',postalCode:'40114',lat:-6.9042,lng:107.6186},
+    {name:'Sumur Bandung',postalCode:'40111',lat:-6.9147,lng:107.6098},
+    {name:'Batununggal',postalCode:'40272',lat:-6.9382,lng:107.6339},
+  ]},
+  {id:'sb-bandung-c',dcId:'dc-bandung',province:'Jawa Barat',city:'KOTA BANDUNG',name:'Staging Bay C',routes:[
+    {name:'Kiaracondong',postalCode:'40281',lat:-6.9280,lng:107.6489},
+    {name:'Antapani',postalCode:'40291',lat:-6.9156,lng:107.6697},
+    {name:'Arcamanik',postalCode:'40293',lat:-6.9089,lng:107.6819},
+  ]},
+];
+
+// Coverage assignment — staging bay -> owning shipping point id (Scenario 4: one owner only).
+let COVERAGE={
+  'sb-serang-cipocok':'sp-main-dc-mataram',
+  'sb-serang-curug':'sp-main-dc-mataram',
+  'sb-serang-kasemen':'sp-depo-depo-prabumulih-01',
+  'sb-serang-serang':'sp-main-dc-mataram',
+  'sb-serang-taktakan':'sp-main-dc-mataram',
+  'sb-serang-walantaka':'sp-main-dc-mataram',
+  'sb-kabserang-anyar':'sp-main-dc-mataram',
+  'sb-kabserang-bandung':'sp-main-dc-mataram',
+  // kabserang-ciruas / kabserang-kragilan intentionally left unassigned — demonstrates the "belum ada coverage" state
+  'sb-bandung-a':'sp-main-dc-bandung',
+  'sb-bandung-b':'sp-depo-depo-sukabumi',
+  'sb-bandung-c':'sp-depo-depo-sukabumi',
+};
+
+let currentDcId=null;
+let cityFilterVal='';
+let provinceFilterVal='';
+let baySearchTerm='';
+let spSearchTerm='', spTypeFilterVal='', spDcFilterVal='', spStatusFilterVal='';
+
+// ── LIST VIEW ──
+function coverageCountFor(sp){
+  return Object.entries(COVERAGE).filter(([bayId,ownerId])=>{
+    if(ownerId!==sp.id) return false;
+    const bay=STAGING_BAYS.find(b=>b.id===bayId);
+    return bay && bay.dcId===sp.dcId;
+  }).length;
+}
+
+function renderShippingPointList(){
+  const q=spSearchTerm.toLowerCase();
+  const rows=SHIPPING_POINTS.filter(sp=>{
+    const dc=DCS.find(d=>d.id===sp.dcId);
+    if(spTypeFilterVal && sp.type!==spTypeFilterVal) return false;
+    if(spDcFilterVal && sp.dcId!==spDcFilterVal) return false;
+    if(spStatusFilterVal && sp.status!==spStatusFilterVal) return false;
+    if(q && !sp.name.toLowerCase().includes(q) && !dc.name.toLowerCase().includes(q)) return false;
+    return true;
+  });
+  const tbody=document.getElementById('spTbody');
+  if(!rows.length){
+    tbody.innerHTML=`<tr><td colspan="6"><div class="empty-state">
+      <i class="fa-solid fa-warehouse"></i>
+      <div class="empty-title">Tidak ada shipping point ditemukan</div>
+      <div class="empty-sub">Coba ubah kata kunci pencarian atau filter.</div>
+    </div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML=rows.map(sp=>{
+    const dc=DCS.find(d=>d.id===sp.dcId);
+    const count=coverageCountFor(sp);
+    const typeLabel=sp.type==='main_warehouse'?'Main Warehouse':'Depo / Cross Dock';
+    const typeTitle=sp.type==='main_warehouse'
+      ?'Shipping point utama — menerima seluruh DO masuk dari SAP.'
+      :'Menerima shipment lalu me-redispatch (cross dock); DO tersedia untuk shipment planning berikutnya setelah incoming selesai.';
+    return `<tr>
+      <td><div class="drv-name">${escapeHtml(sp.name)}</div></td>
+      <td><span class="sp-type-badge ${sp.type}" title="${escapeHtml(typeTitle)}">${typeLabel}</span></td>
+      <td>${escapeHtml(dc.name)}</td>
+      <td><span class="cov-count-pill ${count===0?'zero':''}">${count} wilayah</span></td>
+      <td><span class="status-pill ${sp.status}">${sp.status==='active'?'Active':'Inactive'}</span></td>
+      <td><button class="btn btn-outline btn-sm" onclick="showDetailView('${sp.dcId}')"><i class="fa-solid fa-map-location-dot"></i> Kelola Coverage Area</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function initDcFilterSelect(){
+  const sel=document.getElementById('spDcFilter');
+  sel.innerHTML='<option value="">Semua DC</option>'+DCS.map(dc=>`<option value="${dc.id}">${escapeHtml(dc.name)}</option>`).join('');
+}
+
+document.getElementById('spSearch').addEventListener('input',e=>{ spSearchTerm=e.target.value; renderShippingPointList(); });
+document.getElementById('spTypeFilter').addEventListener('change',e=>{ spTypeFilterVal=e.target.value; renderShippingPointList(); });
+document.getElementById('spDcFilter').addEventListener('change',e=>{ spDcFilterVal=e.target.value; renderShippingPointList(); });
+document.getElementById('spStatusFilter').addEventListener('change',e=>{ spStatusFilterVal=e.target.value; renderShippingPointList(); });
+
+// ── DETAIL / COVERAGE VIEW ──
+function showDetailView(dcId){
+  currentDcId=dcId;
+  cityFilterVal=''; provinceFilterVal=''; baySearchTerm=''; selectedBayId=null;
+  document.getElementById('citySearch').value='';
+  document.getElementById('baySearch').value='';
+  boundariesVisible=true;
+  document.getElementById('showBoundariesToggle').checked=true;
+
+  const dc=DCS.find(d=>d.id===dcId);
+  document.getElementById('detailDcCode').textContent=`[${dc.code}]`;
+  document.getElementById('detailDcName').textContent=dc.name;
+  const statusEl=document.getElementById('detailDcStatus');
+  statusEl.textContent=dc.status==='active'?'Active':'Inactive';
+  statusEl.className=`status-pill ${dc.status}`;
+
+  initProvinceFilter();
+  renderCityNav();
+  renderCoverageGroups();
+
+  document.getElementById('listView').style.display='none';
+  document.getElementById('detailView').style.display='block';
+}
+function showListView(){
+  document.getElementById('detailView').style.display='none';
+  document.getElementById('listView').style.display='block';
+  renderShippingPointList();
+}
+
+function renderCityNav(){
+  const dcBays=STAGING_BAYS.filter(b=>b.dcId===currentDcId);
+  const q=(document.getElementById('citySearch').value||'').toLowerCase();
+  const cities=[...new Set(dcBays.map(b=>b.city))].sort().filter(c=>!q||c.toLowerCase().includes(q));
+  const nav=document.getElementById('cityNav');
+  let html=`<div class="city-nav-item ${!cityFilterVal?'active':''}" onclick="selectCityFilter('')">Semua Kota / Kabupaten</div>`;
+  html+=cities.map(c=>`<div class="city-nav-item ${cityFilterVal===c?'active':''}" onclick="selectCityFilter('${c.replace(/'/g,"\\'")}')">${escapeHtml(c)}</div>`).join('');
+  nav.innerHTML=html;
+}
+function selectCityFilter(city){
+  cityFilterVal=city;
+  renderCityNav();
+  renderCoverageGroups();
+}
+document.getElementById('citySearch').addEventListener('input',renderCityNav);
+
+function initProvinceFilter(){
+  const dcBays=STAGING_BAYS.filter(b=>b.dcId===currentDcId);
+  const provinces=[...new Set(dcBays.map(b=>b.province))].sort();
+  const sel=document.getElementById('provinceFilter');
+  sel.innerHTML='<option value="">Semua Provinsi</option>'+provinces.map(p=>`<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`).join('');
+  sel.value=provinceFilterVal;
+  sel.onchange=e=>{ provinceFilterVal=e.target.value; renderCoverageGroups(); };
+}
+
+document.getElementById('baySearch').addEventListener('input',e=>{ baySearchTerm=e.target.value; renderCoverageGroups(); });
+
+// ── COVERAGE MAP ──
+let coverageMapInstance=null;
+let coverageDistrictLayer=null;
+let coverageHubMarkers=[];
+let selectedBayId=null;
+let boundariesVisible=true;
+const SP_COLORS=['#4f46e5','#ea580c','#0d9488','#c026d3'];
+const UNASSIGNED_COLOR='#94a3b8';
+
+function colorForShippingPoint(spId,spList){
+  if(!spId) return UNASSIGNED_COLOR;
+  const idx=spList.findIndex(sp=>sp.id===spId);
+  return idx===-1?UNASSIGNED_COLOR:SP_COLORS[idx%SP_COLORS.length];
+}
+
+// Rough radius (meters) for the district area shape — smaller for dense city kecamatan,
+// larger for regency (kabupaten) kecamatan which cover more ground. Not a true administrative
+// boundary (no GeoJSON source available for these kecamatan), but gives a visible, distinctly-
+// shaped "area" instead of a bare point or a perfect circle.
+function radiusForCity(city){
+  return city && city.toUpperCase().startsWith('KOTA') ? 1400 : 3200;
+}
+
+// Deterministic seeded "random" (same seed always produces the same shape, so the
+// boundary doesn't jitter between re-renders) — simple string hash feeding a sine-based PRNG.
+function seededRandom(seed,i){
+  const x=Math.sin(seed*12.9898+i*78.233)*43758.5453;
+  return x-Math.floor(x);
+}
+function hashSeed(str){
+  let h=0;
+  for(let i=0;i<str.length;i++) h=(h*31+str.charCodeAt(i))>>>0;
+  return h%1000;
+}
+
+// Builds an irregular polygon ("blob") around a center point so district areas read as
+// natural boundary shapes rather than perfect circles — same visual language (dashed,
+// colored outline) as real administrative-boundary map UIs, without needing GeoJSON data.
+function generateBlobPolygon(lat,lng,baseRadiusMeters,seedStr,vertexCount){
+  vertexCount=vertexCount||10;
+  const seed=hashSeed(seedStr);
+  const points=[];
+  for(let i=0;i<vertexCount;i++){
+    const angle=(i/vertexCount)*2*Math.PI;
+    const variance=0.65+seededRandom(seed,i)*0.7;
+    const r=baseRadiusMeters*variance;
+    const dLat=(r*Math.cos(angle))/111320;
+    const dLng=(r*Math.sin(angle))/(111320*Math.cos(lat*Math.PI/180));
+    points.push([lat+dLat,lng+dLng]);
+  }
+  return points;
+}
+
+function renderCoverageMap(bays,spList){
+  const container=document.getElementById('coverageMap');
+  if(!coverageMapInstance){
+    coverageMapInstance=L.map(container,{scrollWheelZoom:false});
+    const streetLayer=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+      attribution:'&copy; OpenStreetMap contributors',maxZoom:19,
+    });
+    const satelliteLayer=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{
+      attribution:'Tiles &copy; Esri',maxZoom:19,
+    });
+    const terrainLayer=L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{
+      attribution:'&copy; OpenStreetMap contributors &copy; CARTO',maxZoom:19,
+    });
+    streetLayer.addTo(coverageMapInstance);
+    L.control.layers({'Peta Jalan':streetLayer,'Satelit':satelliteLayer,'Peta Minimalis':terrainLayer},null,{position:'topright'}).addTo(coverageMapInstance);
+
+    coverageDistrictLayer=L.layerGroup();
+    coverageMapInstance.addLayer(coverageDistrictLayer);
+  }
+
+  coverageDistrictLayer.clearLayers();
+  coverageHubMarkers.forEach(m=>coverageMapInstance.removeLayer(m));
+  coverageHubMarkers=[];
+
+  const bounds=[];
+  bays.forEach(bay=>{
+    const ownerId=COVERAGE[bay.id];
+    const color=colorForShippingPoint(ownerId,spList);
+    const ownerSp=spList.find(sp=>sp.id===ownerId);
+    bay.routes.forEach(route=>{
+      if(route.lat==null||route.lng==null) return;
+      const blobPoints=generateBlobPolygon(route.lat,route.lng,radiusForCity(bay.city),bay.id+'|'+route.name);
+      const isSelected=bay.id===selectedBayId;
+      const areaShape=L.polygon(blobPoints,{
+        color:color,weight:isSelected?4:2,dashArray:isSelected?'2,3':'7,5',
+        fillColor:color,fillOpacity:isSelected?0.45:0.25,
+      });
+      areaShape.bindPopup(`<div class="map-popup-title">${escapeHtml(route.name)}</div>
+        <div class="map-popup-row">Staging Bay: ${escapeHtml(bay.name)}</div>
+        <div class="map-popup-row">Kode Pos: ${escapeHtml(route.postalCode)}</div>
+        <div class="map-popup-row">Shipping Point: ${ownerSp?escapeHtml(ownerSp.name):'Belum ditetapkan'}</div>`);
+      coverageDistrictLayer.addLayer(areaShape);
+      if(isSelected) areaShape.bringToFront();
+      bounds.push([route.lat,route.lng]);
+    });
+  });
+
+  spList.forEach(sp=>{
+    const ownedRoutes=[];
+    bays.forEach(bay=>{
+      if(COVERAGE[bay.id]===sp.id) bay.routes.forEach(r=>{ if(r.lat!=null) ownedRoutes.push(r); });
+    });
+    if(!ownedRoutes.length) return;
+    const avgLat=ownedRoutes.reduce((s,r)=>s+r.lat,0)/ownedRoutes.length;
+    const avgLng=ownedRoutes.reduce((s,r)=>s+r.lng,0)/ownedRoutes.length;
+    const color=colorForShippingPoint(sp.id,spList);
+    const hubIcon=L.divIcon({
+      className:'',
+      html:`<div style="width:26px;height:26px;border-radius:8px;background:${color};border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px"><i class="fa-solid ${sp.type==='main_warehouse'?'fa-warehouse':'fa-truck-ramp-box'}"></i></div>`,
+      iconSize:[26,26],iconAnchor:[13,13],
+    });
+    const hubMarker=L.marker([avgLat,avgLng],{icon:hubIcon,zIndexOffset:1000}).addTo(coverageMapInstance);
+    hubMarker.bindPopup(`<div class="map-popup-title">${escapeHtml(sp.name)}</div><div class="map-popup-row">${ownedRoutes.length} kecamatan coverage</div>`);
+    coverageHubMarkers.push(hubMarker);
+  });
+
+  const applyView=()=>{
+    if(bounds.length) coverageMapInstance.fitBounds(bounds,{padding:[24,24],maxZoom:13});
+    else coverageMapInstance.setView([-2.5,118],5);
+  };
+  applyView();
+  setTimeout(()=>{ coverageMapInstance.invalidateSize(); applyView(); },50);
+
+  const legend=document.getElementById('mapLegend');
+  legend.innerHTML=spList.map(sp=>`<div class="map-legend-item"><span class="map-legend-dot" style="background:${colorForShippingPoint(sp.id,spList)}"></span>${escapeHtml(sp.name)}</div>`).join('')
+    +`<div class="map-legend-item"><span class="map-legend-dot" style="background:${UNASSIGNED_COLOR}"></span>Belum ditetapkan</div>`;
+}
+
+function toggleBoundariesVisibility(checked){
+  boundariesVisible=checked;
+  if(!coverageMapInstance||!coverageDistrictLayer) return;
+  if(checked) coverageMapInstance.addLayer(coverageDistrictLayer);
+  else coverageMapInstance.removeLayer(coverageDistrictLayer);
+}
+
+// ── STAGING BAY PICKER (Scenario 3: pick a staging bay, see its kecamatan, assign one owner) ──
+function initBayPicker(bays){
+  const sel=document.getElementById('bayPicker');
+  const stillValid=selectedBayId && bays.some(b=>b.id===selectedBayId);
+  if(!stillValid) selectedBayId=null;
+
+  sel.innerHTML='<option value="">— Pilih staging bay —</option>'+bays.map(b=>{
+    const kecList=b.routes.map(r=>r.name).join(', ');
+    return `<option value="${b.id}">${escapeHtml(b.name)}: ${escapeHtml(kecList)}</option>`;
+  }).join('');
+  sel.value=selectedBayId||'';
+  sel.onchange=e=>{
+    selectedBayId=e.target.value||null;
+    if(selectedBayId) focusStagingBayOnMap(selectedBayId);
+    else renderCoverageGroups();
+  };
+}
+
+function renderBayDetailPanel(){
+  const panel=document.getElementById('bayDetailPanel');
+  if(!selectedBayId){
+    panel.innerHTML=`<div class="bay-empty-hint">Pilih staging bay di atas untuk melihat cakupan kecamatan dan menetapkan shipping point.</div>`;
+    return;
+  }
+  const bay=STAGING_BAYS.find(b=>b.id===selectedBayId);
+  if(!bay){ panel.innerHTML=''; return; }
+  const spList=SHIPPING_POINTS.filter(sp=>sp.dcId===currentDcId);
+  const ownerId=COVERAGE[bay.id]||'';
+  const chips=bay.routes.map(r=>`<span class="kec-chip">${escapeHtml(r.name)} · ${escapeHtml(r.postalCode)}</span>`).join('');
+  const options=`<option value="" ${ownerId?'':'selected'}>— Belum ditetapkan —</option>`+
+    spList.map(sp=>`<option value="${sp.id}" ${ownerId===sp.id?'selected':''}>${escapeHtml(sp.name)}</option>`).join('');
+  panel.innerHTML=`<div class="bay-detail-card">
+    <div class="bay-detail-name">${escapeHtml(bay.name)}</div>
+    <div class="bay-detail-city">${escapeHtml(bay.city)} · ${escapeHtml(bay.province)} — ${bay.routes.length} kecamatan</div>
+    <div class="bay-detail-kec-list">${chips}</div>
+    <div class="bay-detail-assign">
+      <label>Shipping Point</label>
+      <select class="filter-select" style="width:100%;max-width:340px" onchange="setBayOwner('${bay.id}',this.value,this)">${options}</select>
+    </div>
+  </div>`;
+}
+
+// Zooms to a Staging Bay's coverage and shows exactly which kecamatan it includes
+// (Scenario 3: coverage area info per staging bay, incl. its kecamatan list).
+function focusStagingBayOnMap(bayId){
+  const bay=STAGING_BAYS.find(b=>b.id===bayId);
+  if(!bay) return;
+  selectedBayId=bayId;
+  const picker=document.getElementById('bayPicker');
+  if(picker) picker.value=bayId;
+  renderCoverageGroups(); // re-renders map (bolded/highlighted bay), read-only table, and detail panel
+
+  const validRoutes=bay.routes.filter(r=>r.lat!=null&&r.lng!=null);
+  if(!validRoutes.length||!coverageMapInstance) return;
+
+  // renderCoverageMap schedules its own generic fitBounds ~50ms out (container-size fix);
+  // re-apply this bay's specific focus slightly after so it wins and stays the final view.
+  const applyFocus=()=>{
+    const boundsPts=validRoutes.map(r=>[r.lat,r.lng]);
+    coverageMapInstance.fitBounds(boundsPts,{padding:[50,50],maxZoom:14});
+    const centerLat=validRoutes.reduce((s,r)=>s+r.lat,0)/validRoutes.length;
+    const centerLng=validRoutes.reduce((s,r)=>s+r.lng,0)/validRoutes.length;
+    const ownerId=COVERAGE[bay.id];
+    const ownerSp=SHIPPING_POINTS.find(sp=>sp.id===ownerId);
+    const listHtml=validRoutes.map(r=>`<li>${escapeHtml(r.name)} · ${escapeHtml(r.postalCode)}</li>`).join('');
+    L.popup({maxWidth:280})
+      .setLatLng([centerLat,centerLng])
+      .setContent(`<div class="map-popup-title">${escapeHtml(bay.name)}</div>
+        <div class="map-popup-row">Shipping Point: ${ownerSp?escapeHtml(ownerSp.name):'Belum ditetapkan'}</div>
+        <div class="map-popup-row" style="margin-top:6px;font-weight:600">Cakupan ${validRoutes.length} kecamatan:</div>
+        <ul style="margin:4px 0 0 16px;padding:0;font-size:11.5px;color:var(--g600);line-height:1.6">${listHtml}</ul>`)
+      .openOn(coverageMapInstance);
+  };
+  applyFocus();
+  setTimeout(applyFocus,80);
+
+  document.getElementById('coverageMap').scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+function renderCoverageGroups(){
+  const spList=SHIPPING_POINTS.filter(sp=>sp.dcId===currentDcId);
+  const q=baySearchTerm.toLowerCase();
+  let bays=STAGING_BAYS.filter(b=>b.dcId===currentDcId);
+  if(provinceFilterVal) bays=bays.filter(b=>b.province===provinceFilterVal);
+  if(cityFilterVal) bays=bays.filter(b=>b.city===cityFilterVal);
+  if(q) bays=bays.filter(b=>b.name.toLowerCase().includes(q)||b.routes.some(r=>r.name.toLowerCase().includes(q)));
+
+  document.getElementById('coverageTitle').textContent=cityFilterVal?cityFilterVal:'SEMUA KOTA / KABUPATEN';
+
+  renderCoverageMap(bays,spList);
+  initBayPicker(bays);
+  renderBayDetailPanel();
+
+  const cities=[...new Set(bays.map(b=>b.city))].sort();
+  const container=document.getElementById('coverageGroups');
+  if(!cities.length){
+    container.innerHTML=`<div class="empty-state">
+      <i class="fa-solid fa-map-location-dot"></i>
+      <div class="empty-title">Tidak ada staging bay ditemukan</div>
+      <div class="empty-sub">Coba ubah kata kunci pencarian atau filter provinsi / kota.</div>
+    </div>`;
+    return;
+  }
+
+  container.innerHTML=cities.map(city=>{
+    const cityBays=bays.filter(b=>b.city===city);
+    const rows=cityBays.map(bay=>{
+      const routesLabel=bay.routes.map(r=>`${r.name} · ${r.postalCode}`).join(', ');
+      const ownerId=COVERAGE[bay.id]||'';
+      const ownerSp=spList.find(sp=>sp.id===ownerId);
+      const ownerColor=colorForShippingPoint(ownerId,spList);
+      const ownerLabel=ownerSp?escapeHtml(ownerSp.name):'Belum ditetapkan';
+      return `<tr>
+        <td>
+          <div class="drv-name">${escapeHtml(bay.name)}</div>
+          <div class="drv-id">${escapeHtml(routesLabel)}</div>
+        </td>
+        <td><span class="owner-pill"><span class="owner-pill-dot" style="background:${ownerColor}"></span>${ownerLabel}</span></td>
+        <td><button class="bay-info-btn" onclick="focusStagingBayOnMap('${bay.id}')"><i class="fa-solid fa-map-location-dot"></i> Pilih</button></td>
+      </tr>`;
+    }).join('');
+    return `<div class="city-group">
+      <div class="city-group-hdr">${escapeHtml(city)}</div>
+      <div style="overflow-x:auto">
+        <table class="drv-table">
+          <thead><tr><th>Staging Bay</th><th>Shipping Point</th><th></th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── COVERAGE ASSIGNMENT (Scenario 3 & 4: single dropdown owner, unique + alert on conflict) ──
+function setBayOwner(bayId,newSpId,selectEl){
+  const bay=STAGING_BAYS.find(b=>b.id===bayId);
+  const currentOwnerId=COVERAGE[bayId]||'';
+
+  if(newSpId===''){
+    const prevSp=SHIPPING_POINTS.find(s=>s.id===currentOwnerId);
+    COVERAGE[bayId]=null;
+    showToast(`Coverage area "${bay.name}" dilepas${prevSp?` dari ${prevSp.name}`:''}.`);
+    renderCoverageGroups();
+    return;
+  }
+
+  if(currentOwnerId && currentOwnerId!==newSpId){
+    const ownerSp=SHIPPING_POINTS.find(s=>s.id===currentOwnerId);
+    const attemptedSp=SHIPPING_POINTS.find(s=>s.id===newSpId);
+    showToast(`Tidak dapat menetapkan "${bay.name}" ke ${attemptedSp?attemptedSp.name:'shipping point ini'} — wilayah ini sudah menjadi coverage area ${ownerSp?ownerSp.name:'shipping point lain'}. Pilih "Belum ditetapkan" terlebih dahulu untuk melepas assignment sebelumnya.`,true);
+    selectEl.value=currentOwnerId;
+    return;
+  }
+
+  const sp=SHIPPING_POINTS.find(s=>s.id===newSpId);
+  COVERAGE[bayId]=newSpId;
+  showToast(`Coverage area "${bay.name}" berhasil ditetapkan ke ${sp.name}.`);
+  renderCoverageGroups();
+}
+
+// ── EXPORT (Scenario 6) ──
+function toggleExportMenu(){ document.getElementById('exportMenu').classList.toggle('open'); }
+document.addEventListener('click',e=>{
+  const wrap=document.querySelector('.export-wrap');
+  if(wrap && !wrap.contains(e.target)) document.getElementById('exportMenu').classList.remove('open');
+});
+
+function buildExportRows(){
+  const rows=[];
+  STAGING_BAYS.forEach(bay=>{
+    const dc=DCS.find(d=>d.id===bay.dcId);
+    const spId=COVERAGE[bay.id];
+    const sp=spId?SHIPPING_POINTS.find(s=>s.id===spId):null;
+    bay.routes.forEach(route=>{
+      rows.push({
+        distributionCenter:dc.name,
+        country:'Indonesia',
+        province:bay.province,
+        city:bay.city,
+        district:route.name,
+        postalCode:route.postalCode,
+        shippingPoint:sp?sp.name:'(Belum ditetapkan)',
+      });
+    });
+  });
+  return rows;
+}
+function downloadBlob(content,filename,mime){
+  const blob=new Blob([content],{type:mime});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download=filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+function doExport(format){
+  const rows=buildExportRows();
+  const headers=['Distribution Center','Country','Province','City','District','Postal Code','Shipping Point'];
+  if(format==='csv'){
+    const escapeCsv=v=>`"${String(v).replace(/"/g,'""')}"`;
+    const lines=[headers.map(escapeCsv).join(',')];
+    rows.forEach(r=>lines.push([r.distributionCenter,r.country,r.province,r.city,r.district,r.postalCode,r.shippingPoint].map(escapeCsv).join(',')));
+    downloadBlob(lines.join('\n'),'shipping-point-coverage.csv','text/csv;charset=utf-8;');
+  }else{
+    let html='<table><tr>'+headers.map(h=>`<th>${escapeHtml(h)}</th>`).join('')+'</tr>';
+    rows.forEach(r=>{
+      html+='<tr>'+[r.distributionCenter,r.country,r.province,r.city,r.district,r.postalCode,r.shippingPoint].map(v=>`<td>${escapeHtml(v)}</td>`).join('')+'</tr>';
+    });
+    html+='</table>';
+    downloadBlob(html,'shipping-point-coverage.xlsx','application/vnd.ms-excel');
+  }
+  document.getElementById('exportMenu').classList.remove('open');
+  showToast(`Export ${format==='csv'?'CSV':'Excel'} berhasil diunduh (${rows.length} baris).`);
+}
+
+// ── TOAST ──
+function showToast(msg,isError){
+  let t=document.getElementById('app-toast');
+  if(!t){
+    t=document.createElement('div');
+    t.id='app-toast';
+    document.body.appendChild(t);
+  }
+  t.innerHTML=isError
+    ?`<i class="fa-solid fa-circle-exclamation" style="color:#fca5a5;font-size:14px"></i> ${msg}`
+    :`<i class="fa-solid fa-circle-check" style="color:#86efac;font-size:14px"></i> ${msg}`;
+  t.style.opacity='1';
+  t.style.transform='translateX(-50%) translateY(0)';
+  t.style.pointerEvents='auto';
+  clearTimeout(t._timer);
+  t._timer=setTimeout(()=>{
+    t.style.opacity='0';
+    t.style.transform='translateX(-50%) translateY(80px)';
+    t.style.pointerEvents='none';
+  },3600);
+}
+
+initDcFilterSelect();
+renderShippingPointList();
+</script>
+</body>
+</html>

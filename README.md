@@ -13,6 +13,8 @@ Prototype platform GPS Tracking untuk ShipGo TMS — PT Parama Global Inspira.
 | User & Access · Group / Role | `group-role.html` | `/roles` |
 | User & Access · User Management | `user-management.html` | `/users` |
 | Configuration · Feature Config | `feature-config.html` | `/config` |
+| Master Data · Shipping Point | `shipping-point.html` | `/shipping-point` |
+| Fleet · App Monitoring | `app-monitoring.html` | `/app-monitoring` |
 
 ## Fitur
 

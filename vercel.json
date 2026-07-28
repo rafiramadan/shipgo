@@ -8,7 +8,9 @@
     { "source": "/shipment", "destination": "/shipment-planning.html" },
     { "source": "/roles", "destination": "/group-role.html" },
     { "source": "/users", "destination": "/user-management.html" },
-    { "source": "/config", "destination": "/feature-config.html" }
+    { "source": "/config", "destination": "/feature-config.html" },
+    { "source": "/shipping-point", "destination": "/shipping-point.html" },
+    { "source": "/app-monitoring", "destination": "/app-monitoring.html" }
   ],
   "headers": [
     {
