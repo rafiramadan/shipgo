@@ -23,6 +23,8 @@ export const config = {
     '/shipping-point.html',
     '/app-monitoring',
     '/app-monitoring.html',
+    '/driver-app-version',
+    '/driver-app-version.html',
   ],
 };
 

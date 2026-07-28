@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Driver App Version — PT Parama Global Inspira</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --p50:#eef2ff;--p100:#e0e7ff;--p200:#c7d2fe;--p300:#a5b4fc;
+  --p400:#818cf8;--p500:#6366f1;--p600:#4f46e5;--p700:#4338ca;--p800:#3730a3;--p900:#312e81;
+  --sb:#1e1b4b;--sb2:#16134a;
+  --green:#16a34a;--red:#dc2626;--orange:#ea580c;--amber:#d97706;
+  --g50:#f8fafc;--g100:#f1f5f9;--g150:#eef0f4;--g200:#e2e8f0;
+  --g300:#cbd5e1;--g400:#94a3b8;--g500:#64748b;--g700:#334155;--g900:#0f172a;
+  --sw:220px;--th:60px;--r:8px;--r2:12px;
+  --sh:0 1px 3px rgba(0,0,0,.08);--shl:0 8px 24px rgba(0,0,0,.13);
+  --font:'Inter',sans-serif;
+}
+html,body{height:100%;font-family:var(--font);font-size:13px;color:var(--g900);overflow:hidden;background:var(--g100)}
+
+/* ── TOPBAR ── */
+.topbar{position:fixed;top:0;left:0;right:0;height:var(--th);background:#fff;border-bottom:1px solid var(--g200);display:flex;align-items:center;z-index:1000;padding:0 20px 0 0;box-shadow:0 1px 0 var(--g200)}
+.tb-logo{width:var(--sw);height:var(--th);background:var(--sb2);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;transition:width .2s ease}
+.tb-logo-inner{display:flex;align-items:center;gap:10px;padding:0 16px;white-space:nowrap}
+.tb-logo-icon{width:32px;height:32px;border-radius:8px;background:var(--p600);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.tb-logo-icon i{color:#fff;font-size:15px}
+.tb-logo-text{font-size:14px;font-weight:700;color:#fff;opacity:1;letter-spacing:-.3px;transition:opacity .15s}
+body.sb-collapsed .tb-logo-text{opacity:0;pointer-events:none}
+.tb-dc{display:flex;flex-direction:column;margin-left:16px}
+.tb-dc-label{font-size:10px;color:var(--g400);font-weight:500;letter-spacing:.3px}
+.tb-dc-val{display:flex;align-items:center;gap:5px;font-size:14px;font-weight:600;color:var(--g900)}
+.tb-dc-val i{color:var(--p600);font-size:12px}
+.tb-spacer{flex:1}
+.tb-actions{display:flex;align-items:center;gap:6px}
+.tb-icon{width:34px;height:34px;border-radius:var(--r);border:1px solid var(--g200);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--g500);font-size:14px;position:relative;background:#fff;transition:all .15s}
+.tb-icon:hover{background:var(--p50);border-color:var(--p200);color:var(--p600)}
+.tb-icon .bdg{position:absolute;top:4px;right:4px;width:8px;height:8px;background:var(--red);border-radius:50%;border:1.5px solid #fff}
+.tb-user-wrap{position:relative}
+.tb-user{display:flex;align-items:center;gap:10px;padding:6px 12px;border:1px solid var(--g200);border-radius:var(--r2);cursor:pointer;background:#fff;margin-left:4px;transition:all .15s}
+.tb-user:hover{background:var(--p50);border-color:var(--p200)}
+.tb-user-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;background:#fff;border:1px solid var(--g200);border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.14);min-width:170px;z-index:2000;overflow:hidden}
+.tb-user-menu.open{display:block}
+.tb-user-menu-item{padding:10px 14px;font-size:12px;color:var(--g700);cursor:pointer;display:flex;align-items:center;gap:8px}
+.tb-user-menu-item:hover{background:var(--g50)}
+.tb-user-menu-item i{color:var(--g400);width:14px}
+.tb-avatar{width:28px;height:28px;border-radius:50%;background:var(--p100);display:flex;align-items:center;justify-content:center;color:var(--p700);font-size:11px;font-weight:700;position:relative;flex-shrink:0}
+.tb-avatar .online{position:absolute;bottom:0;right:0;width:9px;height:9px;border-radius:50%;background:#10b981;border:2px solid #fff}
+.tb-user-info{display:flex;flex-direction:column}
+.tb-name{font-size:13px;font-weight:600;color:var(--g900)}
+.tb-role{font-size:11px;color:var(--g500)}
+
+/* ── SIDEBAR ── */
+.sidebar{position:fixed;top:var(--th);left:0;bottom:0;width:var(--sw);background:#fff;border-right:1px solid var(--g200);display:flex;flex-direction:column;padding:8px 10px 14px;z-index:900;overflow-x:hidden;overflow-y:auto;transition:width .2s ease}
+.sb-top{display:flex;justify-content:flex-end;padding:2px 2px 6px}
+.sb-collapse-btn{width:26px;height:26px;border:none;background:transparent;color:var(--g400);border-radius:6px;cursor:pointer;font-size:12px;flex-shrink:0}
+.sb-collapse-btn:hover{background:var(--g100);color:var(--g700)}
+.sb-section{font-size:10px;font-weight:600;color:var(--g400);letter-spacing:.6px;text-transform:uppercase;padding:12px 10px 4px;white-space:nowrap;overflow:hidden}
+.si{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;cursor:pointer;color:var(--g600);font-size:13px;font-weight:500;text-decoration:none;margin-bottom:1px;white-space:nowrap;overflow:hidden;position:relative;transition:all .15s}
+.si:hover{background:var(--p50);color:var(--p700)}
+.si.active{background:var(--p50);color:var(--p700);font-weight:600}
+.si svg{width:17px;height:17px;flex-shrink:0}
+.si-label{opacity:1;flex:1;overflow:hidden;text-overflow:ellipsis}
+.si-caret{margin-left:auto;font-size:9px;color:var(--g400);flex-shrink:0}
+.si-dot{width:7px;height:7px;border-radius:50%;background:#f97316;flex-shrink:0;margin-left:6px}
+.nav-sub{margin:1px 4px 8px 29px;padding-left:10px;border-left:1px solid var(--g200)}
+.nav-sub .si{padding:6px 10px;font-size:12.5px}
+.nav-sub .si.active{background:transparent;color:var(--p700)}
+.nav-sub .si.active::before{content:'';position:absolute;left:-11px;top:6px;bottom:6px;width:2px;background:var(--p600);border-radius:2px}
+.s-sp{flex:1}
+.sb-divider{height:1px;background:var(--g200);margin:6px 4px}
+body.sb-collapsed .sidebar{width:64px}
+body.sb-collapsed .si-label,body.sb-collapsed .sb-section,body.sb-collapsed .si-caret,body.sb-collapsed .si-dot,body.sb-collapsed .nav-sub{display:none}
+body.sb-collapsed .si{justify-content:center}
+body.sb-collapsed .sb-top{justify-content:center}
+
+/* ── MAIN LAYOUT ── */
+.main{position:fixed;top:var(--th);left:var(--sw);right:0;bottom:0;display:flex;flex-direction:column;overflow:hidden;transition:left .2s ease}
+
+/* ── PAGE HEADER ── */
+.page-hdr{background:#fff;border-bottom:1px solid var(--g200);padding:12px 24px;flex-shrink:0;display:flex;align-items:center;gap:12px}
+.page-hdr-left{display:flex;flex-direction:column;gap:2px}
+.page-breadcrumb{font-size:11px;color:var(--g400);font-weight:500}
+.page-title{font-size:20px;font-weight:700;color:var(--g900)}
+.hdr-spacer{flex:1}
+
+/* ── BODY ── */
+.body-wrap{flex:1;overflow-y:auto;padding:22px 24px 40px}
+
+.intro-panel{background:#fff;border:1px solid var(--g200);border-radius:var(--r2);box-shadow:var(--sh);padding:16px 20px;margin-bottom:24px;max-width:900px}
+.intro-panel-title{font-size:14px;font-weight:700;color:var(--g900);display:flex;align-items:center;gap:8px}
+.intro-panel-title i{color:var(--p600)}
+.intro-panel p{font-size:12.5px;color:var(--g600);line-height:1.65;margin-top:8px}
+.intro-panel b{color:var(--g800)}
+
+/* ── DRIVER APP MOCKUP (scoped tokens — this preview simulates the driver's own
+   mobile app UI, which keeps its own fixed brand look independent of the admin
+   platform's theme) ── */
+.preview-scope{
+  --m-bg:#eeecf6;--m-card-edge:#d8d4e8;
+  --m-hdr-1:#1c1240;--m-hdr-2:#4b2f8f;--m-hdr-shape:#5c3aa8;
+  --m-accent:#4f46e5;--m-accent-ink:#3730a3;
+  --m-ink:#1c1830;--m-ink-soft:#716b87;--m-ink-faint:#a29cb5;
+  --m-surface:#ffffff;--m-surface-sunk:#f4f2fa;--m-line:#eae7f4;
+  --m-ok:#16a34a;
+  --m-warn:#b45309;--m-warn-bg:#fff8ea;--m-warn-line:#f3d99a;
+  --m-crit:#c0293f;--m-crit-bg:#fdeced;--m-crit-line:#f3c3ca;
+  --m-planned:#c2680a;--m-planned-bg:#fdedd6;
+}
+.stage{display:flex;flex-wrap:wrap;justify-content:flex-start;align-items:flex-start;gap:40px}
+.col{display:flex;flex-direction:column;align-items:center;gap:12px;width:300px}
+.col-tag{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:700}
+.col-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.col-tag.ok .col-dot{background:var(--m-ok)}
+.col-tag.ok{color:#15803d}
+.col-tag.warn .col-dot{background:var(--m-warn)}
+.col-tag.warn{color:var(--m-warn)}
+.col-tag.crit .col-dot{background:var(--m-crit)}
+.col-tag.crit{color:var(--m-crit)}
+.col-desc{font-size:11.5px;color:var(--g500);text-align:center;line-height:1.55;min-height:48px}
+
+.phone{width:300px;height:648px;border-radius:38px;background:#050409;padding:9px;box-shadow:0 24px 48px -18px rgba(10,6,30,.4),0 4px 12px rgba(10,6,30,.16);position:relative;flex-shrink:0}
+.notch{position:absolute;top:9px;left:50%;transform:translateX(-50%);width:104px;height:20px;background:#050409;border-radius:0 0 15px 15px;z-index:40}
+.screen{position:relative;width:100%;height:100%;background:var(--m-surface-sunk);border-radius:29px;overflow:hidden;color:var(--m-ink);font-size:12.5px}
+.statusbar{display:flex;justify-content:space-between;align-items:center;padding:7px 20px 2px;font-size:11.5px;font-weight:600;color:#fff;position:relative;z-index:5}
+.scroll{position:absolute;inset:0;overflow-y:auto;padding-bottom:70px}
+.scroll::-webkit-scrollbar{display:none}
+
+.app-header{position:relative;overflow:hidden;background:linear-gradient(160deg,var(--m-hdr-1) 0%,var(--m-hdr-2) 100%);padding:5px 18px 20px;color:#fff}
+.app-header::before{content:"";position:absolute;top:-38px;right:-56px;width:184px;height:184px;background:var(--m-hdr-shape);opacity:.55;border-radius:44% 56% 62% 38% / 46% 40% 60% 54%}
+.app-header::after{content:"";position:absolute;bottom:-64px;left:-36px;width:136px;height:136px;background:#000;opacity:.1;border-radius:50%}
+.app-header-row{display:flex;justify-content:space-between;align-items:center;position:relative;z-index:2}
+.brand{display:flex;align-items:center;gap:6px;font-size:15px;font-weight:700;letter-spacing:-.01em}
+.dc-pill{display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.2);padding:4px 10px;border-radius:20px;font-size:10.5px;font-weight:700}
+.greet{position:relative;z-index:2;margin-top:14px}
+.greet .l1{font-size:11.5px;color:rgba(255,255,255,.72)}
+.greet .l2{font-size:17.5px;font-weight:700;margin-top:2px}
+.assign-card{position:relative;z-index:2;margin-top:14px;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.18);border-radius:12px;padding:10px 13px;display:flex;align-items:center;gap:9px}
+.assign-card .ic{width:24px;height:24px;border-radius:7px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px}
+.assign-card .lbl{font-size:10px;color:rgba(255,255,255,.66);font-weight:600}
+.assign-card .val{font-size:11.5px;font-weight:700;margin-top:1px}
+.assign-card .val-wrap{margin-left:auto;text-align:right}
+
+.body-pad{padding:16px 16px 6px}
+.section-hdr{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;color:var(--m-ink);margin-bottom:10px}
+.section-hdr .ic{width:22px;height:22px;border-radius:7px;background:#eafff2;color:var(--m-ok);display:flex;align-items:center;justify-content:center;font-size:10px}
+
+.shipment-card{background:var(--m-surface);border-radius:15px;padding:14px 15px;box-shadow:0 1px 3px rgba(30,20,60,.06),0 8px 20px -12px rgba(30,20,60,.14);border:1px solid var(--m-line)}
+.sc-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.sc-id{font-size:10px;color:var(--m-ink-faint);font-weight:600}
+.pill{font-size:9.5px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap}
+.pill.planned{background:var(--m-planned-bg);color:var(--m-planned)}
+.pill.planned::before{content:"● ";font-size:6.5px}
+.sc-num{font-size:17px;font-weight:800;margin-top:5px;letter-spacing:-.01em}
+.sc-sub{font-size:11px;color:var(--m-ink-soft);margin-top:3px}
+.sc-div{height:1px;background:var(--m-line);margin:11px 0}
+.sc-row{display:flex;justify-content:space-between;align-items:center;font-size:11.5px}
+.sc-row .k{color:var(--m-ink-soft)}
+.sc-row .v{font-weight:700;font-variant-numeric:tabular-nums}
+.progress-track{height:6px;background:var(--m-surface-sunk);border-radius:20px;margin:8px 0;position:relative;overflow:hidden}
+.progress-fill{position:absolute;left:0;top:0;bottom:0;width:3%;background:var(--m-ok);border-radius:20px}
+.sc-row.small{font-size:11px}
+.sc-row.small .v.green{color:var(--m-ok);font-weight:700}
+.dest-label{font-size:10px;color:var(--m-ink-faint);font-weight:700;text-transform:uppercase;letter-spacing:.03em;margin-top:12px}
+.dest-row{display:flex;align-items:center;gap:6px;font-size:11.5px;margin-top:6px}
+.dest-row .pin{color:var(--m-accent);font-size:11px}
+.dest-row .more{margin-left:auto;color:var(--m-accent);font-weight:700;font-size:11px;white-space:nowrap}
+.btn-detail{width:100%;margin-top:13px;padding:10px;border-radius:10px;border:1.5px solid var(--m-accent);background:#fff;color:var(--m-accent);font-weight:700;font-size:12px;font-family:inherit}
+
+.menu-lbl{font-size:10.5px;font-weight:700;color:var(--m-ink-faint);text-transform:uppercase;letter-spacing:.04em;margin:18px 0 8px}
+.menu-card{background:var(--m-surface);border-radius:15px;border:1px solid var(--m-line);overflow:hidden}
+.menu-item{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--m-line)}
+.menu-item:last-child{border-bottom:none}
+.menu-item .ic{width:18px;text-align:center;color:var(--m-ink-soft);font-size:12px}
+.menu-item .txt{flex:1}
+.menu-item .txt .t{font-size:12px;font-weight:600}
+.menu-item .txt .s{font-size:10px;color:var(--m-ink-faint);margin-top:2px;line-height:1.4}
+.menu-item .chev{color:var(--m-ink-faint);font-size:11px}
+.ver-lbl{text-align:center;font-size:10px;color:var(--m-ink-faint);margin:14px 0 4px}
+
+.swipe-bar{position:absolute;left:11px;right:11px;bottom:11px;height:46px;border-radius:23px;background:#e6e2f7;display:flex;align-items:center;padding:0 6px;gap:8px;z-index:15;box-shadow:0 6px 16px -8px rgba(60,40,120,.35)}
+.swipe-bar .grip{width:34px;height:34px;border-radius:17px;background:var(--m-accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.swipe-bar .txt{flex:1;text-align:center;font-size:11.5px;font-weight:700;color:var(--m-accent-ink);padding-right:34px}
+
+.update-banner{background:var(--m-warn-bg);border:1px solid var(--m-warn-line);border-radius:13px;padding:12px 13px;display:flex;gap:9px;margin:0 16px 14px}
+.update-banner .ic{width:28px;height:28px;border-radius:8px;background:#fdecc8;color:var(--m-warn);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px;margin-top:1px}
+.update-banner .body{flex:1;min-width:0}
+.update-banner .t{font-size:12px;font-weight:700;color:#7c3d09}
+.update-banner .d{font-size:10.8px;color:#8a5a1c;line-height:1.5;margin-top:3px}
+.update-banner .actions{display:flex;align-items:center;gap:13px;margin-top:9px}
+.update-banner .btn-upd{background:var(--m-accent);color:#fff;border:none;font-weight:700;font-size:11px;padding:7px 13px;border-radius:8px;font-family:inherit}
+.update-banner .btn-later{background:none;border:none;color:#8a5a1c;font-weight:700;font-size:11px;font-family:inherit;text-decoration:underline;padding:0}
+
+.dimmed{filter:grayscale(.45) brightness(.82);pointer-events:none;user-select:none}
+.crit-overlay{position:absolute;inset:0;z-index:30;background:rgba(12,8,26,.62);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:20px}
+.crit-modal{background:var(--m-surface);border-radius:19px;padding:24px 20px 20px;box-shadow:0 20px 50px -14px rgba(0,0,0,.5);text-align:center}
+.crit-icon{width:52px;height:52px;border-radius:15px;background:var(--m-crit-bg);color:var(--m-crit);display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 auto 13px}
+.crit-modal h3{font-size:14.5px;font-weight:800;margin:0 0 7px;color:var(--m-ink)}
+.crit-modal p{font-size:11.3px;line-height:1.6;color:var(--m-ink-soft);margin:0}
+.crit-modal .ver-chip{display:inline-flex;align-items:center;gap:6px;background:var(--m-crit-bg);color:var(--m-crit);font-weight:700;font-size:10.5px;padding:4px 10px;border-radius:20px;margin:8px 0 15px}
+.crit-modal .btn-crit{width:100%;background:var(--m-crit);color:#fff;border:none;font-weight:700;font-size:12.5px;padding:12px;border-radius:11px;font-family:inherit}
+.crit-modal .help{font-size:10px;color:var(--m-ink-faint);margin-top:11px}
+</style>
+</head>
+<body>
+<script src="/auth-guard.js"></script>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="tb-logo">
+    <div class="tb-logo-inner">
+      <div class="tb-logo-icon"><i class="fa-solid fa-map-location-dot"></i></div>
+      <span class="tb-logo-text">ShipGo TMS</span>
+    </div>
+  </div>
+  <div class="tb-dc">
+    <div class="tb-dc-label">Company</div>
+    <div class="tb-dc-val"><i class="fa-solid fa-building"></i> PT Parama Global Inspira</div>
+  </div>
+  <div class="tb-spacer"></div>
+  <div class="tb-actions">
+    <div class="tb-icon"><i class="fa-regular fa-bell"></i><span class="bdg"></span></div>
+    <div class="tb-icon"><i class="fa-regular fa-bullhorn"></i></div>
+    <div class="tb-user-wrap">
+      <div class="tb-user" id="tbUser">
+        <div class="tb-avatar"><span id="tbAvatarInitials">··</span><div class="online"></div></div>
+        <div class="tb-user-info">
+          <div class="tb-name" id="tbUserName">—</div>
+          <div class="tb-role" id="tbUserRole">—</div>
+        </div>
+        <i class="fa-solid fa-chevron-down" style="font-size:10px;color:var(--g400);margin-left:2px"></i>
+      </div>
+      <div class="tb-user-menu" id="tbUserMenu">
+        <div class="tb-user-menu-item" id="tbLogoutBtn"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sb-top"><button class="sb-collapse-btn" onclick="toggleSidebar()" title="Collapse sidebar"><i class="fa-solid fa-angles-left"></i></button></div>
+  <div class="sb-section">Main Menu</div>
+  <a class="si" href="./index.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    <span class="si-label">Dashboard</span>
+  </a>
+  <a class="si" href="./live-tracking.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-7.58 7-12a7 7 0 00-14 0c0 4.42 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>
+    <span class="si-label">Live Tracking</span>
+  </a>
+  <a class="si" href="./history-tracking.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/><path d="M12 7v5l3.5 2"/></svg>
+    <span class="si-label">History Tracking</span>
+  </a>
+
+  <div class="sb-section">Order Management</div>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5h6a2 2 0 012 2v12a2 2 0 01-2 2H9a2 2 0 01-2-2V7a2 2 0 012-2z"/><path d="M9 3h6v4H9z"/></svg>
+    <span class="si-label">Order Management</span>
+    <span class="si-caret">▾</span>
+  </a>
+  <div class="nav-sub">
+    <a class="si" href="./shipment-planning.html"><span class="si-label">Planning</span></a>
+    <a class="si" href="#"><span class="si-label">Assignment</span></a>
+    <a class="si" href="#"><span class="si-label">Tracking</span></a>
+    <a class="si" href="#"><span class="si-label">Review</span></a>
+  </div>
+
+  <div class="sb-section">Analytics</div>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v16h16"/><path d="M7 15l3.5-4 3 2.5L19 7"/></svg>
+    <span class="si-label">Laporan Perjalanan</span>
+  </a>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v16h16"/><rect x="7" y="12" width="2.6" height="5"/><rect x="12" y="9" width="2.6" height="8"/><rect x="17" y="6" width="2.6" height="11"/></svg>
+    <span class="si-label">Analytics</span>
+  </a>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+    <span class="si-label">Peringatan</span>
+    <span class="si-dot"></span>
+  </a>
+
+  <div class="sb-section">Fleet</div>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="7" width="12" height="9" rx="1"/><path d="M13 10h4l3.5 3.2V16H13z"/><circle cx="5.5" cy="17.5" r="1.6"/><circle cx="17" cy="17.5" r="1.6"/></svg>
+    <span class="si-label">Kendaraan</span>
+  </a>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2.5"/><circle cx="12" cy="10" r="2.3"/><path d="M7.5 16.8c.6-1.9 2.3-2.8 4.5-2.8s3.9.9 4.5 2.8"/></svg>
+    <span class="si-label">Driver</span>
+  </a>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+    <span class="si-label">Kamera</span>
+  </a>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0116 0"/></svg>
+    <span class="si-label">Roster Management</span>
+  </a>
+  <a class="si active" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>
+    <span class="si-label">App Monitoring</span>
+    <span class="si-caret">▾</span>
+  </a>
+  <div class="nav-sub">
+    <a class="si" href="./app-monitoring.html"><span class="si-label">Version Monitoring</span></a>
+    <a class="si active" href="./driver-app-version.html"><span class="si-label">Driver App Version</span></a>
+  </div>
+
+  <div class="sb-section">Admin</div>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg>
+    <span class="si-label">User &amp; Access</span>
+    <span class="si-caret">▾</span>
+  </a>
+  <div class="nav-sub">
+    <a class="si" href="./group-role.html"><span class="si-label">Group / Role</span></a>
+    <a class="si" href="./user-management.html"><span class="si-label">User Management</span></a>
+  </div>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09A1.65 1.65 0 0015 4.6a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    <span class="si-label">Configuration</span>
+    <span class="si-caret">▾</span>
+  </a>
+  <div class="nav-sub">
+    <a class="si" href="./feature-config.html"><span class="si-label">Feature Config</span></a>
+  </div>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v6c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M3 11v6c0 1.66 4 3 9 3s9-1.34 9-3v-6"/></svg>
+    <span class="si-label">Master Data</span>
+    <span class="si-caret">▾</span>
+  </a>
+  <div class="nav-sub">
+    <a class="si" href="./shipping-point.html"><span class="si-label">Shipping Point</span></a>
+  </div>
+
+  <div class="s-sp"></div>
+  <div class="sb-divider"></div>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 015 0c0 1.5-2 2-2.5 3.5"/><path d="M12 17h.01"/></svg>
+    <span class="si-label">Bantuan</span>
+  </a>
+</nav>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="page-hdr">
+    <div class="page-hdr-left">
+      <div class="page-breadcrumb">Fleet · App Monitoring</div>
+      <div class="page-title">Driver App Version</div>
+    </div>
+    <div class="hdr-spacer"></div>
+  </div>
+
+  <div class="body-wrap">
+    <div class="intro-panel">
+      <div class="intro-panel-title"><i class="fa-solid fa-mobile-screen-button"></i> Referensi Tampilan ShipGo Driver</div>
+      <p>Tiga kondisi versi ini mengikuti kebijakan yang sama seperti pada halaman <b>Version Monitoring</b>: <b>Up to Date</b> berjalan normal tanpa gangguan, <b>Outdated</b> menampilkan pengingat yang bisa ditunda ("Nanti"), dan <b>Critical</b> mengunci seluruh layar sampai driver memperbarui aplikasinya. Gunakan halaman ini sebagai acuan saat berkoordinasi dengan tim produk / driver terkait pengalaman update di lapangan.</p>
+    </div>
+
+    <div class="preview-scope">
+      <div class="stage">
+
+        <!-- ═══ UP TO DATE ═══ -->
+        <div class="col">
+          <div class="col-tag ok"><span class="col-dot"></span>Up to Date · v3.4.0</div>
+          <div class="col-desc">Tidak ada gangguan. Driver langsung menuju home screen dan siap mulai pick-up.</div>
+          <div class="phone">
+            <div class="notch"></div>
+            <div class="screen">
+              <div class="scroll">
+                <div class="app-header">
+                  <div class="statusbar"><span>19:02</span><span>LTE 🔋</span></div>
+                  <div class="app-header-row">
+                    <div class="brand">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 12L20 4L15 12L20 20L3 12Z" fill="#fff"/></svg>
+                      ShipGo
+                    </div>
+                    <div class="dc-pill">📍 DC SOLO</div>
+                  </div>
+                  <div class="greet">
+                    <div class="l1">Selamat Datang,</div>
+                    <div class="l2">Rafi Ramadani! 👋</div>
+                  </div>
+                  <div class="assign-card">
+                    <div class="ic">📅</div>
+                    <div><div class="lbl">Tgl Penugasan</div></div>
+                    <div class="val-wrap"><div class="val">Senin, 28 Jan 2026</div></div>
+                  </div>
+                </div>
+                <div class="body-pad">
+                  <div class="section-hdr"><span class="ic">🚚</span> Penugasan Surat Jalan</div>
+                  <div class="shipment-card">
+                    <div class="sc-top">
+                      <div class="sc-id">Shipment ID: 1000000265</div>
+                      <span class="pill planned">Planned</span>
+                    </div>
+                    <div class="sc-num">SJ/2025/00017343</div>
+                    <div class="sc-sub">AB 9513 FCI &nbsp;•&nbsp; 🚛 Blindvan</div>
+                    <div class="sc-div"></div>
+                    <div class="sc-row"><span class="k">Dokumen di Pick-up:</span><span class="v">0 / 9</span></div>
+                    <div class="progress-track"><div class="progress-fill"></div></div>
+                    <div class="sc-row small"><span class="k">9 Delivery Order &nbsp;•&nbsp; 3 Retur</span><span class="v green">(0%)</span></div>
+                    <div class="dest-label">Lokasi Tujuan</div>
+                    <div class="dest-row"><span class="pin">📍</span> Manna Kampus (Mirot...<span class="more">+2 Destinasi ⌄</span></div>
+                    <button class="btn-detail">Detail Surat Jalan</button>
+                  </div>
+                  <div class="menu-lbl">Menu Lainnya</div>
+                  <div class="menu-card">
+                    <div class="menu-item"><span class="ic">📄</span><div class="txt"><div class="t">Shipment Cost / HBO</div></div><span class="chev">›</span></div>
+                    <div class="menu-item"><span class="ic">🕐</span><div class="txt"><div class="t">Riwayat Penugasan</div></div><span class="chev">›</span></div>
+                    <div class="menu-item"><span class="ic">↪</span><div class="txt"><div class="t">Log Out</div><div class="s">Anda akan keluar dari aplikasi dan perlu masuk kembali untuk melanjutkan.</div></div><span class="chev">›</span></div>
+                  </div>
+                  <div class="ver-lbl">Version 3.4.0</div>
+                </div>
+              </div>
+              <div class="swipe-bar"><div class="grip">»</div><div class="txt">Geser untuk Mulai Pick Up</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ OUTDATED ═══ -->
+        <div class="col">
+          <div class="col-tag warn"><span class="col-dot"></span>Outdated · v3.3.0</div>
+          <div class="col-desc">Pengingat non-blocking. Driver bisa memilih "Nanti" dan tetap melanjutkan pick-up seperti biasa.</div>
+          <div class="phone">
+            <div class="notch"></div>
+            <div class="screen">
+              <div class="scroll">
+                <div class="app-header">
+                  <div class="statusbar"><span>19:02</span><span>LTE 🔋</span></div>
+                  <div class="app-header-row">
+                    <div class="brand">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 12L20 4L15 12L20 20L3 12Z" fill="#fff"/></svg>
+                      ShipGo
+                    </div>
+                    <div class="dc-pill">📍 DC BOGOR</div>
+                  </div>
+                  <div class="greet">
+                    <div class="l1">Selamat Datang,</div>
+                    <div class="l2">M. Iqbal K.! 👋</div>
+                  </div>
+                  <div class="assign-card">
+                    <div class="ic">📅</div>
+                    <div><div class="lbl">Tgl Penugasan</div></div>
+                    <div class="val-wrap"><div class="val">Senin, 28 Jan 2026</div></div>
+                  </div>
+                </div>
+                <div class="update-banner" style="margin-top:15px">
+                  <div class="ic">⬇</div>
+                  <div class="body">
+                    <div class="t">Update Tersedia</div>
+                    <div class="d">Versi Anda <strong>v3.3.0</strong> sudah tertinggal dari versi terbaru <strong>v3.4.0</strong>. Update untuk performa &amp; fitur terbaru.</div>
+                    <div class="actions">
+                      <button class="btn-upd">Update Sekarang</button>
+                      <button class="btn-later">Nanti</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="body-pad" style="padding-top:2px">
+                  <div class="section-hdr"><span class="ic">🚚</span> Penugasan Surat Jalan</div>
+                  <div class="shipment-card">
+                    <div class="sc-top">
+                      <div class="sc-id">Shipment ID: 1000000271</div>
+                      <span class="pill planned">Planned</span>
+                    </div>
+                    <div class="sc-num">SJ/2025/00017351</div>
+                    <div class="sc-sub">D 8821 KIH &nbsp;•&nbsp; 🚛 Box Truck</div>
+                    <div class="sc-div"></div>
+                    <div class="sc-row"><span class="k">Dokumen di Pick-up:</span><span class="v">0 / 6</span></div>
+                    <div class="progress-track"><div class="progress-fill"></div></div>
+                    <div class="sc-row small"><span class="k">6 Delivery Order &nbsp;•&nbsp; 1 Retur</span><span class="v green">(0%)</span></div>
+                    <div class="dest-label">Lokasi Tujuan</div>
+                    <div class="dest-row"><span class="pin">📍</span> Cibinong Raya (Warung...<span class="more">+1 Destinasi ⌄</span></div>
+                    <button class="btn-detail">Detail Surat Jalan</button>
+                  </div>
+                  <div class="menu-lbl">Menu Lainnya</div>
+                  <div class="menu-card">
+                    <div class="menu-item"><span class="ic">📄</span><div class="txt"><div class="t">Shipment Cost / HBO</div></div><span class="chev">›</span></div>
+                    <div class="menu-item"><span class="ic">🕐</span><div class="txt"><div class="t">Riwayat Penugasan</div></div><span class="chev">›</span></div>
+                    <div class="menu-item"><span class="ic">↪</span><div class="txt"><div class="t">Log Out</div><div class="s">Anda akan keluar dari aplikasi dan perlu masuk kembali untuk melanjutkan.</div></div><span class="chev">›</span></div>
+                  </div>
+                  <div class="ver-lbl">Version 3.3.0</div>
+                </div>
+              </div>
+              <div class="swipe-bar"><div class="grip">»</div><div class="txt">Geser untuk Mulai Pick Up</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ CRITICAL ═══ -->
+        <div class="col">
+          <div class="col-tag crit"><span class="col-dot"></span>Critical · v2.8.0</div>
+          <div class="col-desc">Blocking. Seluruh layar terkunci — driver wajib update sebelum bisa mulai pick-up.</div>
+          <div class="phone">
+            <div class="notch"></div>
+            <div class="screen">
+              <div class="scroll dimmed">
+                <div class="app-header">
+                  <div class="statusbar"><span>19:02</span><span>LTE 🔋</span></div>
+                  <div class="app-header-row">
+                    <div class="brand">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 12L20 4L15 12L20 20L3 12Z" fill="#fff"/></svg>
+                      ShipGo
+                    </div>
+                    <div class="dc-pill">📍 DC TASIKMALAYA</div>
+                  </div>
+                  <div class="greet">
+                    <div class="l1">Selamat Datang,</div>
+                    <div class="l2">Tri Febrianto! 👋</div>
+                  </div>
+                  <div class="assign-card">
+                    <div class="ic">📅</div>
+                    <div><div class="lbl">Tgl Penugasan</div></div>
+                    <div class="val-wrap"><div class="val">Senin, 28 Jan 2026</div></div>
+                  </div>
+                </div>
+                <div class="body-pad">
+                  <div class="section-hdr"><span class="ic">🚚</span> Penugasan Surat Jalan</div>
+                  <div class="shipment-card">
+                    <div class="sc-top">
+                      <div class="sc-id">Shipment ID: 1000000284</div>
+                      <span class="pill planned">Planned</span>
+                    </div>
+                    <div class="sc-num">SJ/2025/00017368</div>
+                    <div class="sc-sub">F 7734 ADG &nbsp;•&nbsp; 🚛 Blindvan</div>
+                    <div class="sc-div"></div>
+                    <div class="sc-row"><span class="k">Dokumen di Pick-up:</span><span class="v">0 / 7</span></div>
+                    <div class="progress-track"><div class="progress-fill"></div></div>
+                    <div class="sc-row small"><span class="k">7 Delivery Order &nbsp;•&nbsp; 2 Retur</span><span class="v green">(0%)</span></div>
+                    <div class="dest-label">Lokasi Tujuan</div>
+                    <div class="dest-row"><span class="pin">📍</span> Indihiang (Sukamaju...<span class="more">+2 Destinasi ⌄</span></div>
+                    <button class="btn-detail">Detail Surat Jalan</button>
+                  </div>
+                  <div class="menu-card">
+                    <div class="menu-item"><span class="ic">📄</span><div class="txt"><div class="t">Shipment Cost / HBO</div></div><span class="chev">›</span></div>
+                    <div class="menu-item"><span class="ic">🕐</span><div class="txt"><div class="t">Riwayat Penugasan</div></div><span class="chev">›</span></div>
+                  </div>
+                </div>
+              </div>
+              <div class="crit-overlay">
+                <div class="crit-modal">
+                  <div class="crit-icon">⛔</div>
+                  <h3>Update Wajib Diperlukan</h3>
+                  <p>Versi aplikasi Anda sudah sangat tertinggal dan tidak lagi didukung. Perbarui sekarang untuk menjaga keamanan data pengiriman dan kelancaran operasional.</p>
+                  <div class="ver-chip">v2.8.0 → v3.4.0 wajib</div>
+                  <button class="btn-crit">Update Sekarang</button>
+                  <div class="help">Kendala update? Hubungi admin DC Anda.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function toggleSidebar(){
+  const collapsed=document.body.classList.toggle('sb-collapsed');
+  document.documentElement.style.setProperty('--sw', collapsed?'64px':'220px');
+}
+</script>
+</body>
+</html>
