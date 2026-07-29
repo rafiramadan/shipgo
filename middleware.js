@@ -41,7 +41,13 @@ export default async function middleware(request) {
   // cached by a shared/edge cache — otherwise one unauthenticated hit on a path can get
   // cached and replayed as a forced login redirect to every later visitor of that same
   // path, even ones with a perfectly valid session.
-  const response = Response.redirect(loginUrl, 307);
-  response.headers.set('Cache-Control', 'no-store');
-  return response;
+  // (Built manually, not via Response.redirect(), because that helper returns a Response
+  // with an immutable header guard — calling .set() on it throws at runtime.)
+  return new Response(null, {
+    status: 307,
+    headers: {
+      Location: loginUrl.toString(),
+      'Cache-Control': 'no-store',
+    },
+  });
 }
