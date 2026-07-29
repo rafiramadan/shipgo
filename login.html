@@ -31,21 +31,16 @@ body{
 .brand-name span{color:var(--p700)}
 .brand-sub{font-size:12px;color:var(--g500);text-align:center}
 
-.field{margin-bottom:16px}
-.field label{display:block;font-size:12px;font-weight:600;color:var(--g700);margin-bottom:6px}
-.input-wrap{position:relative}
-.input-wrap i.leading{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--g400);font-size:13px}
-.input-wrap input{
-  width:100%;padding:10px 12px 10px 34px;border:1px solid var(--g200);border-radius:var(--r);
-  font-size:13px;font-family:var(--font);color:var(--g900);outline:none;transition:border-color .15s,box-shadow .15s;
+.field{margin-bottom:20px}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--g700);margin-bottom:8px;text-align:center}
+.pin-input{
+  width:100%;padding:14px 12px;border:1px solid var(--g200);border-radius:var(--r);
+  font-size:26px;font-family:'SFMono-Regular',Consolas,var(--font);color:var(--g900);outline:none;
+  text-align:center;letter-spacing:.5em;transition:border-color .15s,box-shadow .15s;
 }
-.input-wrap input:focus{border-color:var(--p600);box-shadow:0 0 0 3px var(--p100)}
-.toggle-pw{position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--g400);font-size:13px;cursor:pointer;background:none;border:none;padding:4px}
-.toggle-pw:hover{color:var(--g700)}
-
-.remember-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
-.remember{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--g600)}
-.remember input{accent-color:var(--p700)}
+.pin-input::placeholder{letter-spacing:.5em;color:var(--g200)}
+.pin-input:focus{border-color:var(--p600);box-shadow:0 0 0 3px var(--p100)}
+.field-hint{font-size:11px;color:var(--g400);text-align:center;margin-top:8px}
 
 .btn-login{
   width:100%;padding:11px;border:none;border-radius:var(--r);background:var(--p700);color:#fff;
@@ -76,27 +71,18 @@ body{
 
     <div class="error-banner" id="errorBanner">
       <i class="fa-solid fa-circle-exclamation"></i>
-      <span id="errorText">Email atau password salah.</span>
+      <span id="errorText">PIN salah.</span>
     </div>
 
-    <form id="loginForm" autocomplete="on">
+    <form id="loginForm" autocomplete="off">
       <div class="field">
-        <label for="email">Email</label>
-        <div class="input-wrap">
-          <i class="fa-regular fa-envelope leading"></i>
-          <input type="email" id="email" name="email" placeholder="nama@shipgo.id" required autocomplete="username">
-        </div>
-      </div>
-      <div class="field">
-        <label for="password">Password</label>
-        <div class="input-wrap">
-          <i class="fa-solid fa-lock leading"></i>
-          <input type="password" id="password" name="password" placeholder="••••••••" required autocomplete="current-password" style="padding-right:34px">
-          <button type="button" class="toggle-pw" id="togglePw" aria-label="Tampilkan password"><i class="fa-regular fa-eye"></i></button>
-        </div>
-      </div>
-      <div class="remember-row">
-        <label class="remember"><input type="checkbox" id="remember"> Ingat saya</label>
+        <label for="pin">Masukkan PIN Akses</label>
+        <input
+          type="text" id="pin" name="pin" placeholder="••••••"
+          inputmode="numeric" pattern="[0-9]*" maxlength="6"
+          autocomplete="one-time-code" autofocus required
+          class="pin-input">
+        <div class="field-hint">PIN 6 digit — hubungi admin DC jika belum memilikinya.</div>
       </div>
       <button type="submit" class="btn-login" id="submitBtn">
         <i class="fa-solid fa-right-to-bracket"></i> <span>Masuk</span>
@@ -112,13 +98,10 @@ const form = document.getElementById('loginForm');
 const errorBanner = document.getElementById('errorBanner');
 const errorText = document.getElementById('errorText');
 const submitBtn = document.getElementById('submitBtn');
-const togglePw = document.getElementById('togglePw');
-const pwInput = document.getElementById('password');
+const pinInput = document.getElementById('pin');
 
-togglePw.addEventListener('click', () => {
-  const isPw = pwInput.type === 'password';
-  pwInput.type = isPw ? 'text' : 'password';
-  togglePw.innerHTML = isPw ? '<i class="fa-regular fa-eye-slash"></i>' : '<i class="fa-regular fa-eye"></i>';
+pinInput.addEventListener('input', () => {
+  pinInput.value = pinInput.value.replace(/\D/g, '').slice(0, 6);
 });
 
 function setLoading(loading) {
@@ -142,10 +125,7 @@ form.addEventListener('submit', async (e) => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'same-origin',
-      body: JSON.stringify({
-        email: document.getElementById('email').value.trim(),
-        password: pwInput.value.trim(),
-      }),
+      body: JSON.stringify({ pin: pinInput.value.trim() }),
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {

@@ -1,15 +1,9 @@
-import bcrypt from 'bcryptjs';
 import { signSession, buildSessionCookie } from '../_lib/auth.js';
-import { findUserByEmail } from '../_lib/users.js';
 
-// Simple in-memory throttle to slow down brute-force guesses. Resets on cold start
-// and isn't shared across serverless instances — a real deployment should back this
-// with a shared store (e.g. Redis) instead.
-//
+// Simple in-memory throttle to slow down PIN brute-forcing — a 6-digit PIN only has
+// 1,000,000 combinations, so this matters more here than it would for a real password.
 // Only FAILED attempts count toward the limit, and a successful login clears the
-// counter — otherwise a few early typos (very plausible when retyping a password
-// like "ShipGo!2026" from memory) permanently use up the budget and the correct
-// password starts getting rejected too, which looks exactly like "login is broken".
+// counter, so a couple of mistyped digits can never lock out the correct PIN afterwards.
 const attempts = new Map();
 const MAX_ATTEMPTS = 8;
 const WINDOW_MS = 5 * 60 * 1000;
@@ -32,34 +26,40 @@ function clearAttempts(key) {
   attempts.delete(key);
 }
 
+// Prototype-only shared access PIN — set SHIPGO_PIN in Vercel's Environment Variables
+// to change it without a code change. Falls back to the documented demo PIN.
+const SHIPGO_PIN = process.env.SHIPGO_PIN || '000000';
+
+// Single shared identity for the session — this prototype no longer distinguishes
+// individual accounts, so every PIN login represents the same platform user.
+const SESSION_USER = { sub: 'shipgo-pin', name: 'Rafi Ramadani', role: 'Administrator', email: 'rafi.ramadani@paracorpgroup.com' };
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { email, password } = req.body || {};
-  if (!email || !password || typeof email !== 'string' || typeof password !== 'string') {
-    return res.status(400).json({ error: 'Email dan password wajib diisi.' });
+  const { pin } = req.body || {};
+  if (!pin || typeof pin !== 'string') {
+    return res.status(400).json({ error: 'PIN wajib diisi.' });
   }
 
-  const normalizedEmail = email.trim().toLowerCase();
-  const throttleKey = (req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown') + ':' + normalizedEmail;
+  const normalizedPin = pin.trim();
+  const throttleKey = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown';
   if (isThrottled(throttleKey)) {
     return res.status(429).json({ error: 'Terlalu banyak percobaan gagal. Coba lagi dalam beberapa menit.' });
   }
 
-  const user = findUserByEmail(normalizedEmail);
-  // Trim to absorb stray whitespace/newlines from copy-paste — these demo passwords
-  // never intentionally contain leading/trailing spaces.
-  const valid = user ? bcrypt.compareSync(password.trim(), user.passwordHash) : false;
-  if (!valid) {
+  if (normalizedPin !== SHIPGO_PIN) {
     recordFailedAttempt(throttleKey);
-    return res.status(401).json({ error: 'Email atau password salah.' });
+    return res.status(401).json({ error: 'PIN salah.' });
   }
 
   clearAttempts(throttleKey);
-  const token = await signSession({ sub: user.id, name: user.name, role: user.role, email: user.email });
+  const token = await signSession(SESSION_USER);
   res.setHeader('Set-Cookie', buildSessionCookie(token));
-  return res.status(200).json({ user: { name: user.name, role: user.role, email: user.email } });
+  return res.status(200).json({
+    user: { name: SESSION_USER.name, role: SESSION_USER.role, email: SESSION_USER.email },
+  });
 }

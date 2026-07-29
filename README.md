@@ -32,26 +32,23 @@ Prototype platform GPS Tracking untuk ShipGo TMS — PT Parama Global Inspira.
 - [Font Awesome 6](https://fontawesome.com/) — icons
 - [Google Fonts — Inter](https://fonts.google.com/specimen/Inter)
 - Vercel Serverless Functions + Edge Middleware — login/session backend (`api/`, `middleware.js`)
-- [jose](https://github.com/panva/jose) — JWT signing/verification, [bcryptjs](https://github.com/dcodeIO/bcrypt.js) — password hashing
+- [jose](https://github.com/panva/jose) — JWT signing/verification
 
 ## Autentikasi
 
-Setiap halaman (`/`, `/live`, `/history`, `/shipment`) dilindungi oleh Edge Middleware
-(`middleware.js`) — permintaan tanpa sesi valid akan di-redirect ke `/login.html`
-sebelum HTML halaman terkirim.
+Setiap halaman aplikasi dilindungi oleh Edge Middleware (`middleware.js`) — permintaan
+tanpa sesi valid akan di-redirect ke `/login.html` sebelum HTML halaman terkirim.
 
-- **Login page:** `login.html` — POST ke `/api/auth/login`
+- **Login page:** `login.html` — satu form PIN 6 digit, POST ke `/api/auth/login`
+- **Akses:** PIN tunggal bersama (bukan per-user) — cocok untuk prototype yang dibagikan ke banyak reviewer tanpa perlu akun masing-masing. Default PIN: `000000`
 - **Session cookie:** JWT (`jose`), disimpan sebagai cookie `HttpOnly`, `SameSite=Lax`, berlaku 12 jam
-- **User store (prototype):** `api/_lib/users.js` — daftar user hardcoded dengan password ter-hash bcrypt (belum pakai database sungguhan, konsisten dengan data trip/DO lain di app ini). Kredensial akun tidak didokumentasikan di sini — simpan secara terpisah (mis. password manager).
+- **Rate limit:** maksimal 8 percobaan PIN salah per 5 menit per IP; percobaan berhasil mereset hitungannya
 
 ### Setup
 
 1. Set environment variable `JWT_SECRET` di Vercel project settings (generate dengan `openssl rand -base64 48`). Lihat `.env.example`.
-2. `npm install` untuk dependency `jose` dan `bcryptjs`.
-3. Untuk menambah/ubah user: hash password baru dengan `bcryptjs`, lalu tambahkan ke `api/_lib/users.js`.
-
-Sebelum menambahkan user sungguhan, migrasikan `api/_lib/users.js` ke database asli — file
-hardcoded ini hanya cocok untuk prototype/demo.
+2. (Opsional) Set `SHIPGO_PIN` untuk mengganti PIN akses dari default `000000`.
+3. `npm install` untuk dependency `jose`.
 
 ## Deploy ke Vercel
 
@@ -71,13 +68,12 @@ shipgo-gps/
 ├── middleware.js           ← Edge Middleware — gates every protected page
 ├── api/
 │   ├── _lib/auth.js        ← JWT sign/verify + cookie helpers (shared)
-│   ├── _lib/users.js       ← Prototype user store (bcrypt-hashed passwords)
 │   └── auth/
-│       ├── login.js        ← POST — verify credentials, issue session cookie
+│       ├── login.js        ← POST — verify PIN, issue session cookie
 │       ├── logout.js       ← POST — clear session cookie
 │       └── session.js      ← GET — current session info
 ├── vercel.json             ← Vercel routing config
-├── package.json            ← Backend dependencies (jose, bcryptjs)
+├── package.json            ← Backend dependencies (jose)
 ├── .env.example            ← Documents JWT_SECRET
 └── README.md
 ```
