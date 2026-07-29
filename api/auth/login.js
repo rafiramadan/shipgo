@@ -5,19 +5,31 @@ import { findUserByEmail } from '../_lib/users.js';
 // Simple in-memory throttle to slow down brute-force guesses. Resets on cold start
 // and isn't shared across serverless instances — a real deployment should back this
 // with a shared store (e.g. Redis) instead.
+//
+// Only FAILED attempts count toward the limit, and a successful login clears the
+// counter — otherwise a few early typos (very plausible when retyping a password
+// like "ShipGo!2026" from memory) permanently use up the budget and the correct
+// password starts getting rejected too, which looks exactly like "login is broken".
 const attempts = new Map();
 const MAX_ATTEMPTS = 8;
 const WINDOW_MS = 5 * 60 * 1000;
 
-function tooManyAttempts(key) {
+function isThrottled(key) {
+  const record = attempts.get(key);
+  if (!record || Date.now() - record.first > WINDOW_MS) return false;
+  return record.count >= MAX_ATTEMPTS;
+}
+function recordFailedAttempt(key) {
   const now = Date.now();
   const record = attempts.get(key);
   if (!record || now - record.first > WINDOW_MS) {
     attempts.set(key, { count: 1, first: now });
-    return false;
+  } else {
+    record.count += 1;
   }
-  record.count += 1;
-  return record.count > MAX_ATTEMPTS;
+}
+function clearAttempts(key) {
+  attempts.delete(key);
 }
 
 export default async function handler(req, res) {
@@ -33,7 +45,7 @@ export default async function handler(req, res) {
 
   const normalizedEmail = email.trim().toLowerCase();
   const throttleKey = (req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown') + ':' + normalizedEmail;
-  if (tooManyAttempts(throttleKey)) {
+  if (isThrottled(throttleKey)) {
     return res.status(429).json({ error: 'Terlalu banyak percobaan gagal. Coba lagi dalam beberapa menit.' });
   }
 
@@ -42,9 +54,11 @@ export default async function handler(req, res) {
   // never intentionally contain leading/trailing spaces.
   const valid = user ? bcrypt.compareSync(password.trim(), user.passwordHash) : false;
   if (!valid) {
+    recordFailedAttempt(throttleKey);
     return res.status(401).json({ error: 'Email atau password salah.' });
   }
 
+  clearAttempts(throttleKey);
   const token = await signSession({ sub: user.id, name: user.name, role: user.role, email: user.email });
   res.setHeader('Set-Cookie', buildSessionCookie(token));
   return res.status(200).json({ user: { name: user.name, role: user.role, email: user.email } });
