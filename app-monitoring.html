@@ -101,22 +101,10 @@ body.sb-collapsed .sb-top{justify-content:center}
 .body-wrap{flex:1;overflow-y:auto;padding:18px 24px}
 
 /* ── STAT CARDS ── */
-.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
-.stat-card{background:#fff;border:1px solid var(--g200);border-radius:var(--r2);padding:14px 16px;box-shadow:var(--sh)}
+.stat-grid{display:flex;gap:10px;margin-bottom:16px}
+.stat-card{background:#fff;border:1px solid var(--g200);border-radius:var(--r2);padding:14px 16px;box-shadow:var(--sh);width:200px}
 .stat-card-label{font-size:11px;color:var(--g500);font-weight:600;text-transform:uppercase;letter-spacing:.3px}
 .stat-card-value{font-size:22px;font-weight:700;color:var(--g900);margin-top:4px}
-.stat-card.on-track .stat-card-value{color:#15803d}
-.stat-card.warn .stat-card-value{color:#b45309}
-.stat-card.crit .stat-card-value{color:#b91c1c}
-@media (max-width:1200px){ .stat-grid{grid-template-columns:repeat(3,1fr)} }
-@media (max-width:800px){ .stat-grid{grid-template-columns:repeat(2,1fr)} }
-
-/* ── MIN VERSION BANNER ── */
-.min-ver-banner{display:flex;align-items:center;gap:12px;background:var(--p50);border:1px solid var(--p200);border-radius:var(--r2);padding:12px 16px;margin-bottom:16px}
-.min-ver-icon{width:34px;height:34px;border-radius:9px;background:var(--p700);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px}
-.min-ver-title{font-size:12.5px;font-weight:700;color:var(--g900)}
-.min-ver-desc{font-size:11.5px;color:var(--g600);margin-top:2px}
-.min-ver-value{font-family:'SFMono-Regular',Consolas,monospace;font-weight:700;color:var(--p700)}
 
 .panel{background:#fff;border:1px solid var(--g200);border-radius:var(--r2);box-shadow:var(--sh)}
 .panel-hdr-row{padding:14px 16px 10px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--g200)}
@@ -134,7 +122,6 @@ table.drv-table tbody td{padding:10px 16px;border-bottom:1px solid var(--g100);v
 table.drv-table tbody tr:last-child td{border-bottom:none}
 table.drv-table tbody tr:hover{background:var(--g50)}
 .drv-name{font-weight:700;color:var(--g900)}
-.drv-id{color:var(--g400);font-size:11px;margin-top:1px}
 .dc-pill{display:inline-flex;align-items:center;font-size:11px;font-weight:600;background:var(--p50);color:var(--p700);padding:2px 9px;border-radius:12px}
 
 .device-model{font-weight:600;color:var(--g800)}
@@ -142,21 +129,9 @@ table.drv-table tbody tr:hover{background:var(--g50)}
 
 .ver-num{font-family:'SFMono-Regular',Consolas,monospace;font-weight:700;color:var(--g900)}
 
-.status-pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:2px 9px;border-radius:12px}
-.status-pill.up_to_date{background:#dcfce7;color:#15803d}
-.status-pill.outdated{background:#fef3c7;color:#b45309}
-.status-pill.critical{background:#fee2e2;color:#b91c1c}
-.status-pill.gray{background:var(--g100);color:var(--g500)}
-
 .last-active{font-size:12px;color:var(--g700)}
 .last-active.stale{color:#b91c1c;font-weight:600}
 .last-active-sub{font-size:10.5px;color:var(--g400);margin-top:1px}
-
-.perm-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600}
-.perm-badge i{font-size:10px}
-.perm-badge.ok{color:#15803d}
-.perm-badge.warn{color:#b45309}
-.perm-badge.bad{color:#b91c1c}
 
 .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;gap:10px}
 .empty-state i{font-size:32px;color:var(--p200)}
@@ -184,7 +159,6 @@ table.drv-table tbody tr:hover{background:var(--g50)}
 
 .detail-hdr-row{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
 .detail-hdr-name{font-size:15px;font-weight:700;color:var(--g900)}
-.detail-hdr-sub{font-size:11.5px;color:var(--g500);margin-top:2px}
 
 .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 20px}
 .detail-field-label{font-size:10.5px;font-weight:700;color:var(--g400);text-transform:uppercase;letter-spacing:.3px}
@@ -370,15 +344,6 @@ table.history-table tr:last-child td{border-bottom:none}
   <div class="body-wrap">
     <div class="stat-grid" id="statGrid"></div>
 
-    <div class="min-ver-banner">
-      <div class="min-ver-icon"><i class="fa-solid fa-mobile-screen-button"></i></div>
-      <div style="flex:1">
-        <div class="min-ver-title">Versi Minimum yang Diwajibkan: <span class="min-ver-value" id="minVerLabel"></span></div>
-        <div class="min-ver-desc">Device dengan versi di bawah ini ditandai "Outdated" atau "Critical" pada tabel. Digunakan sebagai acuan kebijakan force-update.</div>
-      </div>
-      <button class="btn btn-outline btn-sm" onclick="openMinVerModal()"><i class="fa-solid fa-pen"></i> Ubah</button>
-    </div>
-
     <div class="panel">
       <div class="panel-hdr-row">
         <div>
@@ -392,12 +357,6 @@ table.history-table tr:last-child td{border-bottom:none}
           <input class="filter-input" type="text" id="searchInput" placeholder="Cari driver / device..." style="padding-left:26px;width:220px">
         </div>
         <select class="filter-select" id="dcFilter"></select>
-        <select class="filter-select" id="statusFilter">
-          <option value="">Semua Status Versi</option>
-          <option value="up_to_date">Up to Date</option>
-          <option value="outdated">Outdated</option>
-          <option value="critical">Critical</option>
-        </select>
         <select class="filter-select" id="activityFilter">
           <option value="">Semua Aktivitas</option>
           <option value="active">Aktif</option>
@@ -413,7 +372,6 @@ table.history-table tr:last-child td{border-bottom:none}
               <th>Device</th>
               <th>App Version</th>
               <th>Last Active</th>
-              <th>GPS Permission</th>
               <th></th>
             </tr>
           </thead>
@@ -434,27 +392,6 @@ table.history-table tr:last-child td{border-bottom:none}
     <div class="modal-body" id="detailModalBody"></div>
     <div class="modal-foot">
       <button class="btn btn-outline" onclick="closeDetailModal()">Tutup</button>
-    </div>
-  </div>
-</div>
-
-<!-- Min Version Modal -->
-<div class="modal-overlay" id="minVerModal">
-  <div class="modal" style="width:400px">
-    <div class="modal-head">
-      <div class="modal-title">Ubah Versi Minimum</div>
-      <div class="modal-close" onclick="closeMinVerModal()"><i class="fa-solid fa-xmark"></i></div>
-    </div>
-    <div class="modal-body">
-      <div class="field">
-        <label class="field-label">Versi Minimum (format x.y.z)</label>
-        <input type="text" id="minVerInput" placeholder="mis. 3.4.0">
-        <div class="field-error" id="minVerError"><i class="fa-solid fa-circle-exclamation"></i> Format harus x.y.z, mis. 3.4.0</div>
-      </div>
-    </div>
-    <div class="modal-foot">
-      <button class="btn btn-outline" onclick="closeMinVerModal()">Batal</button>
-      <button class="btn btn-primary" onclick="saveMinVer()"><i class="fa-solid fa-check"></i> Simpan</button>
     </div>
   </div>
 </div>
@@ -496,113 +433,79 @@ function fmtDateTime(d){
 
 const DEVICES=[
   {id:'drv1',name:'Citra Mulyono',employeeId:'EMP1001',dcId:'dc-solo',
-   model:'Samsung Galaxy A14',os:'Android 13',imei:'86xxxxxxxxxx1123',
+   model:'Samsung SM-S937B',os:'Android 16',
+   brand:'Samsung',manufacturer:'Samsung',sdkInt:36,
    appVersion:'3.4.0',lastActiveDaysAgo:0,
-   gpsPermission:'always',batteryOpt:'not_restricted',pushNotif:true,
+   pushNotif:true,
    history:[{version:'3.2.0',date:dateDaysAgo(96),method:'Play Store'},{version:'3.3.0',date:dateDaysAgo(58),method:'Play Store'},{version:'3.4.0',date:dateDaysAgo(12),method:'Play Store'}]},
   {id:'drv2',name:'M. Fadhli Salam',employeeId:'EMP1002',dcId:'dc-bandung',
-   model:'Xiaomi Redmi Note 12',os:'Android 13',imei:'35xxxxxxxxxx4471',
+   model:'Xiaomi Redmi Note 12',os:'Android 13',
+   brand:'Xiaomi',manufacturer:'Xiaomi',sdkInt:33,
    appVersion:'3.4.0',lastActiveDaysAgo:1,
-   gpsPermission:'always',batteryOpt:'not_restricted',pushNotif:true,
+   pushNotif:true,
    history:[{version:'3.3.0',date:dateDaysAgo(58),method:'Play Store'},{version:'3.4.0',date:dateDaysAgo(10),method:'Play Store'}]},
   {id:'drv3',name:'M. Iqbal Kurniawan',employeeId:'EMP1003',dcId:'dc-bogor',
-   model:'OPPO A57',os:'Android 12',imei:'86xxxxxxxxxx8832',
+   model:'OPPO A57',os:'Android 12',
+   brand:'OPPO',manufacturer:'OPPO',sdkInt:31,
    appVersion:'3.3.0',lastActiveDaysAgo:2,
-   gpsPermission:'while_using',batteryOpt:'restricted',pushNotif:true,
+   pushNotif:true,
    history:[{version:'3.2.0',date:dateDaysAgo(96),method:'Play Store'},{version:'3.3.0',date:dateDaysAgo(58),method:'Play Store'}]},
   {id:'drv4',name:'Tri Febrianto',employeeId:'EMP1004',dcId:'dc-tasikmalaya',
-   model:'Vivo Y22',os:'Android 12',imei:'35xxxxxxxxxx2290',
+   model:'Vivo Y22',os:'Android 12',
+   brand:'vivo',manufacturer:'vivo',sdkInt:31,
    appVersion:'2.9.5',lastActiveDaysAgo:15,
-   gpsPermission:'denied',batteryOpt:'restricted',pushNotif:false,
+   pushNotif:false,
    history:[{version:'2.8.0',date:dateDaysAgo(210),method:'APK Manual'},{version:'2.9.5',date:dateDaysAgo(140),method:'APK Manual'}]},
   {id:'drv5',name:'Farraz Nanang Fauzan',employeeId:'EMP1005',dcId:'dc-solo',
-   model:'Realme C35',os:'Android 13',imei:'86xxxxxxxxxx5567',
+   model:'Realme C35',os:'Android 13',
+   brand:'realme',manufacturer:'realme',sdkInt:33,
    appVersion:'3.4.0',lastActiveDaysAgo:0,
-   gpsPermission:'always',batteryOpt:'not_restricted',pushNotif:true,
+   pushNotif:true,
    history:[{version:'3.3.0',date:dateDaysAgo(58),method:'Play Store'},{version:'3.4.0',date:dateDaysAgo(9),method:'Play Store'}]},
   {id:'drv6',name:'Alamsyah Satrio Aji',employeeId:'EMP1006',dcId:'dc-semarang',
-   model:'Samsung Galaxy A34',os:'Android 14',imei:'35xxxxxxxxxx9012',
+   model:'Samsung Galaxy A34',os:'Android 14',
+   brand:'Samsung',manufacturer:'Samsung',sdkInt:34,
    appVersion:'3.4.0',lastActiveDaysAgo:3,
-   gpsPermission:'always',batteryOpt:'not_restricted',pushNotif:true,
+   pushNotif:true,
    history:[{version:'3.3.0',date:dateDaysAgo(58),method:'Play Store'},{version:'3.4.0',date:dateDaysAgo(11),method:'Play Store'}]},
   {id:'drv7',name:'Abdullah Harmaen',employeeId:'EMP1007',dcId:'dc-bandung',
-   model:'Infinix Hot 30',os:'Android 13',imei:'86xxxxxxxxxx3345',
+   model:'Infinix Hot 30',os:'Android 13',
+   brand:'Infinix',manufacturer:'Infinix',sdkInt:33,
    appVersion:'3.3.0',lastActiveDaysAgo:5,
-   gpsPermission:'always',batteryOpt:'restricted',pushNotif:true,
+   pushNotif:true,
    history:[{version:'3.2.0',date:dateDaysAgo(96),method:'Play Store'},{version:'3.3.0',date:dateDaysAgo(58),method:'Play Store'}]},
   {id:'drv8',name:'Tio Sugiatna',employeeId:'EMP1008',dcId:'dc-sukabumi',
-   model:'itel A60s',os:'Android 12',imei:'35xxxxxxxxxx6678',
+   model:'itel A60s',os:'Android 12',
+   brand:'itel',manufacturer:'itel',sdkInt:31,
    appVersion:'3.1.0',lastActiveDaysAgo:9,
-   gpsPermission:'while_using',batteryOpt:'restricted',pushNotif:true,
+   pushNotif:true,
    history:[{version:'3.0.0',date:dateDaysAgo(150),method:'APK Manual'},{version:'3.1.0',date:dateDaysAgo(85),method:'APK Manual'}]},
   {id:'drv9',name:'Wahono Prasetyo',employeeId:'EMP1009',dcId:'dc-solo',
-   model:'Xiaomi Redmi 10',os:'Android 11',imei:'86xxxxxxxxxx7789',
+   model:'Xiaomi Redmi 10',os:'Android 11',
+   brand:'Xiaomi',manufacturer:'Xiaomi',sdkInt:30,
    appVersion:'3.4.0',lastActiveDaysAgo:1,
-   gpsPermission:'always',batteryOpt:'not_restricted',pushNotif:true,
+   pushNotif:true,
    history:[{version:'3.3.0',date:dateDaysAgo(58),method:'Play Store'},{version:'3.4.0',date:dateDaysAgo(13),method:'Play Store'}]},
   {id:'drv10',name:'Asep Kurnia',employeeId:'EMP1010',dcId:'dc-bogor',
-   model:'OPPO A17',os:'Android 12',imei:'35xxxxxxxxxx0021',
+   model:'OPPO A17',os:'Android 12',
+   brand:'OPPO',manufacturer:'OPPO',sdkInt:31,
    appVersion:'3.4.0',lastActiveDaysAgo:2,
-   gpsPermission:'always',batteryOpt:'not_restricted',pushNotif:true,
+   pushNotif:true,
    history:[{version:'3.3.0',date:dateDaysAgo(58),method:'Play Store'},{version:'3.4.0',date:dateDaysAgo(14),method:'Play Store'}]},
 ];
 
-let MIN_VERSION='3.4.0';
-let searchTerm='', dcFilterVal='', statusFilterVal='', activityFilterVal='';
-
-// ── VERSION / STATUS HELPERS ──
-function parseVersion(v){
-  const parts=(v||'0.0.0').split('.').map(n=>parseInt(n,10)||0);
-  return {major:parts[0]||0,minor:parts[1]||0,patch:parts[2]||0};
-}
-function compareVersions(a,b){
-  const pa=parseVersion(a), pb=parseVersion(b);
-  if(pa.major!==pb.major) return pa.major-pb.major;
-  if(pa.minor!==pb.minor) return pa.minor-pb.minor;
-  return pa.patch-pb.patch;
-}
-function versionStatus(deviceVersion){
-  const diff=compareVersions(deviceVersion,MIN_VERSION);
-  if(diff>=0) return 'up_to_date';
-  const dv=parseVersion(deviceVersion), mv=parseVersion(MIN_VERSION);
-  if(dv.major<mv.major||(mv.minor-dv.minor)>=2) return 'critical';
-  return 'outdated';
-}
-const STATUS_LABEL={up_to_date:'Up to Date',outdated:'Outdated',critical:'Critical'};
+let searchTerm='', dcFilterVal='', activityFilterVal='';
 
 function isInactive(daysAgo){ return daysAgo>7; }
-
-function gpsPermInfo(val){
-  return {
-    always:{label:'Selalu Izinkan',cls:'ok',icon:'fa-solid fa-location-crosshairs'},
-    while_using:{label:'Saat Digunakan',cls:'warn',icon:'fa-solid fa-location-dot'},
-    denied:{label:'Ditolak',cls:'bad',icon:'fa-solid fa-location-slash'},
-  }[val];
-}
-function batteryOptInfo(val){
-  return val==='restricted'
-    ? {label:'Dibatasi',cls:'bad',icon:'fa-solid fa-battery-quarter'}
-    : {label:'Tidak Dibatasi',cls:'ok',icon:'fa-solid fa-battery-full'};
-}
 
 // ── STAT CARDS ──
 function renderStatGrid(){
   const total=DEVICES.length;
-  const upToDate=DEVICES.filter(d=>versionStatus(d.appVersion)==='up_to_date').length;
-  const outdated=DEVICES.filter(d=>versionStatus(d.appVersion)==='outdated').length;
-  const critical=DEVICES.filter(d=>versionStatus(d.appVersion)==='critical').length;
-
-  const cards=[
-    {label:'Total Device',value:total,cls:''},
-    {label:'Up to Date',value:upToDate,cls:'on-track'},
-    {label:'Outdated',value:outdated,cls:'warn'},
-    {label:'Critical',value:critical,cls:'crit'},
-  ];
-  document.getElementById('statGrid').innerHTML=cards.map(c=>`
-    <div class="stat-card ${c.cls}">
-      <div class="stat-card-label">${c.label}</div>
-      <div class="stat-card-value">${c.value}</div>
-    </div>`).join('');
+  document.getElementById('statGrid').innerHTML=`
+    <div class="stat-card">
+      <div class="stat-card-label">Total Device</div>
+      <div class="stat-card-value">${total}</div>
+    </div>`;
 }
 
 // ── FILTERS ──
@@ -612,14 +515,12 @@ function initDcFilter(){
 }
 document.getElementById('searchInput').addEventListener('input',e=>{ searchTerm=e.target.value; renderDeviceTable(); });
 document.getElementById('dcFilter').addEventListener('change',e=>{ dcFilterVal=e.target.value; renderDeviceTable(); });
-document.getElementById('statusFilter').addEventListener('change',e=>{ statusFilterVal=e.target.value; renderDeviceTable(); });
 document.getElementById('activityFilter').addEventListener('change',e=>{ activityFilterVal=e.target.value; renderDeviceTable(); });
 
 function getFilteredDevices(){
   const q=searchTerm.toLowerCase();
   return DEVICES.filter(d=>{
     if(dcFilterVal && d.dcId!==dcFilterVal) return false;
-    if(statusFilterVal && versionStatus(d.appVersion)!==statusFilterVal) return false;
     if(activityFilterVal==='active' && isInactive(d.lastActiveDaysAgo)) return false;
     if(activityFilterVal==='inactive' && !isInactive(d.lastActiveDaysAgo)) return false;
     if(q && !d.name.toLowerCase().includes(q) && !d.model.toLowerCase().includes(q)) return false;
@@ -632,7 +533,7 @@ function renderDeviceTable(){
   const rows=getFilteredDevices();
   const tbody=document.getElementById('deviceTbody');
   if(!rows.length){
-    tbody.innerHTML=`<tr><td colspan="7"><div class="empty-state">
+    tbody.innerHTML=`<tr><td colspan="6"><div class="empty-state">
       <i class="fa-solid fa-mobile-screen-button"></i>
       <div class="empty-title">Tidak ada device ditemukan</div>
       <div class="empty-sub">Coba ubah kata kunci pencarian atau filter.</div>
@@ -641,17 +542,14 @@ function renderDeviceTable(){
   }
   tbody.innerHTML=rows.map(d=>{
     const dc=DCS.find(x=>x.id===d.dcId);
-    const status=versionStatus(d.appVersion);
     const inactive=isInactive(d.lastActiveDaysAgo);
-    const gps=gpsPermInfo(d.gpsPermission);
     const lastActiveLabel=d.lastActiveDaysAgo===0?'Hari ini':d.lastActiveDaysAgo===1?'Kemarin':`${d.lastActiveDaysAgo} hari lalu`;
     return `<tr>
-      <td><div class="drv-name">${escapeHtml(d.name)}</div><div class="drv-id">${escapeHtml(d.employeeId)}</div></td>
+      <td><div class="drv-name">${escapeHtml(d.name)}</div></td>
       <td><span class="dc-pill">${escapeHtml(dc?dc.name:d.dcId)}</span></td>
       <td><div class="device-model">${escapeHtml(d.model)}</div><div class="device-os">${escapeHtml(d.os)}</div></td>
-      <td><span class="ver-num">v${escapeHtml(d.appVersion)}</span><br><span class="status-pill ${status}" style="margin-top:4px">${STATUS_LABEL[status]}</span></td>
+      <td><span class="ver-num">v${escapeHtml(d.appVersion)}</span></td>
       <td><div class="last-active ${inactive?'stale':''}">${lastActiveLabel}</div><div class="last-active-sub">${fmtDate(dateDaysAgo(d.lastActiveDaysAgo))}</div></td>
-      <td><span class="perm-badge ${gps.cls}"><i class="${gps.icon}"></i> ${gps.label}</span></td>
       <td><button class="btn btn-outline btn-sm" onclick="openDetailModal('${d.id}')"><i class="fa-solid fa-circle-info"></i> Detail</button></td>
     </tr>`;
   }).join('');
@@ -662,10 +560,7 @@ function openDetailModal(deviceId){
   const d=DEVICES.find(x=>x.id===deviceId);
   if(!d) return;
   const dc=DCS.find(x=>x.id===d.dcId);
-  const status=versionStatus(d.appVersion);
   const inactive=isInactive(d.lastActiveDaysAgo);
-  const gps=gpsPermInfo(d.gpsPermission);
-  const batt=batteryOptInfo(d.batteryOpt);
   const lastActiveLabel=d.lastActiveDaysAgo===0?'Hari ini':d.lastActiveDaysAgo===1?'Kemarin':`${d.lastActiveDaysAgo} hari lalu`;
 
   const historyRows=d.history.slice().reverse().map(h=>`
@@ -675,24 +570,17 @@ function openDetailModal(deviceId){
     <div class="detail-hdr-row">
       <div>
         <div class="detail-hdr-name">${escapeHtml(d.name)}</div>
-        <div class="detail-hdr-sub">${escapeHtml(d.employeeId)} · ${escapeHtml(dc?dc.name:d.dcId)}</div>
       </div>
-      <span class="status-pill ${status}">${STATUS_LABEL[status]}</span>
     </div>
 
     <div class="detail-grid">
       <div><div class="detail-field-label">Device</div><div class="detail-field-value">${escapeHtml(d.model)}</div></div>
       <div><div class="detail-field-label">OS</div><div class="detail-field-value">${escapeHtml(d.os)}</div></div>
-      <div><div class="detail-field-label">IMEI</div><div class="detail-field-value">${escapeHtml(d.imei)}</div></div>
-      <div><div class="detail-field-label">App Version</div><div class="detail-field-value">v${escapeHtml(d.appVersion)} <span style="color:var(--g400);font-weight:500">(min. v${escapeHtml(MIN_VERSION)})</span></div></div>
+      <div><div class="detail-field-label">Manufacturer</div><div class="detail-field-value">${escapeHtml(d.manufacturer)}</div></div>
+      <div><div class="detail-field-label">Distribution Center</div><div class="detail-field-value">${escapeHtml(dc?dc.name:d.dcId)}</div></div>
+      <div><div class="detail-field-label">App Version</div><div class="detail-field-value">v${escapeHtml(d.appVersion)}</div></div>
       <div><div class="detail-field-label">Last Active</div><div class="detail-field-value" style="${inactive?'color:#b91c1c':''}">${lastActiveLabel} — ${fmtDateTime(dateDaysAgo(d.lastActiveDaysAgo))}</div></div>
       <div><div class="detail-field-label">Push Notification</div><div class="detail-field-value">${d.pushNotif?'Aktif':'Nonaktif'}</div></div>
-    </div>
-
-    <div class="section-label">Kesehatan Aplikasi</div>
-    <div class="detail-grid">
-      <div><div class="detail-field-label">GPS Permission</div><div class="detail-field-value"><span class="perm-badge ${gps.cls}"><i class="${gps.icon}"></i> ${gps.label}</span></div></div>
-      <div><div class="detail-field-label">Battery Optimization</div><div class="detail-field-value"><span class="perm-badge ${batt.cls}"><i class="${batt.icon}"></i> ${batt.label}</span></div></div>
     </div>
 
     <div class="section-label">Riwayat Update Versi</div>
@@ -705,28 +593,6 @@ function openDetailModal(deviceId){
 }
 function closeDetailModal(){ document.getElementById('detailModal').classList.remove('show'); }
 
-// ── MIN VERSION CONFIG ──
-function renderMinVerLabel(){
-  document.getElementById('minVerLabel').textContent=`v${MIN_VERSION}`;
-}
-function openMinVerModal(){
-  document.getElementById('minVerInput').value=MIN_VERSION;
-  document.getElementById('minVerError').classList.remove('show');
-  document.getElementById('minVerModal').classList.add('show');
-}
-function closeMinVerModal(){ document.getElementById('minVerModal').classList.remove('show'); }
-function saveMinVer(){
-  const val=document.getElementById('minVerInput').value.trim();
-  if(!/^\d+\.\d+\.\d+$/.test(val)){
-    document.getElementById('minVerError').classList.add('show');
-    return;
-  }
-  MIN_VERSION=val;
-  closeMinVerModal();
-  renderAll();
-  showToast(`Versi minimum berhasil diperbarui ke v${val}.`);
-}
-
 // ── EXPORT ──
 function toggleExportMenu(){ document.getElementById('exportMenu').classList.toggle('open'); }
 document.addEventListener('click',e=>{
@@ -736,14 +602,11 @@ document.addEventListener('click',e=>{
 function buildExportRows(){
   return DEVICES.map(d=>{
     const dc=DCS.find(x=>x.id===d.dcId);
-    const status=versionStatus(d.appVersion);
-    const gps=gpsPermInfo(d.gpsPermission);
-    const batt=batteryOptInfo(d.batteryOpt);
     return {
       driver:d.name,employeeId:d.employeeId,dc:dc?dc.name:d.dcId,
-      device:d.model,os:d.os,appVersion:d.appVersion,status:STATUS_LABEL[status],
+      device:d.model,os:d.os,sdkInt:d.sdkInt,manufacturer:d.manufacturer,
+      appVersion:d.appVersion,
       lastActive:fmtDate(dateDaysAgo(d.lastActiveDaysAgo)),
-      gpsPermission:gps.label,batteryOptimization:batt.label,
     };
   });
 }
@@ -757,16 +620,16 @@ function downloadBlob(content,filename,mime){
 }
 function doExport(format){
   const rows=buildExportRows();
-  const headers=['Driver','Employee ID','Distribution Center','Device','OS','App Version','Status','Last Active','GPS Permission','Battery Optimization'];
+  const headers=['Driver','Employee ID','Distribution Center','Device','OS','SDK Level','Manufacturer','App Version','Last Active'];
   if(format==='csv'){
     const escapeCsv=v=>`"${String(v).replace(/"/g,'""')}"`;
     const lines=[headers.map(escapeCsv).join(',')];
-    rows.forEach(r=>lines.push([r.driver,r.employeeId,r.dc,r.device,r.os,r.appVersion,r.status,r.lastActive,r.gpsPermission,r.batteryOptimization].map(escapeCsv).join(',')));
+    rows.forEach(r=>lines.push([r.driver,r.employeeId,r.dc,r.device,r.os,r.sdkInt,r.manufacturer,r.appVersion,r.lastActive].map(escapeCsv).join(',')));
     downloadBlob(lines.join('\n'),'app-monitoring.csv','text/csv;charset=utf-8;');
   }else{
     let html='<table><tr>'+headers.map(h=>`<th>${escapeHtml(h)}</th>`).join('')+'</tr>';
     rows.forEach(r=>{
-      html+='<tr>'+[r.driver,r.employeeId,r.dc,r.device,r.os,r.appVersion,r.status,r.lastActive,r.gpsPermission,r.batteryOptimization].map(v=>`<td>${escapeHtml(v)}</td>`).join('')+'</tr>';
+      html+='<tr>'+[r.driver,r.employeeId,r.dc,r.device,r.os,r.sdkInt,r.manufacturer,r.appVersion,r.lastActive].map(v=>`<td>${escapeHtml(v)}</td>`).join('')+'</tr>';
     });
     html+='</table>';
     downloadBlob(html,'app-monitoring.xlsx','application/vnd.ms-excel');
@@ -797,7 +660,6 @@ function showToast(msg){
 
 function renderAll(){
   renderStatGrid();
-  renderMinVerLabel();
   renderDeviceTable();
 }
 
