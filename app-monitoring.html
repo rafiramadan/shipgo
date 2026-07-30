@@ -368,7 +368,7 @@ table.history-table tr:last-child td{border-bottom:none}
           <thead>
             <tr>
               <th>Driver</th>
-              <th>Distribution Center</th>
+              <th>Shipping Point</th>
               <th>Device</th>
               <th>App Version</th>
               <th>Last Active</th>
@@ -511,7 +511,7 @@ function renderStatGrid(){
 // ── FILTERS ──
 function initDcFilter(){
   const sel=document.getElementById('dcFilter');
-  sel.innerHTML='<option value="">Semua DC</option>'+DCS.map(dc=>`<option value="${dc.id}">${escapeHtml(dc.name)}</option>`).join('');
+  sel.innerHTML='<option value="">Semua Shipping Point</option>'+DCS.map(dc=>`<option value="${dc.id}">${escapeHtml(dc.name)}</option>`).join('');
 }
 document.getElementById('searchInput').addEventListener('input',e=>{ searchTerm=e.target.value; renderDeviceTable(); });
 document.getElementById('dcFilter').addEventListener('change',e=>{ dcFilterVal=e.target.value; renderDeviceTable(); });
@@ -564,7 +564,7 @@ function openDetailModal(deviceId){
   const lastActiveLabel=d.lastActiveDaysAgo===0?'Hari ini':d.lastActiveDaysAgo===1?'Kemarin':`${d.lastActiveDaysAgo} hari lalu`;
 
   const historyRows=d.history.slice().reverse().map(h=>`
-    <tr><td><span class="ver-num">v${escapeHtml(h.version)}</span></td><td>${fmtDate(h.date)}</td><td>${escapeHtml(h.method)}</td></tr>`).join('');
+    <tr><td><span class="ver-num">v${escapeHtml(h.version)}</span></td><td>${fmtDate(h.date)}</td></tr>`).join('');
 
   document.getElementById('detailModalBody').innerHTML=`
     <div class="detail-hdr-row">
@@ -577,15 +577,14 @@ function openDetailModal(deviceId){
       <div><div class="detail-field-label">Device</div><div class="detail-field-value">${escapeHtml(d.model)}</div></div>
       <div><div class="detail-field-label">OS</div><div class="detail-field-value">${escapeHtml(d.os)}</div></div>
       <div><div class="detail-field-label">Manufacturer</div><div class="detail-field-value">${escapeHtml(d.manufacturer)}</div></div>
-      <div><div class="detail-field-label">Distribution Center</div><div class="detail-field-value">${escapeHtml(dc?dc.name:d.dcId)}</div></div>
+      <div><div class="detail-field-label">Shipping Point</div><div class="detail-field-value">${escapeHtml(dc?dc.name:d.dcId)}</div></div>
       <div><div class="detail-field-label">App Version</div><div class="detail-field-value">v${escapeHtml(d.appVersion)}</div></div>
       <div><div class="detail-field-label">Last Active</div><div class="detail-field-value" style="${inactive?'color:#b91c1c':''}">${lastActiveLabel} — ${fmtDateTime(dateDaysAgo(d.lastActiveDaysAgo))}</div></div>
-      <div><div class="detail-field-label">Push Notification</div><div class="detail-field-value">${d.pushNotif?'Aktif':'Nonaktif'}</div></div>
     </div>
 
     <div class="section-label">Riwayat Update Versi</div>
     <table class="history-table">
-      <thead><tr><th>Versi</th><th>Tanggal</th><th>Metode</th></tr></thead>
+      <thead><tr><th>Versi</th><th>Tanggal</th></tr></thead>
       <tbody>${historyRows}</tbody>
     </table>
   `;
@@ -620,7 +619,7 @@ function downloadBlob(content,filename,mime){
 }
 function doExport(format){
   const rows=buildExportRows();
-  const headers=['Driver','Employee ID','Distribution Center','Device','OS','SDK Level','Manufacturer','App Version','Last Active'];
+  const headers=['Driver','Employee ID','Shipping Point','Device','OS','SDK Level','Manufacturer','App Version','Last Active'];
   if(format==='csv'){
     const escapeCsv=v=>`"${String(v).replace(/"/g,'""')}"`;
     const lines=[headers.map(escapeCsv).join(',')];
