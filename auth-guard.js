@@ -38,6 +38,26 @@
     });
   };
 
+  // Sidebar nav groups (Order Management, App Monitoring, etc.) start collapsed so the
+  // whole menu tree isn't stacked open at once — only the group containing the current
+  // page expands automatically, and opening one group closes any other open group.
+  function initSidebarAccordion() {
+    document.querySelectorAll('.si-caret').forEach((caret) => {
+      const parent = caret.closest('.si');
+      const subMenu = parent && parent.nextElementSibling;
+      if (!parent || !subMenu || !subMenu.classList.contains('nav-sub')) return;
+      parent.addEventListener('click', (e) => {
+        e.preventDefault();
+        const willOpen = !parent.classList.contains('expanded');
+        document.querySelectorAll('.si.expanded').forEach((el) => el.classList.remove('expanded'));
+        if (willOpen) parent.classList.add('expanded');
+      });
+    });
+    const activeChild = document.querySelector('.nav-sub .si.active');
+    const activeGroup = activeChild && activeChild.closest('.nav-sub').previousElementSibling;
+    if (activeGroup && activeGroup.classList.contains('si')) activeGroup.classList.add('expanded');
+  }
+
   async function init() {
     try {
       const res = await fetch('/api/auth/session', { credentials: 'same-origin' });
@@ -55,9 +75,14 @@
     }
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
+  function start() {
+    initSidebarAccordion();
     init();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', start);
+  } else {
+    start();
   }
 })();

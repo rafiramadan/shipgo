@@ -75,9 +75,11 @@ body.sb-collapsed .tb-logo-text{opacity:0;pointer-events:none}
 .si.active{background:var(--p50);color:var(--p700);font-weight:600}
 .si svg{width:17px;height:17px;flex-shrink:0}
 .si-label{opacity:1;flex:1;overflow:hidden;text-overflow:ellipsis}
-.si-caret{margin-left:auto;font-size:9px;color:var(--g400);flex-shrink:0}
+.si-caret{margin-left:auto;font-size:9px;color:var(--g400);flex-shrink:0;transition:transform .15s ease}
+.si.expanded .si-caret{transform:rotate(180deg)}
 .si-dot{width:7px;height:7px;border-radius:50%;background:#f97316;flex-shrink:0;margin-left:6px}
-.nav-sub{margin:1px 4px 8px 29px;padding-left:10px;border-left:1px solid var(--g200)}
+.nav-sub{margin:1px 4px 8px 29px;padding-left:10px;border-left:1px solid var(--g200);display:none}
+body:not(.sb-collapsed) .si.expanded + .nav-sub{display:block}
 .nav-sub .si{padding:6px 10px;font-size:12.5px}
 .nav-sub .si.active{background:transparent;color:var(--p700)}
 .nav-sub .si.active::before{content:'';position:absolute;left:-11px;top:6px;bottom:6px;width:2px;background:var(--p600);border-radius:2px}
