@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "shipgo-static",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "5588"],
+      "port": 5588
+    }
+  ]
+}

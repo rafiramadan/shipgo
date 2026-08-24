@@ -1,0 +1,1267 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Planning Optimization — PT Parama Global Inspira</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --p50:#eef2ff;--p100:#e0e7ff;--p200:#c7d2fe;--p300:#a5b4fc;
+  --p400:#818cf8;--p500:#6366f1;--p600:#4f46e5;--p700:#4338ca;--p800:#3730a3;--p900:#312e81;
+  --sb:#1e1b4b;--sb2:#16134a;
+  --green:#16a34a;--red:#dc2626;--orange:#ea580c;--amber:#d97706;
+  --g50:#f8fafc;--g100:#f1f5f9;--g150:#eef0f4;--g200:#e2e8f0;
+  --g300:#cbd5e1;--g400:#94a3b8;--g500:#64748b;--g700:#334155;--g900:#0f172a;
+  --sw:220px;--th:60px;--r:8px;--r2:12px;
+  --sh:0 1px 3px rgba(0,0,0,.08);--shl:0 8px 24px rgba(0,0,0,.13);
+  --font:'Inter',sans-serif;
+}
+html,body{height:100%;font-family:var(--font);font-size:13px;color:var(--g900);overflow:hidden;background:var(--g100)}
+
+/* ── TOPBAR ── */
+.topbar{position:fixed;top:0;left:0;right:0;height:var(--th);background:#fff;border-bottom:1px solid var(--g200);display:flex;align-items:center;z-index:1000;padding:0 20px 0 0;box-shadow:0 1px 0 var(--g200)}
+.tb-logo{width:var(--sw);height:var(--th);background:var(--sb2);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;transition:width .2s ease}
+.tb-logo-inner{display:flex;align-items:center;gap:10px;padding:0 16px;white-space:nowrap}
+.tb-logo-icon{width:32px;height:32px;border-radius:8px;background:var(--p600);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.tb-logo-icon i{color:#fff;font-size:15px}
+.tb-logo-text{font-size:14px;font-weight:700;color:#fff;opacity:1;letter-spacing:-.3px;transition:opacity .15s}
+body.sb-collapsed .tb-logo-text{opacity:0;pointer-events:none}
+.tb-dc{display:flex;flex-direction:column;margin-left:16px}
+.tb-dc-label{font-size:10px;color:var(--g400);font-weight:500;letter-spacing:.3px}
+.tb-dc-val{display:flex;align-items:center;gap:5px;font-size:14px;font-weight:600;color:var(--g900)}
+.tb-dc-val i{color:var(--p600);font-size:12px}
+.tb-spacer{flex:1}
+.tb-actions{display:flex;align-items:center;gap:6px}
+.tb-icon{width:34px;height:34px;border-radius:var(--r);border:1px solid var(--g200);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--g500);font-size:14px;position:relative;background:#fff;transition:all .15s}
+.tb-icon:hover{background:var(--p50);border-color:var(--p200);color:var(--p600)}
+.tb-icon .bdg{position:absolute;top:4px;right:4px;width:8px;height:8px;background:var(--red);border-radius:50%;border:1.5px solid #fff}
+.tb-user-wrap{position:relative}
+.tb-user{display:flex;align-items:center;gap:10px;padding:6px 12px;border:1px solid var(--g200);border-radius:var(--r2);cursor:pointer;background:#fff;margin-left:4px;transition:all .15s}
+.tb-user:hover{background:var(--p50);border-color:var(--p200)}
+.tb-user-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;background:#fff;border:1px solid var(--g200);border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.14);min-width:170px;z-index:2000;overflow:hidden}
+.tb-user-menu.open{display:block}
+.tb-user-menu-item{padding:10px 14px;font-size:12px;color:var(--g700);cursor:pointer;display:flex;align-items:center;gap:8px}
+.tb-user-menu-item:hover{background:var(--g50)}
+.tb-user-menu-item i{color:var(--g400);width:14px}
+.tb-avatar{width:28px;height:28px;border-radius:50%;background:var(--p100);display:flex;align-items:center;justify-content:center;color:var(--p700);font-size:11px;font-weight:700;position:relative;flex-shrink:0}
+.tb-avatar .online{position:absolute;bottom:0;right:0;width:9px;height:9px;border-radius:50%;background:#10b981;border:2px solid #fff}
+.tb-user-info{display:flex;flex-direction:column}
+.tb-name{font-size:13px;font-weight:600;color:var(--g900)}
+.tb-role{font-size:11px;color:var(--g500)}
+
+/* ── SIDEBAR ── */
+.sidebar{position:fixed;top:var(--th);left:0;bottom:0;width:var(--sw);background:#fff;border-right:1px solid var(--g200);display:flex;flex-direction:column;padding:8px 10px 14px;z-index:900;overflow-x:hidden;overflow-y:auto;transition:width .2s ease}
+.sb-top{display:flex;justify-content:flex-end;padding:2px 2px 6px}
+.sb-collapse-btn{width:26px;height:26px;border:none;background:transparent;color:var(--g400);border-radius:6px;cursor:pointer;font-size:12px;flex-shrink:0}
+.sb-collapse-btn:hover{background:var(--g100);color:var(--g700)}
+.sb-section{font-size:10px;font-weight:600;color:var(--g400);letter-spacing:.6px;text-transform:uppercase;padding:12px 10px 4px;white-space:nowrap;overflow:hidden}
+.si{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;cursor:pointer;color:var(--g600);font-size:13px;font-weight:500;text-decoration:none;margin-bottom:1px;white-space:nowrap;overflow:hidden;position:relative;transition:all .15s}
+.si:hover{background:var(--p50);color:var(--p700)}
+.si.active{background:var(--p50);color:var(--p700);font-weight:600}
+.si svg{width:17px;height:17px;flex-shrink:0}
+.si-label{opacity:1;flex:1;overflow:hidden;text-overflow:ellipsis}
+.si-caret{margin-left:auto;font-size:9px;color:var(--g400);flex-shrink:0;transition:transform .15s ease}
+.si.expanded .si-caret{transform:rotate(180deg)}
+.si-dot{width:7px;height:7px;border-radius:50%;background:#f97316;flex-shrink:0;margin-left:6px}
+.nav-sub{margin:1px 4px 8px 29px;padding-left:10px;border-left:1px solid var(--g200);display:none}
+body:not(.sb-collapsed) .si.expanded + .nav-sub{display:block}
+.nav-sub .si{padding:6px 10px;font-size:12.5px}
+.nav-sub .si.active{background:transparent;color:var(--p700)}
+.nav-sub .si.active::before{content:'';position:absolute;left:-11px;top:6px;bottom:6px;width:2px;background:var(--p600);border-radius:2px}
+.s-sp{flex:1}
+.sb-divider{height:1px;background:var(--g200);margin:6px 4px}
+body.sb-collapsed .sidebar{width:64px}
+body.sb-collapsed .si-label,body.sb-collapsed .sb-section,body.sb-collapsed .si-caret,body.sb-collapsed .si-dot,body.sb-collapsed .nav-sub{display:none}
+body.sb-collapsed .si{justify-content:center}
+body.sb-collapsed .sb-top{justify-content:center}
+
+/* ── MAIN LAYOUT ── */
+.main{position:fixed;top:var(--th);left:var(--sw);right:0;bottom:0;display:flex;flex-direction:column;overflow:hidden;transition:left .2s ease}
+
+/* ── PAGE HEADER ── */
+.page-hdr{background:#fff;border-bottom:1px solid var(--g200);padding:12px 24px;flex-shrink:0;display:flex;align-items:center;gap:12px}
+.page-hdr-left{display:flex;flex-direction:column;gap:2px}
+.page-breadcrumb{font-size:11px;color:var(--g400);font-weight:500}
+.page-title{font-size:20px;font-weight:700;color:var(--g900)}
+.hdr-spacer{flex:1}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--r);font-size:12px;font-weight:500;cursor:pointer;border:none;font-family:var(--font);transition:all .15s;white-space:nowrap}
+.btn-outline{background:#fff;color:var(--g700);border:1px solid var(--g200)}
+.btn-outline:hover{background:var(--g50);border-color:var(--p300);color:var(--p700)}
+.btn-primary{background:var(--p700);color:#fff}
+.btn-primary:hover{background:var(--p800)}
+.btn-primary:disabled{background:var(--g300);cursor:not-allowed}
+.btn-ghost{background:transparent;color:var(--p700);border:none;font-size:11.5px;font-weight:600;padding:6px 4px}
+.btn-ghost:hover{text-decoration:underline}
+.btn-sm{padding:5px 10px;font-size:11.5px}
+.btn-xs{padding:3px 8px;font-size:10.5px;border-radius:6px}
+.btn-danger-ghost{background:#fef2f2;color:#b91c1c;border:1px solid #fecaca}
+.btn-danger-ghost:hover{background:#fee2e2}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* ── BODY ── */
+.body-wrap{flex:1;overflow-y:auto;padding:18px 24px 40px}
+.spec-tag{font-family:'SFMono-Regular',Consolas,monospace;font-size:10.5px;font-weight:600;color:var(--p700);background:var(--p50);border:1px solid var(--p200);padding:2px 8px;border-radius:20px}
+
+.panel{background:#fff;border:1px solid var(--g200);border-radius:var(--r2);box-shadow:var(--sh);margin-bottom:18px}
+.panel-hdr-row{padding:14px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--g200)}
+.panel-num{width:24px;height:24px;border-radius:50%;background:var(--p700);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.panel-title{font-size:14px;font-weight:700;color:var(--g900)}
+.panel-sub{font-size:11px;color:var(--g400);margin-top:2px}
+.panel-body{padding:16px}
+
+/* ── CONFIG BAR ── */
+.config-bar{display:flex;gap:16px;flex-wrap:wrap;padding:14px 16px;background:var(--g50);border-bottom:1px solid var(--g200)}
+.config-item{display:flex;flex-direction:column;gap:5px}
+.config-item label{font-size:10.5px;font-weight:700;color:var(--g500);text-transform:uppercase;letter-spacing:.3px}
+.filter-select,.filter-input{border:1px solid var(--g200);border-radius:var(--r);padding:6px 26px 6px 10px;font-size:12px;color:var(--g700);background:#fff;outline:none;font-family:var(--font);cursor:pointer;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%2364748b' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center}
+.filter-input{cursor:text;padding:6px 10px;background-image:none;width:80px}
+.filter-input:focus,.filter-select:focus{border-color:var(--p400)}
+
+/* ── BATCH GROUPS ── */
+.pool-toolbar{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--g200);flex-wrap:wrap}
+.pool-summary{margin-left:auto;font-size:12px;color:var(--g500)}
+.pool-summary b{color:var(--g900);font-family:'SFMono-Regular',Consolas,monospace}
+tr.do-group-row td{background:var(--g50);padding:8px 16px;border-bottom:1px solid var(--g200)}
+tr.do-group-row.excluded td{opacity:.55}
+.do-group-check{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;font-weight:700;color:var(--g700)}
+.do-group-check input{cursor:pointer}
+.do-group-count{font-weight:500;color:var(--g400);margin-left:2px}
+tr.excluded-row td{opacity:.4}
+
+/* ── DO POOL TABLE ── */
+table.do-table{width:100%;border-collapse:collapse;font-size:12.5px}
+table.do-table thead th{text-align:left;font-size:11px;font-weight:600;color:var(--g400);padding:9px 16px;border-bottom:1px solid var(--g200);background:var(--g50);white-space:nowrap}
+table.do-table tbody td{padding:9px 16px;border-bottom:1px solid var(--g100);vertical-align:middle}
+table.do-table tbody tr:last-child td{border-bottom:none}
+table.do-table tbody tr.allocated{opacity:.45}
+.do-id{font-family:'SFMono-Regular',Consolas,monospace;font-weight:700;color:var(--g900)}
+.cluster-pill{display:inline-flex;align-items:center;font-size:11px;font-weight:600;background:var(--p50);color:var(--p700);padding:2px 9px;border-radius:12px}
+.rdd-pill{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:2px 9px;border-radius:12px}
+.rdd-pill.urgent{background:#fee2e2;color:#b91c1c}
+.rdd-pill.soon{background:#fef3c7;color:#b45309}
+.rdd-pill.later{background:#dcfce7;color:#15803d}
+.status-pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:2px 9px;border-radius:12px}
+.status-pill.outstanding{background:var(--g100);color:var(--g600)}
+.status-pill.allocated{background:#dcfce7;color:#15803d}
+.status-pill.returned{background:#fef3c7;color:#b45309}
+
+/* ── SHIPMENT MASTER-DETAIL ── */
+.shipment-master-detail{display:flex;align-items:stretch}
+.shipment-list-col{width:340px;flex-shrink:0;border-right:1px solid var(--g200);overflow-y:auto;max-height:680px}
+.shipment-detail-col{flex:1;min-width:0;overflow-y:auto;max-height:680px}
+@media (max-width:860px){.shipment-master-detail{flex-direction:column}.shipment-list-col{width:100%;border-right:none;border-bottom:1px solid var(--g200);max-height:280px}}
+.shipment-row{display:flex;flex-direction:column;gap:5px;padding:12px 14px;border-bottom:1px solid var(--g100);cursor:pointer;transition:background .12s}
+.shipment-row:hover{background:var(--g50)}
+.shipment-row.selected{background:var(--p50);box-shadow:inset 3px 0 0 var(--p700)}
+.shipment-row-top{display:flex;align-items:center;gap:8px}
+.shipment-row-meta{font-size:11px;color:var(--g500);display:flex;gap:10px;flex-wrap:wrap}
+.shipment-row-badges{display:flex;gap:6px;flex-wrap:wrap}
+
+.shipment-card-hdr{padding:12px 14px;background:var(--g50);border-bottom:1px solid var(--g200);display:flex;align-items:center;gap:8px}
+.shipment-card-id{font-weight:700;font-size:13px;color:var(--g900)}
+.shipment-card-body{padding:14px}
+.do-chip-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.do-chip{font-family:'SFMono-Regular',Consolas,monospace;font-size:11px;font-weight:700;background:#fff;border:1px solid var(--g200);color:var(--g700);padding:3px 8px;border-radius:6px}
+.load-metric-row{display:flex;justify-content:space-between;font-size:11px;color:var(--g500);margin-bottom:4px}
+.load-bar-track{height:8px;border-radius:6px;background:var(--g100);overflow:hidden;margin-bottom:10px}
+.load-bar-fill{height:100%;border-radius:6px;transition:width .4s ease}
+.load-bar-fill.ok{background:var(--green)}
+.load-bar-fill.warn{background:var(--amber)}
+.load-bar-fill.over{background:var(--red)}
+.binding-note{font-size:11px;color:var(--g500);margin-bottom:12px}
+.binding-note b{color:var(--g800)}
+
+/* ── ROUTE PLAN ── */
+.route-card-hdr{padding:12px 14px;background:var(--g50);border-bottom:1px solid var(--g200);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.route-fit-pill{margin-left:auto;font-size:11px;font-weight:700;padding:3px 10px;border-radius:12px}
+.route-fit-pill.fit{background:#dcfce7;color:#15803d}
+.route-fit-pill.evicted{background:#fef3c7;color:#b45309}
+.route-body{display:grid;grid-template-columns:1.1fr 1fr;gap:0;border-bottom:1px solid var(--g200)}
+@media (max-width:900px){.route-body{grid-template-columns:1fr}}
+.route-map{height:300px;border-right:1px solid var(--g200)}
+@media (max-width:900px){.route-map{border-right:none;border-bottom:1px solid var(--g200)}}
+.route-seq{padding:12px 14px;max-height:380px;overflow-y:auto}
+.seq-stop{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--g100)}
+.seq-stop:last-child{border-bottom:none}
+.seq-num{width:22px;height:22px;border-radius:50%;background:var(--p700);color:#fff;font-size:10.5px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.seq-num.origin{background:var(--g700)}
+.seq-info{flex:1}
+.seq-title-row{display:flex;align-items:center;gap:8px}
+.seq-do{font-family:'SFMono-Regular',Consolas,monospace;font-weight:700;font-size:12px;color:var(--g900)}
+.seq-meta{font-size:11px;color:var(--g400);margin-top:2px}
+.seq-actions{margin-left:auto}
+.eviction-note{margin:0 14px 12px;padding:8px 10px;background:#fef3c7;border:1px solid #fde68a;border-radius:8px;font-size:11.5px;color:#92400e;display:flex;gap:8px;align-items:flex-start}
+.summary-strip{display:flex;gap:20px;padding:10px 14px;background:var(--g50);border-top:1px solid var(--g200);flex-wrap:wrap}
+.summary-item{font-size:11px;color:var(--g500)}
+.summary-item b{color:var(--g900);font-family:'SFMono-Regular',Consolas,monospace;font-weight:700}
+
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;gap:10px}
+.empty-state i{font-size:32px;color:var(--p200)}
+.empty-title{font-size:14px;font-weight:600;color:var(--g700)}
+.empty-sub{font-size:11.5px;color:var(--g400);text-align:center;line-height:1.6;max-width:340px}
+
+.flow-diagram{display:flex;align-items:center;gap:6px;padding:16px;flex-wrap:wrap;font-size:11.5px;color:var(--g600)}
+.flow-node{background:var(--g50);border:1px solid var(--g200);border-radius:20px;padding:6px 14px;font-weight:600;white-space:nowrap}
+.flow-node.on{background:var(--p700);color:#fff;border-color:var(--p700)}
+.flow-arrow{color:var(--g300)}
+
+#app-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--sb);color:#fff;padding:10px 20px;border-radius:10px;font-size:12px;font-weight:500;z-index:9999;transition:transform .3s ease,opacity .3s ease;opacity:0;pointer-events:none;display:flex;align-items:center;gap:8px;max-width:440px;box-shadow:0 4px 20px rgba(0,0,0,.25)}
+</style>
+</head>
+<body>
+<script src="/auth-guard.js"></script>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="tb-logo">
+    <div class="tb-logo-inner">
+      <div class="tb-logo-icon"><i class="fa-solid fa-map-location-dot"></i></div>
+      <span class="tb-logo-text">ShipGo TMS</span>
+    </div>
+  </div>
+  <div class="tb-dc">
+    <div class="tb-dc-label">Company</div>
+    <div class="tb-dc-val"><i class="fa-solid fa-building"></i> PT Parama Global Inspira</div>
+  </div>
+  <div class="tb-spacer"></div>
+  <div class="tb-actions">
+    <div class="tb-icon"><i class="fa-regular fa-bell"></i><span class="bdg"></span></div>
+    <div class="tb-icon"><i class="fa-regular fa-bullhorn"></i></div>
+    <div class="tb-user-wrap">
+      <div class="tb-user" id="tbUser">
+        <div class="tb-avatar"><span id="tbAvatarInitials">··</span><div class="online"></div></div>
+        <div class="tb-user-info">
+          <div class="tb-name" id="tbUserName">—</div>
+          <div class="tb-role" id="tbUserRole">—</div>
+        </div>
+        <i class="fa-solid fa-chevron-down" style="font-size:10px;color:var(--g400);margin-left:2px"></i>
+      </div>
+      <div class="tb-user-menu" id="tbUserMenu">
+        <div class="tb-user-menu-item" id="tbLogoutBtn"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sb-top"><button class="sb-collapse-btn" onclick="toggleSidebar()" title="Collapse sidebar"><i class="fa-solid fa-angles-left"></i></button></div>
+  <div class="sb-section">Main Menu</div>
+  <a class="si" href="./index.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    <span class="si-label">Dashboard</span>
+  </a>
+  <a class="si" href="./live-tracking.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-7.58 7-12a7 7 0 00-14 0c0 4.42 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>
+    <span class="si-label">Live Tracking</span>
+  </a>
+  <a class="si" href="./history-tracking.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/><path d="M12 7v5l3.5 2"/></svg>
+    <span class="si-label">History Tracking</span>
+  </a>
+
+  <div class="sb-section">Order Management</div>
+  <a class="si active expanded" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5h6a2 2 0 012 2v12a2 2 0 01-2 2H9a2 2 0 01-2-2V7a2 2 0 012-2z"/><path d="M9 3h6v4H9z"/></svg>
+    <span class="si-label">Order Management</span>
+    <span class="si-caret">▾</span>
+  </a>
+  <div class="nav-sub">
+    <a class="si" href="./shipment-planning.html"><span class="si-label">Planning</span></a>
+    <a class="si active" href="./planning-optimization.html"><span class="si-label">Planning Optimization</span></a>
+    <a class="si" href="#"><span class="si-label">Assignment</span></a>
+    <a class="si" href="#"><span class="si-label">Tracking</span></a>
+    <a class="si" href="#"><span class="si-label">Review</span></a>
+  </div>
+
+  <div class="sb-section">Analytics</div>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v16h16"/><path d="M7 15l3.5-4 3 2.5L19 7"/></svg>
+    <span class="si-label">Laporan Perjalanan</span>
+  </a>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v16h16"/><rect x="7" y="12" width="2.6" height="5"/><rect x="12" y="9" width="2.6" height="8"/><rect x="17" y="6" width="2.6" height="11"/></svg>
+    <span class="si-label">Analytics</span>
+  </a>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+    <span class="si-label">Peringatan</span>
+    <span class="si-dot"></span>
+  </a>
+
+  <div class="sb-section">Fleet</div>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="7" width="12" height="9" rx="1"/><path d="M13 10h4l3.5 3.2V16H13z"/><circle cx="5.5" cy="17.5" r="1.6"/><circle cx="17" cy="17.5" r="1.6"/></svg>
+    <span class="si-label">Kendaraan</span>
+  </a>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0116 0"/></svg>
+    <span class="si-label">Roster Management</span>
+  </a>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>
+    <span class="si-label">App Monitoring</span>
+    <span class="si-caret">▾</span>
+  </a>
+  <div class="nav-sub">
+    <a class="si" href="./app-monitoring.html"><span class="si-label">Version Monitoring</span></a>
+    <a class="si" href="./driver-app-version.html"><span class="si-label">Driver App Version</span></a>
+  </div>
+
+  <div class="sb-section">Admin</div>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg>
+    <span class="si-label">User &amp; Access</span>
+    <span class="si-caret">▾</span>
+  </a>
+  <div class="nav-sub">
+    <a class="si" href="./group-role.html"><span class="si-label">Group / Role</span></a>
+    <a class="si" href="./user-management.html"><span class="si-label">User Management</span></a>
+  </div>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09A1.65 1.65 0 0015 4.6a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    <span class="si-label">Configuration</span>
+    <span class="si-caret">▾</span>
+  </a>
+  <div class="nav-sub">
+    <a class="si" href="./feature-config.html"><span class="si-label">Feature Config</span></a>
+  </div>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v6c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M3 11v6c0 1.66 4 3 9 3s9-1.34 9-3v-6"/></svg>
+    <span class="si-label">Master Data</span>
+    <span class="si-caret">▾</span>
+  </a>
+  <div class="nav-sub">
+    <a class="si" href="./shipping-point.html"><span class="si-label">Shipping Point</span></a>
+  </div>
+
+  <div class="s-sp"></div>
+  <div class="sb-divider"></div>
+  <a class="si" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 015 0c0 1.5-2 2-2.5 3.5"/><path d="M12 17h.01"/></svg>
+    <span class="si-label">Bantuan</span>
+  </a>
+</nav>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="page-hdr">
+    <div class="page-hdr-left">
+      <div class="page-breadcrumb">Order Management</div>
+      <div class="page-title">Planning Optimization</div>
+    </div>
+    <div class="hdr-spacer"></div>
+    <span class="spec-tag">SG-PLN-OPT-001</span>
+  </div>
+
+  <div class="body-wrap">
+
+    <!-- FLOW OVERVIEW -->
+    <div class="panel">
+      <div class="flow-diagram" id="flowDiagram"></div>
+    </div>
+
+    <!-- STAGE 0: CONFIG -->
+    <div class="panel">
+      <div class="config-bar">
+        <div class="config-item">
+          <label>Armada Tersedia (Shipping Point: DC Solo)</label>
+          <div id="fleetSummary" style="display:flex;gap:6px;flex-wrap:wrap;padding-top:5px"></div>
+        </div>
+        <div class="config-item">
+          <label>Safety Factor (α)</label>
+          <input class="filter-input" type="number" id="alphaInput" value="90" min="50" max="100" step="1">
+        </div>
+        <div class="config-item">
+          <label>Jam Kerja Driver</label>
+          <div style="display:flex;gap:6px;align-items:center">
+            <input class="filter-input" type="text" id="shiftStart" value="07:00" style="width:60px">
+            <span style="color:var(--g400)">–</span>
+            <input class="filter-input" type="text" id="shiftEnd" value="17:00" style="width:60px">
+          </div>
+        </div>
+        <div class="config-item">
+          <label>Service Time / Stop</label>
+          <input class="filter-input" type="number" id="serviceTimeInput" value="30" min="5" max="120" step="5">
+        </div>
+        <div class="config-item">
+          <label>Jumlah DO (Simulasi)</label>
+          <input class="filter-input" type="number" id="doCountInput" value="300" min="50" max="1000" step="50" style="width:76px">
+        </div>
+        <div class="config-item">
+          <label>Target Stop / Shipment</label>
+          <input class="filter-input" type="number" id="targetStopsInput" value="14" min="8" max="22" step="1" style="width:64px">
+        </div>
+        <div class="config-item" style="justify-content:flex-end">
+          <label>&nbsp;</label>
+          <button class="btn btn-primary btn-sm" onclick="generateSimulationFromInputs()"><i class="fa-solid fa-shuffle"></i> Generate Simulasi</button>
+        </div>
+        <div class="config-item" style="justify-content:flex-end">
+          <label>&nbsp;</label>
+          <button class="btn btn-outline btn-sm" onclick="resetSimulation()"><i class="fa-solid fa-rotate-left"></i> Reset Simulasi</button>
+        </div>
+      </div>
+      <div style="padding:8px 16px 12px;font-size:11px;color:var(--g400);border-top:1px solid var(--g200)">
+        Simulasi menyebar DO ke 7 cluster (Staging Bay) di sekitar DC Solo — ukuran tiap DO diacak di sekitar rata-rata yang membuat satu shipment penuh berisi kira-kira sejumlah "Target Stop / Shipment" di atas. Kendaraan tidak dipilih manual — Load Optimization otomatis memilih unit ter-pas dari armada yang tersedia di Shipping Point ini.
+      </div>
+    </div>
+
+    <!-- STAGE 1: DO POOL -->
+    <div class="panel">
+      <div class="panel-hdr-row">
+        <div class="panel-num">1</div>
+        <div>
+          <div class="panel-title">Outstanding DO Pool</div>
+          <div class="panel-sub">Batch Planning (§7) — DO dikelompokkan berdasarkan cutoff waktunya. Load Optimization dapat dijalankan atas satu batch atau seluruh batch sekaligus.</div>
+        </div>
+      </div>
+      <div class="pool-toolbar" id="poolToolbar"></div>
+      <div style="overflow:auto;max-height:420px">
+        <table class="do-table">
+          <thead>
+            <tr>
+              <th>No. DO</th>
+              <th>Ship To</th>
+              <th>Volume (m³)</th>
+              <th>Weight (kg)</th>
+              <th>Cluster</th>
+              <th>RDD</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="doPoolBody"></tbody>
+        </table>
+      </div>
+      <div style="padding:14px 16px;border-top:1px solid var(--g200)">
+        <button class="btn btn-primary" id="runLoadBtn" onclick="runLoadOptimizationStage()"><i class="fa-solid fa-cubes"></i> Jalankan Load Optimization</button>
+      </div>
+    </div>
+
+    <!-- STAGE 2: DRAFT SHIPMENT & ROUTE PLAN (combined master-detail) -->
+    <div class="panel">
+      <div class="panel-hdr-row">
+        <div class="panel-num">2</div>
+        <div>
+          <div class="panel-title">Draft Shipment &amp; Route Plan</div>
+          <div class="panel-sub">Load Optimization (§8.4) membentuk shipment di sebelah kiri — klik salah satu untuk menjalankan Route Optimization (§9.4) dan melihat urutan stop beserta peta di sebelah kanan.</div>
+        </div>
+        <div style="margin-left:auto;display:flex;gap:8px">
+          <button class="btn btn-danger-ghost btn-sm" onclick="runScenarioNotFit()" title="Cari/buat shipment yang butuh eviction karena melebihi Time Budget"><i class="fa-solid fa-triangle-exclamation"></i> Skenario: Route Tidak Fit</button>
+          <button class="btn btn-outline btn-sm" onclick="runRouteOptimizationForAll()"><i class="fa-solid fa-route"></i> Jalankan Route Optimization — Semua Shipment</button>
+        </div>
+      </div>
+      <div class="shipment-master-detail" id="shipmentMasterDetail">
+        <div class="empty-state">
+          <i class="fa-solid fa-boxes-stacked"></i>
+          <div class="empty-title">Belum ada Draft Shipment</div>
+          <div class="empty-sub">Jalankan Load Optimization dari Panel 1 untuk membentuk Draft Shipment.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+function toggleSidebar(){
+  const collapsed=document.body.classList.toggle('sb-collapsed');
+  document.documentElement.style.setProperty('--sw', collapsed?'64px':'220px');
+}
+function escapeHtml(str){
+  const d=document.createElement('div');
+  d.textContent=str==null?'':String(str);
+  return d.innerHTML;
+}
+function toggleUserMenu(){ document.getElementById('tbUserMenu').classList.toggle('open'); }
+document.getElementById('tbUser')?.addEventListener('click', (e)=>{ e.stopPropagation(); toggleUserMenu(); });
+document.addEventListener('click', ()=> document.getElementById('tbUserMenu')?.classList.remove('open'));
+
+// ══════════════════════════════════════════════════════════════
+// REFERENCE DATA
+// ══════════════════════════════════════════════════════════════
+
+// Origin: DC Solo (illustrative warehouse coordinate).
+const ORIGIN = { name: 'DC Solo', lat: -7.5563, lng: 110.8281 };
+
+// 7 clusters standing in for Staging Bay A–G coverage areas: Surakarta City
+// core plus the 5 surrounding Solo Raya regencies. Coordinates are town
+// centroids (illustrative, not survey-accurate — see §9.6: exact distance
+// methodology is still to be discussed with Engineering; this uses
+// straight-line/Haversine distance as a stand-in). jitterKm controls how far
+// a generated DO's delivery point is scattered from its cluster's centroid,
+// roughly matching each area's real geographic spread.
+const CLUSTERS = {
+  A: { label: 'Surakarta City', share: 0.28, center: { lat: -7.5600, lng: 110.8220 }, jitterKm: 3.5 },
+  B: { label: 'Sukoharjo',      share: 0.15, center: { lat: -7.6879, lng: 110.8386 }, jitterKm: 6 },
+  C: { label: 'Karanganyar',    share: 0.13, center: { lat: -7.6011, lng: 110.9724 }, jitterKm: 7 },
+  D: { label: 'Boyolali',       share: 0.13, center: { lat: -7.5361, lng: 110.5959 }, jitterKm: 7 },
+  E: { label: 'Klaten',         share: 0.13, center: { lat: -7.7061, lng: 110.6042 }, jitterKm: 7 },
+  F: { label: 'Sragen',         share: 0.10, center: { lat: -7.4262, lng: 111.0215 }, jitterKm: 8 },
+  // Farthest, hilliest cluster — deliberately spread wide (large jitterKm) so a
+  // full shipment here reliably needs more travel time than the shift allows,
+  // giving the "Route Tidak Fit" scenario (see runScenarioNotFit) a natural
+  // source of genuine Time Budget Fit Test failures rather than a rare fluke.
+  G: { label: 'Wonogiri',       share: 0.08, center: { lat: -7.8014, lng: 110.9229 }, jitterKm: 15 },
+};
+
+// RDD is stored as a real Date (rddAt) so it displays as an actual date/time
+// rather than an abstract tag — but Route Optimization still needs to group
+// stops into day-tiers (§9.4) without letting a same-day 08:00 vs 16:00
+// difference reorder across days, so `rdd` keeps the day-bucket for grouping
+// while `rddAt` carries the specific deadline shown to the user.
+const RDD_RANK = { today:0, h1:1, h2:2 }; // lower = more urgent
+const RDD_CLASS = { today:'urgent', h1:'soon', h2:'later' };
+const RDD_WEIGHTS = [['today',0.30], ['h1',0.40], ['h2',0.30]];
+const BATCH_WEIGHTS = [[1,0.34], [2,0.33], [3,0.33]];
+const MONTH_ABBR_ID = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+
+function buildRddDate(tier){
+  const dayOffset = { today:0, h1:1, h2:2 }[tier];
+  const d = new Date();
+  d.setDate(d.getDate() + dayOffset);
+  const hour = 8 + Math.floor(Math.random() * 10); // 08:00–17:30 delivery window
+  const minute = Math.random() < 0.5 ? 0 : 30;
+  d.setHours(hour, minute, 0, 0);
+  return d;
+}
+function fmtRddDate(date){
+  return `${date.getDate()} ${MONTH_ABBR_ID[date.getMonth()]} · ${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}`;
+}
+
+// "Ship To" — plausible Indonesian retail/customer names, geo-grounded by
+// pairing with the DO's own cluster area so they read as real store addresses.
+const SHOP_PREFIXES = ['Toko','Minimarket','Apotek','Swalayan','Beauty House','Kios Kosmetik','UD','CV','Griya Kosmetik','Distributor'];
+const SHOP_NAMES = ['Sumber Rejeki','Berkah Jaya','Cantik Abadi','Sejahtera','Makmur Sentosa','Mitra Utama','Anugerah','Barokah','Sinar Jaya','Indah Permai','Cahaya Bunda','Ayu Kosmetik','Melati','Harum Sari','Sumber Cantik','Wijaya','Putri Ayu','Kurnia','Bahagia','Rejeki Baru'];
+function pickRandom(arr){ return arr[Math.floor(Math.random() * arr.length)]; }
+function buildShipToName(cluster){
+  return `${pickRandom(SHOP_PREFIXES)} ${pickRandom(SHOP_NAMES)} ${CLUSTERS[cluster].label}`;
+}
+
+const BATCHES = [
+  { key:1, label:'3 PM' },
+  { key:2, label:'7 PM' },
+  { key:3, label:'3 AM' },
+];
+
+// Vehicle fleet read from the Shipping Point (DC Solo) master data — no more
+// manual "pick a vehicle type" control. Each entry is a real class of unit
+// with its own plates; Load Optimization right-sizes every shipment against
+// whichever unit actually fits, cycling through that class's plates.
+const AVAILABLE_FLEET = [
+  { id:'v-engkel', label:'Engkel',    volume:6,  weight:1200, plates:['AD 1023 FE','AD 1187 FE','AD 1240 FE','AD 1356 FE','AD 1402 FE'] },
+  { id:'v-box10',  label:'Box Truck', volume:10, weight:2000, plates:['AD 8821 GB','AD 8845 GB','AD 8902 GB','AD 8930 GB','AD 8977 GB','AD 9011 GB','AD 9054 GB'] },
+  { id:'v-cdd14',  label:'CDD',       volume:14, weight:4000, plates:['AD 7710 HC','AD 7745 HC','AD 7788 HC'] },
+];
+let fleetAssignCounter = {}; // vehicle id -> how many plates from that class have been handed out this run
+
+// The Fit Test during greedy packing (§8.4) still runs against one standard
+// reference capacity — Box Truck, the fleet's mid-size unit — so bin sizes
+// (and therefore stops/shipment) stay predictable; right-sizing to a
+// specific fleet unit happens afterward, per bin.
+const STANDARD_VEHICLE = AVAILABLE_FLEET.find(v => v.id === 'v-box10');
+const REF_EFF_VOLUME = STANDARD_VEHICLE.volume * 0.90;   // Box Truck @ default α 90%
+const REF_EFF_WEIGHT = STANDARD_VEHICLE.weight * 0.90;
+
+function pickBestFitVehicle(totalVolume, totalWeight, alpha){
+  const sorted = [...AVAILABLE_FLEET].sort((a,b) => a.volume - b.volume);
+  const type = sorted.find(v => v.volume*alpha >= totalVolume && v.weight*alpha >= totalWeight) || sorted[sorted.length-1];
+  const idx = (fleetAssignCounter[type.id] = (fleetAssignCounter[type.id]||0) + 1) - 1;
+  const plate = type.plates[idx % type.plates.length];
+  return { id: type.id, label: type.label, volume: type.volume, weight: type.weight, plate };
+}
+
+// ══════════════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════════════
+let ALL_DOS = [];                   // generated by generateSimulation()
+let LOCATIONS = {};                 // doId -> {name, lat, lng}
+let includedBatches = new Set([1, 2, 3]); // which cutoffs are included when running Load Optimization
+let doStatus = {};                  // doId -> 'outstanding' | 'allocated' | 'returned'
+let draftShipments = [];            // result of Load Optimization
+let routePlans = {};                // shipmentId -> route plan result
+let selectedShipmentId = null;      // which shipment is showing in the detail pane
+let detailMap = null;               // single Leaflet map instance, reused for whichever shipment is selected
+
+function initState(){
+  includedBatches = new Set([1, 2, 3]);
+  doStatus = {};
+  ALL_DOS.forEach(d => { doStatus[d.id] = 'outstanding'; });
+  draftShipments = [];
+  routePlans = {};
+  selectedShipmentId = null;
+  fleetAssignCounter = {};
+  if (detailMap) { detailMap.remove(); detailMap = null; }
+}
+
+function activePool(){
+  return ALL_DOS.filter(d => includedBatches.has(d.batch));
+}
+
+function weightedPick(weights){
+  let r = Math.random();
+  for (const [value, w] of weights){
+    if (r < w) return value;
+    r -= w;
+  }
+  return weights[weights.length - 1][0];
+}
+
+// Scatters a point around a cluster centroid at a random distance (up to
+// radiusKm, area-uniform via sqrt) and bearing — a simple stand-in for real
+// customer addresses spread across that cluster's coverage area.
+function jitterPoint(center, radiusKm){
+  const angle = Math.random() * 2 * Math.PI;
+  const dist = Math.sqrt(Math.random()) * radiusKm;
+  const dLat = (dist * Math.cos(angle)) / 111;
+  const dLng = (dist * Math.sin(angle)) / (111 * Math.cos(center.lat * Math.PI / 180));
+  return { lat: center.lat + dLat, lng: center.lng + dLng };
+}
+
+// Generates `doCount` DOs spread across the 7 clusters, with volume/weight
+// randomized around an average tuned so a full bin (§8.4's Fit Test against
+// effective capacity) holds roughly `targetStops` DOs — that's what makes
+// "belasan" (10–19) drop points per shipment happen by construction rather
+// than by luck. Batch/RDD are assigned randomly so Batch Planning (§7) and
+// RDD-tiered Route Optimization (§9.4) both have something real to work with.
+// DO number format matches Paragon's real numbering (e.g. PM30124522) — "PM"
+// + 8 digits — so the simulation reads like an actual DOTS/SAP export.
+const DO_NUMBER_BASE = 30124500;
+function buildDoNumber(seq){
+  return 'PM' + String(DO_NUMBER_BASE + seq);
+}
+
+function generateSimulation(doCount, targetStops){
+  const avgVolume = REF_EFF_VOLUME / targetStops;
+  const avgWeight = REF_EFF_WEIGHT / targetStops;
+  const clusterWeights = Object.entries(CLUSTERS).map(([key, c]) => [key, c.share]);
+
+  const docs = [];
+  const locations = {};
+  for (let i = 1; i <= doCount; i++){
+    const id = buildDoNumber(i);
+    const cluster = weightedPick(clusterWeights);
+    const sizeFactor = () => 0.75 + Math.random() * 0.5; // 0.75x–1.25x — tight enough that FFD packs close to the target
+    const volume = Math.round(avgVolume * sizeFactor() * 100) / 100;
+    const weight = Math.round(avgWeight * sizeFactor());
+    const rdd = weightedPick(RDD_WEIGHTS);
+    const rddAt = buildRddDate(rdd);
+    const batch = weightedPick(BATCH_WEIGHTS);
+    const shipTo = buildShipToName(cluster);
+    docs.push({ id, volume, weight, cluster, rdd, rddAt, batch, shipTo });
+    const loc = jitterPoint(CLUSTERS[cluster].center, CLUSTERS[cluster].jitterKm);
+    locations[id] = { name: CLUSTERS[cluster].label, lat: loc.lat, lng: loc.lng };
+  }
+  ALL_DOS = docs;
+  LOCATIONS = locations;
+}
+
+function generateSimulationFromInputs(){
+  const doCount = Math.max(50, Math.min(1000, Number(document.getElementById('doCountInput').value) || 300));
+  const targetStops = Math.max(8, Math.min(22, Number(document.getElementById('targetStopsInput').value) || 14));
+  generateSimulation(doCount, targetStops);
+  initState();
+  renderAll();
+  showToast(`Simulasi baru dibuat — ${doCount} DO tersebar di 7 cluster, target ~${targetStops} stop / shipment.`);
+}
+
+// ══════════════════════════════════════════════════════════════
+// GEO HELPERS
+// ══════════════════════════════════════════════════════════════
+function haversineKm(a, b){
+  const R = 6371;
+  const dLat = (b.lat - a.lat) * Math.PI/180;
+  const dLng = (b.lng - a.lng) * Math.PI/180;
+  const lat1 = a.lat * Math.PI/180, lat2 = b.lat * Math.PI/180;
+  const h = Math.sin(dLat/2)**2 + Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLng/2)**2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+const AVG_SPEED_KMH = 25; // illustrative urban average, configurable in a real build
+function travelMinutes(km){ return (km / AVG_SPEED_KMH) * 60; }
+
+// ══════════════════════════════════════════════════════════════
+// §8 LOAD OPTIMIZATION — Cluster-Constrained First-Fit Decreasing
+// ══════════════════════════════════════════════════════════════
+function runLoadOptimization(dos, alpha){
+  // Fit Test packs against the standard reference capacity (§8.4) — the
+  // actual vehicle each shipment ends up with is decided per-bin, below.
+  const effVol = STANDARD_VEHICLE.volume * alpha;
+  const effWeight = STANDARD_VEHICLE.weight * alpha;
+
+  const byCluster = {};
+  dos.forEach(d => { (byCluster[d.cluster] ||= []).push(d); });
+
+  const shipments = [];
+  let counter = 1;
+  Object.entries(byCluster).forEach(([cluster, list]) => {
+    const sorted = [...list].sort((a,b) => b.volume - a.volume); // FFD: descending volume
+    const bins = [];
+    sorted.forEach(d => {
+      let placed = false;
+      for (const bin of bins){
+        if (bin.totalVolume + d.volume <= effVol && bin.totalWeight + d.weight <= effWeight){
+          bin.items.push(d);
+          bin.totalVolume += d.volume;
+          bin.totalWeight += d.weight;
+          placed = true;
+          break;
+        }
+      }
+      if (!placed){
+        bins.push({ items:[d], totalVolume:d.volume, totalWeight:d.weight, cluster });
+      }
+    });
+    bins.forEach(bin => {
+      bin.id = 'SHP-' + String(counter++).padStart(3,'0');
+      // Right-size to whichever fleet unit actually fits this bin's totals
+      // (§8.4's packing used the standard reference; the real assignment
+      // reads from the Shipping Point's available fleet, not a manual pick).
+      bin.vehicle = pickBestFitVehicle(bin.totalVolume, bin.totalWeight, alpha);
+      bin.effVolume = bin.vehicle.volume * alpha;
+      bin.effWeight = bin.vehicle.weight * alpha;
+      bin.utilVolume = bin.totalVolume / bin.effVolume * 100;
+      bin.utilWeight = bin.totalWeight / bin.effWeight * 100;
+      bin.loadFactor = Math.max(bin.utilVolume, bin.utilWeight);
+      bin.binding = bin.utilVolume >= bin.utilWeight ? 'volume' : 'weight';
+      shipments.push(bin);
+    });
+  });
+  return shipments;
+}
+
+function runLoadOptimizationStage(){
+  const eligible = activePool().filter(d => doStatus[d.id] === 'outstanding');
+  if (!eligible.length){
+    showToast('Tidak ada DO Outstanding pada batch yang dicentang.');
+    return;
+  }
+  const alpha = Number(document.getElementById('alphaInput').value) / 100;
+
+  fleetAssignCounter = {}; // fresh plate cycling for this run
+  draftShipments = runLoadOptimization(eligible, alpha);
+  draftShipments.forEach(s => s.items.forEach(d => { doStatus[d.id] = 'allocated'; }));
+  routePlans = {}; // invalidate previous route plans on re-run
+  selectedShipmentId = draftShipments[0]?.id || null;
+
+  const batchLabels = BATCHES.filter(b => includedBatches.has(b.key)).map(b => b.label).join(', ');
+  renderAll();
+  showToast(`Load Optimization selesai — ${draftShipments.length} Draft Shipment terbentuk dari ${eligible.length} DO (batch: ${batchLabels}).`);
+}
+
+// ══════════════════════════════════════════════════════════════
+// §9 ROUTE OPTIMIZATION — Nearest Neighbor + 2-opt, RDD-priority,
+// with §9.3 Time Budget Fit Test
+// ══════════════════════════════════════════════════════════════
+function totalTimeForSequence(seq, serviceTime){
+  let cursor = ORIGIN, total = 0, dist = 0;
+  const legs = [];
+  seq.forEach(stop => {
+    const loc = LOCATIONS[stop.id];
+    const km = haversineKm(cursor, loc);
+    const t = travelMinutes(km) + serviceTime;
+    dist += km; total += t;
+    legs.push({ do: stop, km, minutes: t, cumulative: total });
+    cursor = loc;
+  });
+  return { legs, totalDistance: dist, totalTime: total };
+}
+
+function nearestNeighborWithinTier(tierDos, startPoint){
+  const remaining = [...tierDos];
+  const seq = [];
+  let cursor = startPoint;
+  while (remaining.length){
+    let bestIdx = 0, bestDist = Infinity;
+    remaining.forEach((d, idx) => {
+      const km = haversineKm(cursor, LOCATIONS[d.id]);
+      if (km < bestDist){ bestDist = km; bestIdx = idx; }
+    });
+    const next = remaining.splice(bestIdx,1)[0];
+    seq.push(next);
+    cursor = LOCATIONS[next.id];
+  }
+  return seq;
+}
+
+// 2-opt improvement, restricted to reordering within one RDD tier only,
+// so RDD priority ordering between tiers is never disturbed (§9.4 step 5).
+function twoOptWithinTier(tierSeq, startPoint){
+  if (tierSeq.length < 3) return tierSeq;
+  let improved = true;
+  let seq = [...tierSeq];
+  const routeLen = (arr) => {
+    let cursor = startPoint, d = 0;
+    arr.forEach(s => { d += haversineKm(cursor, LOCATIONS[s.id]); cursor = LOCATIONS[s.id]; });
+    return d;
+  };
+  let guard = 0;
+  while (improved && guard < 50){
+    improved = false; guard++;
+    for (let i=0;i<seq.length-1;i++){
+      for (let j=i+1;j<seq.length;j++){
+        const candidate = [...seq.slice(0,i), ...seq.slice(i,j+1).reverse(), ...seq.slice(j+1)];
+        if (routeLen(candidate) < routeLen(seq) - 0.001){
+          seq = candidate; improved = true;
+        }
+      }
+    }
+  }
+  return seq;
+}
+
+function runRouteOptimization(shipment, serviceTime, shiftStartMin, shiftEndMin){
+  // Group by RDD urgency tier (§9.4 step 2), most urgent first.
+  const tiers = {};
+  shipment.items.forEach(d => { (tiers[d.rdd] ||= []).push(d); });
+  const tierKeys = Object.keys(tiers).sort((a,b) => RDD_RANK[a]-RDD_RANK[b]);
+
+  let sequence = [];
+  let cursor = ORIGIN;
+  tierKeys.forEach(tier => {
+    let tierSeq = nearestNeighborWithinTier(tiers[tier], cursor);
+    tierSeq = twoOptWithinTier(tierSeq, cursor);
+    sequence = sequence.concat(tierSeq);
+    if (tierSeq.length) cursor = LOCATIONS[tierSeq[tierSeq.length-1].id];
+  });
+
+  const timeBudget = shiftEndMin - shiftStartMin;
+  let evicted = [];
+  let calc = totalTimeForSequence(sequence, serviceTime);
+  // Captured before eviction: whether the ORIGINAL full assignment fit as-is.
+  // (The eviction loop below always drives the final sequence back under
+  // budget, so checking calc.totalTime<=timeBudget AFTER the loop would be
+  // true by construction — it can never report "not fit".)
+  const fitsWithoutEviction = calc.totalTime <= timeBudget;
+
+  // §9.3: if over budget, evict the stop with the greatest travel-time
+  // contribution, preferring the loosest RDD tier first, and recompute.
+  while (calc.totalTime > timeBudget && sequence.length > 0){
+    let worstIdx = 0, worstScore = -Infinity;
+    calc.legs.forEach((leg, idx) => {
+      const looseness = RDD_RANK[sequence[idx].rdd]; // higher = looser RDD
+      const score = leg.minutes + looseness * 1000; // prioritize loosest RDD, then largest leg
+      if (score > worstScore){ worstScore = score; worstIdx = idx; }
+    });
+    evicted.push(sequence[worstIdx]);
+    sequence.splice(worstIdx, 1);
+    calc = totalTimeForSequence(sequence, serviceTime);
+  }
+
+  return {
+    shipmentId: shipment.id,
+    sequence,
+    legs: calc.legs,
+    totalDistance: calc.totalDistance,
+    totalTime: calc.totalTime,
+    timeBudget,
+    fits: fitsWithoutEviction,
+    evicted,
+  };
+}
+
+function parseTimeToMinutes(str){
+  const [h,m] = str.split(':').map(Number);
+  return h*60 + (m||0);
+}
+
+function runRouteOptimizationStage(shipmentId){
+  const shipment = draftShipments.find(s => s.id === shipmentId);
+  if (!shipment) return;
+  const serviceTime = Number(document.getElementById('serviceTimeInput').value);
+  const shiftStart = parseTimeToMinutes(document.getElementById('shiftStart').value);
+  const shiftEnd = parseTimeToMinutes(document.getElementById('shiftEnd').value);
+
+  const plan = runRouteOptimization(shipment, serviceTime, shiftStart, shiftEnd);
+  plan.evicted.forEach(d => { doStatus[d.id] = 'returned'; });
+  routePlans[shipmentId] = plan;
+
+  renderAll();
+  const msg = plan.evicted.length
+    ? `Route Optimization untuk ${shipmentId} selesai — ${plan.evicted.length} DO dikeluarkan (melebihi Time Budget) dan dikembalikan ke pool.`
+    : `Route Optimization untuk ${shipmentId} selesai — seluruh stop muat dalam Time Budget.`;
+  showToast(msg);
+}
+
+function runRouteOptimizationForAll(){
+  if (!draftShipments.length){
+    showToast('Belum ada Draft Shipment — jalankan Load Optimization dahulu.');
+    return;
+  }
+  const serviceTime = Number(document.getElementById('serviceTimeInput').value);
+  const shiftStart = parseTimeToMinutes(document.getElementById('shiftStart').value);
+  const shiftEnd = parseTimeToMinutes(document.getElementById('shiftEnd').value);
+
+  let totalEvicted = 0;
+  draftShipments.forEach(shipment => {
+    const plan = runRouteOptimization(shipment, serviceTime, shiftStart, shiftEnd);
+    plan.evicted.forEach(d => { doStatus[d.id] = 'returned'; });
+    routePlans[shipment.id] = plan;
+    totalEvicted += plan.evicted.length;
+  });
+
+  renderAll();
+  const msg = totalEvicted
+    ? `Route Optimization dijalankan untuk ${draftShipments.length} shipment — ${totalEvicted} DO dikeluarkan (melebihi Time Budget) dan dikembalikan ke pool.`
+    : `Route Optimization dijalankan untuk ${draftShipments.length} shipment — seluruh stop muat dalam Time Budget.`;
+  showToast(msg);
+}
+
+// Deliberately surfaces a genuine §9.3 Time Budget Fit Test failure — i.e. a
+// shipment whose ORIGINAL stop set didn't fit and needed the automated
+// eviction to become feasible (plan.fits === false). Cluster G (Wonogiri) is
+// spread wide enough that this is common, not staged, but a fresh Load+Route
+// run can still land on an all-fitting batch by chance, so this retries with
+// a freshly generated dataset (same size/target inputs) until it finds one.
+function runScenarioNotFit(){
+  const doCount = Math.max(50, Math.min(1000, Number(document.getElementById('doCountInput').value) || 300));
+  const targetStops = Math.max(8, Math.min(22, Number(document.getElementById('targetStopsInput').value) || 14));
+  const alpha = Number(document.getElementById('alphaInput').value) / 100;
+  const serviceTime = Number(document.getElementById('serviceTimeInput').value);
+  const shiftStart = parseTimeToMinutes(document.getElementById('shiftStart').value);
+  const shiftEnd = parseTimeToMinutes(document.getElementById('shiftEnd').value);
+
+  let foundId = null;
+  const MAX_ATTEMPTS = 8;
+  for (let attempt = 0; attempt < MAX_ATTEMPTS && !foundId; attempt++){
+    if (attempt > 0){
+      generateSimulation(doCount, targetStops);
+      initState();
+    }
+    const eligible = activePool().filter(d => doStatus[d.id] === 'outstanding');
+    if (!eligible.length) continue;
+
+    fleetAssignCounter = {};
+    draftShipments = runLoadOptimization(eligible, alpha);
+    draftShipments.forEach(s => s.items.forEach(d => { doStatus[d.id] = 'allocated'; }));
+    routePlans = {};
+    draftShipments.forEach(shipment => {
+      const plan = runRouteOptimization(shipment, serviceTime, shiftStart, shiftEnd);
+      plan.evicted.forEach(d => { doStatus[d.id] = 'returned'; });
+      routePlans[shipment.id] = plan;
+      if (!plan.fits && !foundId) foundId = shipment.id;
+    });
+  }
+
+  if (foundId){
+    selectedShipmentId = foundId;
+    renderAll();
+    const plan = routePlans[foundId];
+    showToast(`Skenario Route Tidak Fit: ${foundId} melebihi Time Budget sebelum eviction — ${plan.evicted.length} DO dikeluarkan agar sisa rute muat dalam ${fmtMin(plan.timeBudget)}.`);
+  } else {
+    renderAll();
+    showToast(`Tidak ditemukan shipment yang melebihi Time Budget setelah ${MAX_ATTEMPTS} percobaan simulasi ulang. Coba perkecil Jam Kerja Driver atau perbesar Target Stop / Shipment.`);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// §11.1–11.2 DEVIATION 1 — Take Out at Pickup
+// ══════════════════════════════════════════════════════════════
+function takeOutStop(shipmentId, doId){
+  const plan = routePlans[shipmentId];
+  if (!plan) return;
+  const idx = plan.sequence.findIndex(d => d.id === doId);
+  if (idx === -1) return;
+
+  // Per §11.2: remove the stop; later stops shift up to fill the gap.
+  // The remaining route is NOT recalculated (no re-run of §8/§9) — only the
+  // legs/timing display is refreshed to reflect the shorter sequence.
+  plan.sequence.splice(idx, 1);
+  const serviceTime = Number(document.getElementById('serviceTimeInput').value);
+  const recalced = totalTimeForSequence(plan.sequence, serviceTime);
+  plan.legs = recalced.legs;
+  plan.totalDistance = recalced.totalDistance;
+  plan.totalTime = recalced.totalTime;
+  // plan.fits is left as-is: it records whether the ORIGINAL Route
+  // Optimization run needed the automated §9.3 eviction, which a later
+  // manual take-out (Deviation 1) doesn't retroactively change.
+
+  doStatus[doId] = 'returned';
+  renderAll();
+  showToast(`Deviation 1: ${doId} di-take-out dari ${shipmentId} saat Pickup — dikembalikan ke pool, stop berikutnya maju mengisi posisi (§11.2).`);
+}
+
+function resetSimulation(){
+  initState();
+  renderAll();
+  showToast('Simulasi direset — seluruh DO kembali Outstanding (dataset tidak berubah).');
+}
+
+// ══════════════════════════════════════════════════════════════
+// RENDERING
+// ══════════════════════════════════════════════════════════════
+function renderFleetSummary(){
+  document.getElementById('fleetSummary').innerHTML = AVAILABLE_FLEET.map(v =>
+    `<span class="cluster-pill">${escapeHtml(v.label)} × ${v.plates.length}</span>`
+  ).join('');
+}
+
+function clusterPill(cluster){
+  return `<span class="cluster-pill">${cluster} · ${escapeHtml(CLUSTERS[cluster].label)}</span>`;
+}
+
+function renderFlowDiagram(){
+  const stages = [
+    { label:'Outstanding DO Pool', on: true },
+    { label:'[1] Load Optimization', on: draftShipments.length>0 },
+    { label:'Draft Shipment + Load Factor', on: draftShipments.length>0 },
+    { label:'[2] Route Optimization', on: Object.keys(routePlans).length>0 },
+    { label:'Route Plan', on: Object.keys(routePlans).length>0 },
+    { label:'Assign ke Driver (Planned)', on: false },
+  ];
+  document.getElementById('flowDiagram').innerHTML = stages.map((s,i) =>
+    `<span class="flow-node${s.on?' on':''}">${escapeHtml(s.label)}</span>` + (i<stages.length-1 ? `<span class="flow-arrow"><i class="fa-solid fa-arrow-right"></i></span>` : '')
+  ).join('');
+}
+
+function renderPoolToolbar(){
+  const includedCount = activePool().length;
+  document.getElementById('poolToolbar').innerHTML = BATCHES.map(b => {
+    const groupCount = ALL_DOS.filter(d => d.batch === b.key).length;
+    const included = includedBatches.has(b.key);
+    return `<label class="do-group-check">
+      <input type="checkbox" ${included?'checked':''} onchange="toggleBatchIncluded(${b.key})">
+      <span>Batch ${escapeHtml(b.label)} <span class="do-group-count">(${groupCount} DO)</span></span>
+    </label>`;
+  }).join('') + `<span class="pool-summary">Pool terpilih untuk Load Optimization: <b>${includedCount}</b> / ${ALL_DOS.length} DO</span>`;
+}
+
+function toggleBatchIncluded(key){
+  if (includedBatches.has(key)) includedBatches.delete(key);
+  else includedBatches.add(key);
+  renderPoolToolbar();
+  renderDoPool();
+  document.getElementById('runLoadBtn').disabled = !activePool().some(d => doStatus[d.id]==='outstanding');
+}
+
+function renderDoPool(){
+  const rows = [];
+  BATCHES.forEach(b => {
+    const groupDos = ALL_DOS.filter(d => d.batch === b.key);
+    if (!groupDos.length) return;
+    const included = includedBatches.has(b.key);
+    rows.push(`<tr class="do-group-row${included?'':' excluded'}">
+      <td colspan="7">
+        <label class="do-group-check">
+          <input type="checkbox" ${included?'checked':''} onchange="toggleBatchIncluded(${b.key})">
+          <span>Batch ${escapeHtml(b.label)} <span class="do-group-count">— ${groupDos.length} DO${included?'':' · dikecualikan dari Load Optimization'}</span></span>
+        </label>
+      </td>
+    </tr>`);
+    groupDos.forEach(d => {
+      const status = doStatus[d.id];
+      const rowCls = [status === 'allocated' ? 'allocated' : '', included ? '' : 'excluded-row'].filter(Boolean).join(' ');
+      const statusLabel = { outstanding:'Outstanding', allocated:'Allocated', returned:'Returned to Pool' }[status];
+      rows.push(`<tr class="${rowCls}">
+        <td class="do-id">${d.id}</td>
+        <td>${escapeHtml(d.shipTo)}</td>
+        <td>${d.volume.toFixed(1)}</td>
+        <td>${d.weight}</td>
+        <td>${clusterPill(d.cluster)}</td>
+        <td><span class="rdd-pill ${RDD_CLASS[d.rdd]}">${fmtRddDate(d.rddAt)}</span></td>
+        <td><span class="status-pill ${status}">${statusLabel}</span></td>
+      </tr>`);
+    });
+  });
+  document.getElementById('doPoolBody').innerHTML = rows.join('');
+}
+
+function loadBarClass(pct){ return pct > 100 ? 'over' : (pct >= 90 ? 'warn' : 'ok'); }
+
+function fmtMin(min){
+  const h = Math.floor(min/60), m = Math.round(min%60);
+  return h>0 ? `${h}j ${m}m` : `${m}m`;
+}
+function fmtClock(startMin, addMin){
+  const total = startMin + addMin;
+  const h = Math.floor(total/60)%24, m = Math.round(total%60);
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+}
+
+function selectShipment(id){
+  selectedShipmentId = id;
+  renderShipmentList();
+  renderShipmentDetail();
+}
+
+function renderShipmentMasterDetail(){
+  const container = document.getElementById('shipmentMasterDetail');
+  if (!draftShipments.length){
+    if (detailMap) { detailMap.remove(); detailMap = null; }
+    container.innerHTML = `<div class="empty-state">
+      <i class="fa-solid fa-boxes-stacked"></i>
+      <div class="empty-title">Belum ada Draft Shipment</div>
+      <div class="empty-sub">Jalankan Load Optimization dari Panel 1 untuk membentuk Draft Shipment.</div>
+    </div>`;
+    return;
+  }
+  if (!selectedShipmentId || !draftShipments.find(s => s.id === selectedShipmentId)){
+    selectedShipmentId = draftShipments[0].id;
+  }
+  container.innerHTML = `<div class="shipment-list-col" id="shipmentListCol"></div><div class="shipment-detail-col" id="shipmentDetailCol"></div>`;
+  renderShipmentList();
+  renderShipmentDetail();
+}
+
+function renderShipmentList(){
+  const col = document.getElementById('shipmentListCol');
+  if (!col) return;
+  col.innerHTML = draftShipments.map(s => {
+    const plan = routePlans[s.id];
+    const selected = s.id === selectedShipmentId;
+    const fitBadge = plan
+      ? `<span class="route-fit-pill ${plan.fits ? 'fit' : 'evicted'}" style="margin-left:0">${plan.fits ? 'Fit ✓' : 'Evicted'}</span>`
+      : `<span class="status-pill outstanding">Belum di-routing</span>`;
+    return `<div class="shipment-row${selected ? ' selected' : ''}" onclick="selectShipment('${s.id}')">
+      <div class="shipment-row-top">
+        <span class="shipment-card-id">${s.id}</span>
+        ${clusterPill(s.cluster)}
+        <span style="margin-left:auto;font-size:11px;color:var(--g500);font-weight:600">${s.items.length} DO</span>
+      </div>
+      <div class="shipment-row-meta">
+        <span>${escapeHtml(s.vehicle.label)} · ${escapeHtml(s.vehicle.plate)}</span>
+        <span>Load Factor ${s.loadFactor.toFixed(0)}%</span>
+      </div>
+      <div class="shipment-row-badges">${fitBadge}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderShipmentDetail(){
+  const col = document.getElementById('shipmentDetailCol');
+  if (!col) return;
+  if (detailMap) { detailMap.remove(); detailMap = null; }
+  const s = draftShipments.find(x => x.id === selectedShipmentId);
+  if (!s){ col.innerHTML = ''; return; }
+  const plan = routePlans[s.id];
+
+  let html = `
+    <div class="shipment-card-hdr">
+      <span class="shipment-card-id">${s.id}</span>
+      ${clusterPill(s.cluster)}
+      <span style="font-size:11px;color:var(--g500);font-weight:600">${s.items.length} DO</span>
+      <span style="margin-left:auto;font-size:11px;color:var(--g400)">${escapeHtml(s.vehicle.label)} · ${escapeHtml(s.vehicle.plate)}</span>
+    </div>
+    <div class="shipment-card-body">
+      <div class="do-chip-row">${s.items.map(d=>`<span class="do-chip" title="${escapeHtml(d.shipTo)}">${d.id}</span>`).join('')}</div>
+      <div class="load-metric-row"><span>Volume</span><span>${s.totalVolume.toFixed(1)} / ${s.effVolume.toFixed(1)} m³ efektif (${s.utilVolume.toFixed(0)}%)</span></div>
+      <div class="load-bar-track"><div class="load-bar-fill ${loadBarClass(s.utilVolume)}" style="width:${Math.min(s.utilVolume,100)}%"></div></div>
+      <div class="load-metric-row"><span>Weight</span><span>${s.totalWeight} / ${s.effWeight.toFixed(0)} kg efektif (${s.utilWeight.toFixed(0)}%)</span></div>
+      <div class="load-bar-track"><div class="load-bar-fill ${loadBarClass(s.utilWeight)}" style="width:${Math.min(s.utilWeight,100)}%"></div></div>
+      <div class="binding-note">Armada ter-pilih otomatis: <b>${escapeHtml(s.vehicle.label)}</b> (${s.vehicle.volume} m³ / ${s.vehicle.weight} kg nominal, α ${(s.effVolume/s.vehicle.volume*100).toFixed(0)}%) → Load Factor <b>${s.loadFactor.toFixed(0)}%</b> — binding constraint: <b>${s.binding === 'volume' ? 'Volume' : 'Weight'}</b></div>
+      <button class="btn ${plan ? 'btn-outline' : 'btn-primary'} btn-sm" style="width:100%;justify-content:center" onclick="runRouteOptimizationStage('${s.id}')">
+        <i class="fa-solid fa-route"></i> ${plan ? 'Jalankan Ulang Route Optimization' : 'Jalankan Route Optimization'}
+      </button>
+    </div>`;
+
+  if (plan){
+    const shiftStart = parseTimeToMinutes(document.getElementById('shiftStart').value);
+    html += `
+      <div class="route-card-hdr">
+        <span class="rdd-pill later"><i class="fa-solid fa-route"></i> ${plan.totalDistance.toFixed(1)} km</span>
+        <span class="rdd-pill later"><i class="fa-regular fa-clock"></i> ${fmtMin(plan.totalTime)} / Budget ${fmtMin(plan.timeBudget)}</span>
+        <span class="route-fit-pill ${plan.fits ? 'fit' : 'evicted'}">${plan.fits ? 'Time Budget Fit ✓' : 'Tidak Fit — Perlu Evict'}</span>
+      </div>
+      ${plan.evicted.length ? `<div class="eviction-note"><i class="fa-solid fa-triangle-exclamation" style="margin-top:1px"></i>
+        <span>${plan.evicted.map(d=>d.id).join(', ')} melebihi Time Budget (§9.3) — dikeluarkan dari route ini, dikembalikan ke Outstanding pool untuk batch/driver berikutnya.</span>
+      </div>` : ''}
+      <div class="route-body">
+        <div class="route-map" id="detailMap"></div>
+        <div class="route-seq">
+          <div class="seq-stop">
+            <div class="seq-num origin"><i class="fa-solid fa-warehouse" style="font-size:9px"></i></div>
+            <div class="seq-info">
+              <div class="seq-title-row"><span class="seq-do">${ORIGIN.name} (Origin)</span></div>
+              <div class="seq-meta">Berangkat ${document.getElementById('shiftStart').value}</div>
+            </div>
+          </div>
+          ${plan.sequence.map((d, i) => {
+            const leg = plan.legs[i];
+            return `<div class="seq-stop">
+              <div class="seq-num">${i+1}</div>
+              <div class="seq-info">
+                <div class="seq-title-row">
+                  <span class="seq-do">${d.id}</span>
+                  <span class="rdd-pill ${RDD_CLASS[d.rdd]}">RDD ${fmtRddDate(d.rddAt)}</span>
+                </div>
+                <div class="seq-meta">${escapeHtml(d.shipTo)} · ${LOCATIONS[d.id].name} · ${leg.km.toFixed(1)} km · tiba ~${fmtClock(shiftStart, leg.cumulative - leg.minutes + travelMinutes(leg.km))} · selesai bongkar ~${fmtClock(shiftStart, leg.cumulative)}</div>
+              </div>
+              <div class="seq-actions">
+                <button class="btn btn-danger-ghost btn-xs" onclick="takeOutStop('${s.id}','${d.id}')" title="Simulasikan Deviation 1 — take out saat Pickup">
+                  <i class="fa-solid fa-xmark"></i> Take Out
+                </button>
+              </div>
+            </div>`;
+          }).join('')}
+          ${!plan.sequence.length ? `<div style="padding:20px;text-align:center;color:var(--g400);font-size:12px">Semua stop telah di-take-out dari shipment ini.</div>` : ''}
+        </div>
+      </div>
+      <div class="summary-strip">
+        <span class="summary-item">Jumlah Stop <b>${plan.sequence.length}</b></span>
+        <span class="summary-item">Total Distance <b>${plan.totalDistance.toFixed(1)} km</b></span>
+        <span class="summary-item">Total Time <b>${fmtMin(plan.totalTime)}</b></span>
+        <span class="summary-item">Estimasi Selesai <b>${plan.sequence.length ? fmtClock(shiftStart, plan.totalTime) : '—'}</b></span>
+      </div>`;
+  } else {
+    html += `<div class="empty-state" style="padding:32px 20px">
+      <i class="fa-solid fa-route"></i>
+      <div class="empty-title">Belum ada Route Plan</div>
+      <div class="empty-sub">Klik "Jalankan Route Optimization" di atas untuk shipment ini.</div>
+    </div>`;
+  }
+
+  col.innerHTML = html;
+
+  if (plan && plan.sequence.length){
+    const el = document.getElementById('detailMap');
+    detailMap = L.map(el, { zoomControl:false, attributionControl:false }).setView([ORIGIN.lat, ORIGIN.lng], 12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(detailMap);
+    const latlngs = [[ORIGIN.lat, ORIGIN.lng], ...plan.sequence.map(d => [LOCATIONS[d.id].lat, LOCATIONS[d.id].lng])];
+    L.polyline(latlngs, { color:'#4f46e5', weight:3, dashArray:'0' }).addTo(detailMap);
+    L.marker([ORIGIN.lat, ORIGIN.lng], { icon: L.divIcon({ className:'', html:'<div style="width:22px;height:22px;border-radius:50%;background:#334155;color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.3)">DC</div>', iconSize:[22,22] }) }).addTo(detailMap);
+    plan.sequence.forEach((d, i) => {
+      const loc = LOCATIONS[d.id];
+      L.marker([loc.lat, loc.lng], { icon: L.divIcon({ className:'', html:`<div style="width:22px;height:22px;border-radius:50%;background:#4338ca;color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.3)">${i+1}</div>`, iconSize:[22,22] }) })
+        .addTo(detailMap).bindPopup(`<b>${d.id}</b><br>${escapeHtml(d.shipTo)}<br><span style="color:#94a3b8">${loc.name} · RDD ${fmtRddDate(d.rddAt)}</span>`);
+    });
+    detailMap.fitBounds(latlngs, { padding:[24,24] });
+  }
+}
+
+function renderAll(){
+  renderFlowDiagram();
+  renderPoolToolbar();
+  renderDoPool();
+  renderShipmentMasterDetail();
+  document.getElementById('runLoadBtn').disabled = !activePool().some(d => doStatus[d.id]==='outstanding');
+}
+
+function showToast(msg){
+  let t=document.getElementById('app-toast');
+  if(!t){
+    t=document.createElement('div');
+    t.id='app-toast';
+    document.body.appendChild(t);
+  }
+  t.innerHTML=`<i class="fa-solid fa-circle-check" style="color:#86efac;font-size:14px"></i> ${escapeHtml(msg)}`;
+  t.style.opacity='1';
+  t.style.transform='translateX(-50%) translateY(0)';
+  t.style.pointerEvents='auto';
+  clearTimeout(t._timer);
+  t._timer=setTimeout(()=>{
+    t.style.opacity='0';
+    t.style.transform='translateX(-50%) translateY(80px)';
+    t.style.pointerEvents='none';
+  },4200);
+}
+
+renderFleetSummary();
+generateSimulation(300, 14);
+initState();
+renderAll();
+</script>
+</body>
+</html>
