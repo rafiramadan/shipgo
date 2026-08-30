@@ -131,6 +131,29 @@ create table public.device_version_history (
   method text not null default 'Play Store'
 );
 
+-- ── APP USERS ── (ShipGo platform accounts shown on user-management.html —
+-- named app_users, not "users", to stay unambiguous from Supabase Auth's own
+-- auth.users. Decoupled from real authentication on purpose: the platform
+-- still logs everyone in through one shared PIN, not per-user Supabase Auth,
+-- so this table is pure master data for now, not a login mechanism.
+create table public.app_users (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  employee_id text unique not null,
+  email text unique not null,
+  phone text,
+  role text not null check (role in ('Super Admin','Dispatcher','Fleet Viewer','Auditor')),
+  status text not null default 'active' check (status in ('active','inactive')),
+  updated_at date not null default current_date
+);
+
+-- Location Scope — which DCs a user can access (many-to-many).
+create table public.user_locations (
+  user_id uuid not null references public.app_users(id) on delete cascade,
+  dc_id uuid not null references public.distribution_centers(id) on delete cascade,
+  primary key (user_id, dc_id)
+);
+
 -- ── Row Level Security ──
 -- Prototype-stage policy: anyone holding the anon key can read/write this
 -- master data. Scoped to the `anon` Postgres role (not `authenticated`)
@@ -150,6 +173,8 @@ alter table public.staging_bay_coverage enable row level security;
 alter table public.drivers enable row level security;
 alter table public.devices enable row level security;
 alter table public.device_version_history enable row level security;
+alter table public.app_users enable row level security;
+alter table public.user_locations enable row level security;
 
 create policy "Anon read" on public.distribution_centers for select to anon using (true);
 create policy "Anon read" on public.depots for select to anon using (true);
@@ -159,6 +184,8 @@ create policy "Anon read" on public.staging_bay_coverage for select to anon usin
 create policy "Anon read" on public.drivers for select to anon using (true);
 create policy "Anon read" on public.devices for select to anon using (true);
 create policy "Anon read" on public.device_version_history for select to anon using (true);
+create policy "Anon read" on public.app_users for select to anon using (true);
+create policy "Anon read" on public.user_locations for select to anon using (true);
 
 create policy "Anon write" on public.distribution_centers for all to anon using (true) with check (true);
 create policy "Anon write" on public.depots for all to anon using (true) with check (true);
@@ -168,3 +195,5 @@ create policy "Anon write" on public.staging_bay_coverage for all to anon using 
 create policy "Anon write" on public.drivers for all to anon using (true) with check (true);
 create policy "Anon write" on public.devices for all to anon using (true) with check (true);
 create policy "Anon write" on public.device_version_history for all to anon using (true) with check (true);
+create policy "Anon write" on public.app_users for all to anon using (true) with check (true);
+create policy "Anon write" on public.user_locations for all to anon using (true) with check (true);

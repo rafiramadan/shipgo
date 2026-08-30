@@ -90,6 +90,42 @@ insert into public.distribution_centers (code, name, status) values
   ('1207', 'PARAMA DC SEMARANG', 'active'),
   ('1208', 'PARAMA DC SUKABUMI', 'active');
 
+-- ── Remaining Distribution Centers ── user-management.html's LOCATION_NAMES
+-- is the actual full master list (34 DCs total, confirmed by app-monitoring
+-- .html's own comment: "Full DC master list lives in User Management's
+-- Location Scope"). The 7 above already exist (as "PARAMA DC X", each
+-- page's own historical naming kept as-is rather than renamed, since both
+-- are already live and verified working); these are the other 27, named
+-- exactly as user-management.html's own mock data has them ("DC X").
+insert into public.distribution_centers (code, name, status) values
+  ('1401', 'DC Aceh', 'active'),
+  ('1402', 'DC Ambon', 'active'),
+  ('1403', 'DC Bali', 'active'),
+  ('1404', 'DC Bangka', 'active'),
+  ('1405', 'DC Banten', 'active'),
+  ('1406', 'DC Bengkulu', 'active'),
+  ('1407', 'DC Bukittinggi', 'active'),
+  ('1408', 'DC Jambi', 'active'),
+  ('1409', 'DC Kendari', 'active'),
+  ('1410', 'DC Lampung', 'active'),
+  ('1411', 'DC Manado', 'active'),
+  ('1412', 'DC Palangkaraya', 'active'),
+  ('1413', 'DC Palu', 'active'),
+  ('1414', 'DC Pontianak', 'active'),
+  ('1415', 'DC Purwokerto', 'active'),
+  ('1416', 'DC Rantau Prapat', 'active'),
+  ('1417', 'DC Samarinda', 'active'),
+  ('1418', 'DC Surabaya', 'active'),
+  ('1419', 'DC Tanjung Pinang', 'active'),
+  ('1420', 'DC Banjarmasin', 'active'),
+  ('1421', 'DC Cirebon', 'active'),
+  ('1422', 'DC Jember', 'active'),
+  ('1423', 'DC Kediri', 'active'),
+  ('1424', 'DC Makassar', 'active'),
+  ('1425', 'DC Medan', 'active'),
+  ('1426', 'DC Palembang', 'active'),
+  ('1427', 'DC Pekanbaru', 'active');
+
 -- ── Drivers (roster reused across App Monitoring / Feature Config) ──
 -- dc_name here matches app-monitoring.html's actual DEVICES[i].dcId mapping
 -- (DC Solo/Bandung -> the PARAMA-prefixed rows already seeded above).
@@ -145,3 +181,21 @@ from (values
 ) as v(employee_id, version, days_ago, method)
 join public.drivers d on d.employee_id = v.employee_id
 join public.devices dev on dev.driver_id = d.id;
+
+-- ── App Users (user-management.html) ──
+insert into public.app_users (id, name, employee_id, email, phone, role, status, updated_at) values
+  ('c1111111-1111-1111-1111-111111111111', 'Rafi Ramadani', 'EMP0001', 'dispatcher@shipgo.id', '+6281234567890', 'Dispatcher', 'active', '2026-07-01'),
+  ('c2222222-2222-2222-2222-222222222222', 'Admin ShipGo', 'EMP0002', 'admin@shipgo.id', null, 'Super Admin', 'active', '2026-07-03'),
+  ('c3333333-3333-3333-3333-333333333333', 'Siti Aminah', 'EMP0003', 'siti.aminah@shipgo.id', '+6281298765432', 'Fleet Viewer', 'active', '2026-06-20'),
+  ('c4444444-4444-4444-4444-444444444444', 'Budi Santoso', 'EMP0004', 'budi.santoso@shipgo.id', null, 'Auditor', 'inactive', '2026-05-10');
+
+-- Location Scope: Rafi -> DC Solo/Semarang/Surabaya, Siti -> DC Bandung only,
+-- Admin & Budi -> every DC (matches user-management.html's ALL_LOCATION_IDS spread).
+insert into public.user_locations (user_id, dc_id)
+select 'c1111111-1111-1111-1111-111111111111'::uuid, id from public.distribution_centers where name in ('PARAMA DC SOLO', 'PARAMA DC SEMARANG', 'DC Surabaya')
+union all
+select 'c3333333-3333-3333-3333-333333333333'::uuid, id from public.distribution_centers where name = 'PARAMA DC BANDUNG'
+union all
+select 'c2222222-2222-2222-2222-222222222222'::uuid, id from public.distribution_centers
+union all
+select 'c4444444-4444-4444-4444-444444444444'::uuid, id from public.distribution_centers;

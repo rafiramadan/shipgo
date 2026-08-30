@@ -1,17 +1,27 @@
 # ShipGo + Supabase — Setup Notes
 
 **Project:** `utjfmriqgcinrgqzyzci` (https://supabase.com/dashboard/project/utjfmriqgcinrgqzyzci)
-**Status:** Connected and verified live — `shipping-point.html` and
-`app-monitoring.html` both read/write real Supabase data, confirmed end to
-end against the deployed site and the live database.
+**Status:** `shipping-point.html` and `app-monitoring.html` are connected and
+verified live end to end. `user-management.html` is wired and verified
+against the demo-data fallback path, but the tables it needs
+(`app_users`, `user_locations`) don't exist in the live project yet — see
+"Next step" below.
 
 Phase 1 covers: master data for `shipping-point.html` (Distribution Centers,
-Depots, Staging Bays, District/route coverage) and `app-monitoring.html`
-(Drivers, Devices, version history).
+Depots, Staging Bays, District/route coverage), `app-monitoring.html`
+(Drivers, Devices, version history), and `user-management.html` (App Users,
+Location Scope).
 
 Not yet modeled or wired: Auth (still the shared PIN), Shipment Planning,
-Live/History Tracking, Feature Config, Group/Role, User Management. These
-stay on mock data until a later phase.
+Live/History Tracking, Feature Config, Group/Role. These stay on mock data
+until a later phase.
+
+## Next step for `user-management.html`
+
+Run `supabase/patch_user_management.sql` in the SQL Editor (purely additive —
+creates `app_users` + `user_locations`, adds the 27 Distribution Centers only
+this page's mock data had, seeds the 4 users). Verified against a
+reproduction of the exact current live-DB state before being handed over.
 
 ## How the connection works
 
@@ -41,8 +51,18 @@ stay on mock data until a later phase.
   round trip against the live database (confirmed via a fresh REST call
   independent of the page).
 
-Both pages fall back to their original hardcoded `MOCK_*` arrays if Supabase
-isn't configured or a fetch fails, so neither ever hard-breaks.
+- **`user-management.html`** — fetches Distribution Centers and App
+  Users-embedded-with-their-Location-Scope
+  (`app_users?select=*,user_locations(dc_id)`). Add/Edit both write via
+  `persistUser()` (insert-or-update `app_users`, then reconcile
+  `user_locations` by deleting all rows for that user and re-inserting the
+  current selection — simplest correct approach for a small multi-select).
+  The Status toggle's confirm action updates `app_users.status` directly.
+  This page was **entirely read-only in-memory** before — no page here has
+  ever written to a real backend prior to this project.
+
+All pages fall back to their original hardcoded `MOCK_*` arrays if Supabase
+isn't configured or a fetch fails, so none of them ever hard-break.
 
 ## Schema notes — corrected after reading the actual pages
 
@@ -68,6 +88,14 @@ isn't configured or a fetch fails, so neither ever hard-breaks.
   query instead of erroring. Fixed by re-scoping to `anon` (see
   `fix_rls_anon.sql` below). Confirmed via `curl` before/after: `200 OK []`
   → `200 OK [...]`.
+- **`user-management.html`** turned out to hold the actual full DC master
+  list — its own code comment ("mirrors ... shipping-point locations
+  elsewhere in the app") undersold it: it has **34** Distribution Centers,
+  not the 3 or 7 the other two pages independently invented. `distribution_centers`
+  now has all 34; the 7 that already existed keep their original names
+  (`PARAMA DC X`, since those 2 pages are already live and verified — not
+  worth a cosmetic rename that risks nothing but regression), the other 27
+  use `user-management.html`'s own naming (`DC Y`) exactly.
 
 All of `schema.sql` / `seed.sql` / the patch files have been verified
 end-to-end against a local scratch Postgres before being handed over — table
@@ -82,6 +110,9 @@ Run these two patch files once, in your SQL Editor, in this order:
 2. **`patch_app_monitoring.sql`** — adds the 4 missing DCs, fixes each
    driver's `dc_id` to match `app-monitoring.html`, and backfills
    `device_version_history` (which the original `seed.sql` never populated).
+3. **`patch_user_management.sql`** — creates `app_users` + `user_locations`
+   (new tables), adds the 27 remaining DCs, seeds the 4 users from
+   `user-management.html`'s mock data with their real Location Scope.
 
 A **fresh** project should just run `schema.sql` then `seed.sql` — both
 already include these fixes.

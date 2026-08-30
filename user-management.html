@@ -212,6 +212,8 @@ table.usr-table tbody tr:hover{background:var(--g50)}
 </head>
 <body>
 <script src="/auth-guard.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="/supabase-client.js"></script>
 
 <!-- TOPBAR -->
 <header class="topbar">
@@ -536,25 +538,77 @@ function toggleSidebar(){
 }
 
 // ── REFERENCE DATA (mirrors Group/Role + shipping-point locations elsewhere in the app) ──
+// MOCK_* below are the fallback/demo data, used only when Supabase isn't
+// configured or a fetch fails — see loadUserManagementData(). LOCATIONS /
+// ALL_LOCATION_IDS / USERS are the active working data: in demo mode their
+// ids are client-side slugs; when Supabase is connected they're real
+// distribution_centers UUIDs instead — every lookup below just matches ids
+// against whichever LOCATIONS set is currently active, so nothing else
+// needs to know which mode it's in.
 const ROLES=['Super Admin','Dispatcher','Fleet Viewer','Auditor'];
 
 function slugify(s){ return s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,''); }
-const LOCATION_NAMES=[
+const MOCK_LOCATION_NAMES=[
   'DC Aceh','DC Ambon','DC Bali','DC Bangka','DC Banten','DC Bengkulu','DC Bogor','DC Bukittinggi',
   'DC Jambi','DC Kendari','DC Lampung','DC Manado','DC Mataram','DC Palangkaraya','DC Palu','DC Pontianak',
   'DC Purwokerto','DC Rantau Prapat','DC Samarinda','DC Semarang','DC Solo','DC Sukabumi','DC Surabaya',
   'DC Tanjung Pinang','DC Tasikmalaya','DC Bandung','DC Banjarmasin','DC Cirebon','DC Jember','DC Kediri',
   'DC Makassar','DC Medan','DC Palembang','DC Pekanbaru',
 ].sort((a,b)=>a.localeCompare(b));
-const LOCATIONS=LOCATION_NAMES.map(name=>({id:slugify(name),name}));
-const ALL_LOCATION_IDS=LOCATIONS.map(l=>l.id);
+let LOCATIONS=[], ALL_LOCATION_IDS=[];
 
-let USERS=[
-  {id:'u1',name:'Rafi Ramadani',employeeId:'EMP0001',email:'dispatcher@shipgo.id',phone:'+6281234567890',role:'Dispatcher',locations:['dc-solo','dc-semarang','dc-surabaya'],status:'active',updatedAt:'2026-07-01'},
-  {id:'u2',name:'Admin ShipGo',employeeId:'EMP0002',email:'admin@shipgo.id',phone:'',role:'Super Admin',locations:[...ALL_LOCATION_IDS],status:'active',updatedAt:'2026-07-03'},
-  {id:'u3',name:'Siti Aminah',employeeId:'EMP0003',email:'siti.aminah@shipgo.id',phone:'+6281298765432',role:'Fleet Viewer',locations:['dc-bandung'],status:'active',updatedAt:'2026-06-20'},
-  {id:'u4',name:'Budi Santoso',employeeId:'EMP0004',email:'budi.santoso@shipgo.id',phone:'',role:'Auditor',locations:[...ALL_LOCATION_IDS],status:'inactive',updatedAt:'2026-05-10'},
-];
+function buildMockLocations(){
+  return MOCK_LOCATION_NAMES.map(name=>({id:slugify(name),name}));
+}
+// MOCK_USERS' `locations` arrays are built lazily (not at parse time) since
+// they reference slugified mock location ids that must match buildMockLocations().
+function buildMockUsers(){
+  const allIds=buildMockLocations().map(l=>l.id);
+  return [
+    {id:'u1',name:'Rafi Ramadani',employeeId:'EMP0001',email:'dispatcher@shipgo.id',phone:'+6281234567890',role:'Dispatcher',locations:['dc-solo','dc-semarang','dc-surabaya'],status:'active',updatedAt:'2026-07-01'},
+    {id:'u2',name:'Admin ShipGo',employeeId:'EMP0002',email:'admin@shipgo.id',phone:'',role:'Super Admin',locations:[...allIds],status:'active',updatedAt:'2026-07-03'},
+    {id:'u3',name:'Siti Aminah',employeeId:'EMP0003',email:'siti.aminah@shipgo.id',phone:'+6281298765432',role:'Fleet Viewer',locations:['dc-bandung'],status:'active',updatedAt:'2026-06-20'},
+    {id:'u4',name:'Budi Santoso',employeeId:'EMP0004',email:'budi.santoso@shipgo.id',phone:'',role:'Auditor',locations:[...allIds],status:'inactive',updatedAt:'2026-05-10'},
+  ];
+}
+let USERS=[];
+
+// Fetches Distribution Centers + App Users (with their Location Scope,
+// embedded via PostgREST's app_users -> user_locations -> distribution_centers
+// relationship) from Supabase, reshaping into the exact same USERS/LOCATIONS
+// shape this page always used. Falls back to the mock data if Supabase isn't
+// configured or the fetch fails.
+async function loadUserManagementData(){
+  const client = await getSupabaseClient();
+  if (!client){
+    LOCATIONS = buildMockLocations();
+    ALL_LOCATION_IDS = LOCATIONS.map(l=>l.id);
+    USERS = buildMockUsers();
+    return;
+  }
+  try {
+    const [dcRes, userRes] = await Promise.all([
+      client.from('distribution_centers').select('id, name').order('name'),
+      client.from('app_users').select('id, name, employee_id, email, phone, role, status, updated_at, user_locations(dc_id)'),
+    ]);
+    if (dcRes.error) throw dcRes.error;
+    if (userRes.error) throw userRes.error;
+
+    LOCATIONS = dcRes.data.map(dc => ({ id: dc.id, name: dc.name }));
+    ALL_LOCATION_IDS = LOCATIONS.map(l=>l.id);
+    USERS = userRes.data.map(u => ({
+      id: u.id, name: u.name, employeeId: u.employee_id, email: u.email, phone: u.phone || '',
+      role: u.role, status: u.status, updatedAt: u.updated_at,
+      locations: (u.user_locations||[]).map(l=>l.dc_id),
+    }));
+  } catch (e) {
+    console.error('[shipgo] Failed to load User Management data from Supabase — falling back to demo data:', e);
+    LOCATIONS = buildMockLocations();
+    ALL_LOCATION_IDS = LOCATIONS.map(l=>l.id);
+    USERS = buildMockUsers();
+    showToast('Gagal memuat data dari Supabase — menampilkan data contoh.', true);
+  }
+}
 
 let userSearchTerm='';
 let roleFilterVal='';
@@ -655,12 +709,28 @@ function closeConfirmModal(){
   document.getElementById('confirmModal').classList.remove('show');
   pendingStatusUserId=null;
 }
-document.getElementById('confirmActionBtn').addEventListener('click',()=>{
+document.getElementById('confirmActionBtn').addEventListener('click', async ()=>{
   const u=USERS.find(x=>x.id===pendingStatusUserId);
   if(!u){ closeConfirmModal(); return; }
   const goingInactive=u.status==='active';
-  u.status=goingInactive?'inactive':'active';
-  u.updatedAt=todayStr();
+  const newStatus=goingInactive?'inactive':'active';
+  const newUpdatedAt=todayStr();
+
+  const client = await getSupabaseClient();
+  if (client){
+    try {
+      const { error } = await client.from('app_users').update({ status:newStatus, updated_at:newUpdatedAt }).eq('id', u.id);
+      if (error) throw error;
+    } catch (e) {
+      console.error('[shipgo] Failed to update user status:', e);
+      showToast('Gagal menyimpan perubahan status ke server. Coba lagi.', true);
+      closeConfirmModal();
+      return;
+    }
+  }
+
+  u.status=newStatus;
+  u.updatedAt=newUpdatedAt;
   closeConfirmModal();
   renderUserList();
   showToast(goingInactive
@@ -810,7 +880,46 @@ function isValidEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
 function isValidEmployeeId(v){ return /^[A-Za-z0-9]+$/.test(v); }
 function isValidE164(v){ return /^\+[1-9]\d{6,14}$/.test(v); }
 
-function saveUser(){
+// Writes an app_users row (insert or update) then reconciles its
+// user_locations rows via delete-all-then-insert-new (simplest correct
+// approach for a small Location Scope list). Returns true on success —
+// false on failure, so saveUser() can bail out without touching local state
+// or closing the modal. In demo mode (no Supabase configured) this is a
+// no-op that always succeeds, since USERS is already the source of truth.
+async function persistUser(user, isNew){
+  const client = await getSupabaseClient();
+  if (!client) return true;
+  try {
+    if (isNew){
+      const { data, error } = await client.from('app_users').insert({
+        name: user.name, employee_id: user.employeeId, email: user.email,
+        phone: user.phone || null, role: user.role, status: user.status, updated_at: user.updatedAt,
+      }).select().single();
+      if (error) throw error;
+      user.id = data.id; // replace the temporary client-side id with the real one
+    } else {
+      const { error } = await client.from('app_users').update({
+        name: user.name, employee_id: user.employeeId, email: user.email,
+        phone: user.phone || null, role: user.role, status: user.status, updated_at: user.updatedAt,
+      }).eq('id', user.id);
+      if (error) throw error;
+    }
+    const { error: delErr } = await client.from('user_locations').delete().eq('user_id', user.id);
+    if (delErr) throw delErr;
+    if (user.locations.length){
+      const { error: insErr } = await client.from('user_locations')
+        .insert(user.locations.map(dcId => ({ user_id: user.id, dc_id: dcId })));
+      if (insErr) throw insErr;
+    }
+    return true;
+  } catch (e) {
+    console.error('[shipgo] Failed to save user:', e);
+    showToast('Gagal menyimpan data user ke server. Coba lagi.', true);
+    return false;
+  }
+}
+
+async function saveUser(){
   const name=document.getElementById('fldName').value.trim();
   const employeeId=document.getElementById('fldEmpId').value.trim();
   const email=document.getElementById('fldEmail').value.trim();
@@ -841,17 +950,19 @@ function saveUser(){
 
   if(editingUserId){
     const u=USERS.find(x=>x.id===editingUserId);
-    u.name=name; u.employeeId=employeeId; u.email=email; u.phone=phone;
-    u.role=role; u.status=status; u.locations=[...draftLocations];
-    u.updatedAt=todayStr();
+    const updated={...u, name, employeeId, email, phone, role, status, locations:[...draftLocations], updatedAt:todayStr()};
+    if (!(await persistUser(updated, false))) return;
+    Object.assign(u, updated);
     showToast(`User "${name}" berhasil diperbarui. Perubahan berlaku pada login berikutnya.`);
   }else{
-    USERS.unshift({
+    const newUser={
       id:'u'+Date.now(),
       name, employeeId, email, phone, role, status,
       locations:[...draftLocations],
       updatedAt:todayStr(),
-    });
+    };
+    if (!(await persistUser(newUser, true))) return;
+    USERS.unshift(newUser);
     showActivationEmail(name,email);
   }
 
@@ -889,7 +1000,13 @@ function showToast(msg){
   },3800);
 }
 
-renderUserList();
+async function bootstrap(){
+  document.getElementById('userTbody').innerHTML =
+    `<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--g400)">Memuat data User Management...</td></tr>`;
+  await loadUserManagementData();
+  renderUserList();
+}
+bootstrap();
 </script>
 </body>
 </html>
