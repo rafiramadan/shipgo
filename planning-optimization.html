@@ -210,6 +210,78 @@ table.do-table tbody tr.allocated{opacity:.45}
 .flow-arrow{color:var(--g300)}
 
 #app-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--sb);color:#fff;padding:10px 20px;border-radius:10px;font-size:12px;font-weight:500;z-index:9999;transition:transform .3s ease,opacity .3s ease;opacity:0;pointer-events:none;display:flex;align-items:center;gap:8px;max-width:440px;box-shadow:0 4px 20px rgba(0,0,0,.25)}
+
+/* ── LOAD PLAN 3D MODAL ── */
+.lp-modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.6);z-index:5000;display:none;align-items:flex-start;justify-content:center;padding:28px 16px;overflow-y:auto}
+.lp-modal-overlay.open{display:flex}
+.lp-modal{background:var(--g100);border-radius:14px;max-width:1180px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.35);overflow:hidden}
+.lp-modal-hdr{background:#fff;padding:16px 22px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--g200)}
+.lp-modal-title{font-size:16px;font-weight:800;letter-spacing:.3px;color:var(--g900)}
+.lp-modal-sub{font-size:11.5px;color:var(--g500);margin-top:2px}
+.lp-close-btn{width:32px;height:32px;border-radius:8px;border:1px solid var(--g200);background:#fff;color:var(--g500);cursor:pointer;font-size:14px}
+.lp-close-btn:hover{background:var(--g50);color:var(--g900)}
+.lp-modal-body{padding:18px 22px 24px}
+.lp-top-row{display:grid;grid-template-columns:230px 1fr 230px;gap:14px}
+.lp-bottom-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:14px}
+@media (max-width:980px){.lp-top-row{grid-template-columns:1fr}.lp-bottom-row{grid-template-columns:1fr 1fr}}
+.lp-col-left,.lp-col-right{display:flex;flex-direction:column;gap:14px}
+.lp-card{background:#fff;border:1px solid var(--g200);border-radius:var(--r2);padding:14px}
+.lp-card-hdr{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;color:var(--g900);margin-bottom:10px}
+.lp-card-hdr i{color:var(--p600);font-size:12px}
+.lp-kv{display:flex;justify-content:space-between;font-size:11.5px;color:var(--g500);padding:4px 0;border-bottom:1px solid var(--g100)}
+.lp-kv:last-child{border-bottom:none}
+.lp-kv b{color:var(--g900);font-weight:700}
+.lp-big-stat{font-size:11.5px;color:var(--g500);display:flex;justify-content:space-between;margin-bottom:2px}
+.lp-big-stat b{color:var(--g900);font-family:'SFMono-Regular',Consolas,monospace}
+.lp-util-row{display:flex;align-items:center;justify-content:space-between;margin-top:8px}
+.lp-util-val{font-size:20px;font-weight:800}
+.lp-status-pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:3px 10px;border-radius:12px;background:#dcfce7;color:#15803d}
+.lp-status-pill.warn{background:#fef3c7;color:#b45309}
+
+.lp-truck-card{background:#fff;border:1px solid var(--g200);border-radius:var(--r2);padding:16px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.lp-view-toggle{display:flex;gap:6px;margin-bottom:12px}
+.lp-view-btn{border:1px solid var(--g200);background:#fff;color:var(--g500);border-radius:8px;width:30px;height:26px;font-size:11px;cursor:pointer}
+.lp-view-btn.active{background:var(--p700);color:#fff;border-color:var(--p700)}
+.lp-truck-stage{perspective:1500px;width:100%;display:flex;justify-content:center}
+.lp-truck-visual{position:relative;width:520px;height:190px;transform:rotateX(8deg) rotateY(-5deg);transform-style:preserve-3d}
+.lp-truck-visual.top{transform:rotateX(0deg) rotateY(0deg)}
+.lp-cab{position:absolute;left:0;bottom:26px;width:64px;height:96px;background:linear-gradient(160deg,#3752c4,#1e3a8a);border-radius:10px 4px 4px 4px;box-shadow:2px 2px 10px rgba(0,0,0,.25)}
+.lp-cab::before{content:'';position:absolute;top:10px;left:8px;right:8px;height:30px;background:rgba(255,255,255,.25);border-radius:4px}
+.lp-trailer{position:absolute;left:76px;right:0;bottom:26px;top:6px;border:2px solid #64748b;border-radius:6px;background:rgba(226,232,240,.5);display:flex;padding:6px;gap:0;box-shadow:inset 0 0 14px rgba(0,0,0,.06)}
+.lp-cargo-row{flex:1;border-radius:3px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-size:9.5px;font-weight:700;text-align:center;line-height:1.3;box-shadow:inset -3px 0 6px rgba(0,0,0,.18);border-right:1px solid rgba(255,255,255,.35)}
+.lp-cargo-row:last-child{border-right:none}
+.lp-door-tag{position:absolute;right:-4px;bottom:-20px;font-size:9.5px;color:var(--g500);font-weight:600}
+.lp-cab-tag{position:absolute;left:6px;bottom:-20px;font-size:9.5px;color:var(--g500);font-weight:600}
+.lp-wheel{position:absolute;bottom:8px;width:20px;height:20px;border-radius:50%;background:#1f2937;border:3px solid #4b5563}
+.lp-dims-labels{width:100%;display:flex;justify-content:space-between;font-size:10.5px;color:var(--g400);margin-top:20px;padding:0 8px}
+
+.lp-legend{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;justify-content:center}
+.lp-legend-chip{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--g500)}
+.lp-legend-dot{width:9px;height:9px;border-radius:3px;flex-shrink:0}
+
+.lp-seq-row{display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:1px solid var(--g100)}
+.lp-seq-row:last-child{border-bottom:none}
+.lp-seq-dot{width:20px;height:20px;border-radius:50%;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.lp-seq-info{flex:1;font-size:11px}
+.lp-seq-info b{color:var(--g900)}
+.lp-seq-meta{color:var(--g400);font-size:10.5px}
+
+.lp-donut-row{display:flex;justify-content:space-around;text-align:center;margin-top:6px}
+.lp-donut{width:66px;height:66px;border-radius:50%;position:relative;margin:0 auto 6px}
+.lp-donut-inner{position:absolute;inset:7px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--g900)}
+.lp-donut-label{font-size:10.5px;color:var(--g500);font-weight:600}
+
+.lp-axle-row{margin-bottom:12px}
+.lp-axle-hdr{display:flex;justify-content:space-between;font-size:11px;color:var(--g600);margin-bottom:4px}
+.lp-axle-hdr b{color:var(--g900)}
+.lp-axle-limit{font-size:10px;color:var(--g400)}
+.lp-compliance{margin-top:6px;display:flex;align-items:center;justify-content:center;gap:6px;background:#dcfce7;color:#15803d;font-size:11px;font-weight:700;padding:6px 8px;border-radius:8px}
+.lp-compliance.warn{background:#fef3c7;color:#b45309}
+
+.lp-thumb-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.lp-thumb{background:var(--g100);border:1px solid var(--g200);border-radius:6px;height:44px;display:flex;align-items:center;justify-content:center;font-size:9.5px;color:var(--g400);font-weight:600;overflow:hidden;position:relative}
+.lp-thumb .lp-thumb-strip{display:flex;height:16px;width:80%;border-radius:2px;overflow:hidden}
+.lp-thumb .lp-thumb-strip span{flex:1}
 </style>
 </head>
 <body>
@@ -466,6 +538,20 @@ table.do-table tbody tr.allocated{opacity:.45}
   </div>
 </div>
 
+<!-- LOAD PLAN 3D MODAL -->
+<div class="lp-modal-overlay" id="lpModalOverlay" onclick="if(event.target===this) closeLoadPlanModal()">
+  <div class="lp-modal">
+    <div class="lp-modal-hdr">
+      <div>
+        <div class="lp-modal-title">3D LOAD PLAN VISUALIZATION</div>
+        <div class="lp-modal-sub" id="lpModalSub">Optimized Loading for Maximum Utilization &amp; Compliance</div>
+      </div>
+      <button class="lp-close-btn" onclick="closeLoadPlanModal()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="lp-modal-body" id="lpModalBody"></div>
+  </div>
+</div>
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 function toggleSidebar(){
@@ -552,10 +638,14 @@ const BATCHES = [
 // manual "pick a vehicle type" control. Each entry is a real class of unit
 // with its own plates; Load Optimization right-sizes every shipment against
 // whichever unit actually fits, cycling through that class's plates.
+// dims = internal cargo box (m); maxRows = how many DO-load "rows" (see
+// LOAD_ROW_GROUP_SIZE) fit end-to-end at a full load — used only by the 3D
+// Load Plan illustration's length-utilization estimate, not by Load
+// Optimization itself (which packs by volume/weight, §8.4).
 const AVAILABLE_FLEET = [
-  { id:'v-engkel', label:'Engkel',    volume:6,  weight:1200, plates:['AD 1023 FE','AD 1187 FE','AD 1240 FE','AD 1356 FE','AD 1402 FE'] },
-  { id:'v-box10',  label:'Box Truck', volume:10, weight:2000, plates:['AD 8821 GB','AD 8845 GB','AD 8902 GB','AD 8930 GB','AD 8977 GB','AD 9011 GB','AD 9054 GB'] },
-  { id:'v-cdd14',  label:'CDD',       volume:14, weight:4000, plates:['AD 7710 HC','AD 7745 HC','AD 7788 HC'] },
+  { id:'v-engkel', label:'Engkel',    volume:6,  weight:1200, dims:{length:2.8, width:1.5, height:1.5}, maxRows:4, plates:['AD 1023 FE','AD 1187 FE','AD 1240 FE','AD 1356 FE','AD 1402 FE'] },
+  { id:'v-box10',  label:'Box Truck', volume:10, weight:2000, dims:{length:3.8, width:1.7, height:1.6}, maxRows:6, plates:['AD 8821 GB','AD 8845 GB','AD 8902 GB','AD 8930 GB','AD 8977 GB','AD 9011 GB','AD 9054 GB'] },
+  { id:'v-cdd14',  label:'CDD',       volume:14, weight:4000, dims:{length:4.7, width:2.0, height:1.6}, maxRows:8, plates:['AD 7710 HC','AD 7745 HC','AD 7788 HC'] },
 ];
 let fleetAssignCounter = {}; // vehicle id -> how many plates from that class have been handed out this run
 
@@ -572,7 +662,7 @@ function pickBestFitVehicle(totalVolume, totalWeight, alpha){
   const type = sorted.find(v => v.volume*alpha >= totalVolume && v.weight*alpha >= totalWeight) || sorted[sorted.length-1];
   const idx = (fleetAssignCounter[type.id] = (fleetAssignCounter[type.id]||0) + 1) - 1;
   const plate = type.plates[idx % type.plates.length];
-  return { id: type.id, label: type.label, volume: type.volume, weight: type.weight, plate };
+  return { id: type.id, label: type.label, volume: type.volume, weight: type.weight, dims: type.dims, maxRows: type.maxRows, plate };
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -991,6 +1081,231 @@ function resetSimulation(){
 }
 
 // ══════════════════════════════════════════════════════════════
+// 3D LOAD PLAN VISUALIZATION
+// ══════════════════════════════════════════════════════════════
+const LOAD_ROW_GROUP_SIZE = 3; // DOs grouped per illustrated "row" band
+const LOAD_ROW_COLORS = ['#3B6FD4','#D9534F','#E0A93B','#4E9B4E','#8A5FC7','#3BAE9E','#E07B39','#C2555C'];
+let currentLoadPlanShipmentId = null;
+let currentLoadPlanView = 'side';
+
+function computeLoadPlan(shipmentId){
+  const s = draftShipments.find(x => x.id === shipmentId);
+  if (!s) return null;
+  const plan = routePlans[shipmentId];
+
+  // Multi-drop trucks load in REVERSE stop order: the LAST delivery goes in
+  // first (deepest, nearest the cab) so the FIRST delivery sits nearest the
+  // door and comes off without disturbing anything behind it.
+  let loadOrder, orderedByRoute;
+  if (plan && plan.sequence.length){
+    loadOrder = [...plan.sequence].reverse();
+    orderedByRoute = true;
+  } else {
+    loadOrder = [...s.items];
+    orderedByRoute = false;
+  }
+
+  const rows = [];
+  for (let i = 0; i < loadOrder.length; i += LOAD_ROW_GROUP_SIZE){
+    const items = loadOrder.slice(i, i + LOAD_ROW_GROUP_SIZE);
+    rows.push({
+      index: rows.length,
+      color: LOAD_ROW_COLORS[rows.length % LOAD_ROW_COLORS.length],
+      items,
+      weight: items.reduce((a,d) => a + d.weight, 0),
+    });
+  }
+
+  const vehicle = s.vehicle;
+  const dims = vehicle.dims;
+  const lengthUtil = Math.min(100, (rows.length / vehicle.maxRows) * 100);
+  // Width/height utilization are proxied from the existing volume/weight
+  // utilization (no true 3D packer here) — illustrative, not a precise fit.
+  const widthUtil = Math.max(35, Math.min(98, s.utilVolume * 0.95));
+  const heightUtil = Math.max(35, Math.min(97, s.utilWeight * 0.92));
+
+  // Simplified 2-axle rigid-truck weight split (front/rear) — illustrative,
+  // not an engineering axle-load calculation. Cargo sits over/behind the
+  // rear axle on this class of truck, so it carries most of the load.
+  const frontWeight = Math.round(s.totalWeight * 0.35);
+  const rearWeight = s.totalWeight - frontWeight;
+  const frontLimit = Math.round(vehicle.weight * 0.5);
+  const rearLimit = Math.round(vehicle.weight * 0.8);
+
+  return {
+    shipment: s, plan, rows, orderedByRoute, dims,
+    lengthUtil, widthUtil, heightUtil,
+    frontWeight, rearWeight, frontLimit, rearLimit,
+    compliant: frontWeight <= frontLimit && rearWeight <= rearLimit,
+    avgWeightPerDo: Math.round(s.totalWeight / s.items.length),
+    loadLengthUsed: rows.length * (dims.length / vehicle.maxRows),
+  };
+}
+
+function fmtPlanDate(date){
+  return `${date.getDate()} ${MONTH_ABBR_ID[date.getMonth()]} ${date.getFullYear()} ${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}`;
+}
+
+function openLoadPlanModal(shipmentId){
+  currentLoadPlanShipmentId = shipmentId;
+  currentLoadPlanView = 'side';
+  renderLoadPlanModal();
+  document.getElementById('lpModalOverlay').classList.add('open');
+}
+function closeLoadPlanModal(){
+  document.getElementById('lpModalOverlay').classList.remove('open');
+  currentLoadPlanShipmentId = null;
+}
+function setLoadPlanView(view){
+  currentLoadPlanView = view;
+  renderLoadPlanModal();
+}
+
+function renderLoadPlanModal(){
+  const data = computeLoadPlan(currentLoadPlanShipmentId);
+  if (!data) return;
+  const { shipment: s, rows, dims, lengthUtil, widthUtil, heightUtil, frontWeight, rearWeight, frontLimit, rearLimit, compliant, avgWeightPerDo, loadLengthUsed, orderedByRoute } = data;
+
+  document.getElementById('lpModalSub').textContent = `${s.id} · Armada ${s.vehicle.label} (${s.vehicle.plate}) — Optimized Loading for Maximum Utilization & Compliance`;
+
+  const isTop = currentLoadPlanView === 'top';
+  const totalRows = rows.length;
+  const legend = rows.map(r => `<span class="lp-legend-chip"><span class="lp-legend-dot" style="background:${r.color}"></span>Row ${r.index+1}</span>`).join('');
+  const cargoRowsHtml = rows.map(r => `<div class="lp-cargo-row" style="background:${r.color}" title="Row ${r.index+1}: ${r.items.length} DO, ${r.weight} kg">${r.index+1}</div>`).join('');
+
+  const seqHtml = rows.map(r => `
+    <div class="lp-seq-row">
+      <div class="lp-seq-dot" style="background:${r.color}">${r.index+1}</div>
+      <div class="lp-seq-info">
+        <div><b>Row ${r.index+1}</b> — ${r.items.length} DO, ${r.weight} kg</div>
+        <div class="lp-seq-meta">${r.items.map(d=>d.id).join(', ')}</div>
+      </div>
+    </div>`).join('');
+
+  const html = `
+    <div class="lp-top-row">
+      <div class="lp-col-left">
+        <div class="lp-card">
+          <div class="lp-card-hdr"><i class="fa-solid fa-truck"></i> Vehicle</div>
+          <div class="lp-kv"><span>Tipe</span><b>${escapeHtml(s.vehicle.label)}</b></div>
+          <div class="lp-kv"><span>Plat Nomor</span><b>${escapeHtml(s.vehicle.plate)}</b></div>
+          <div class="lp-kv"><span>Panjang</span><b>${dims.length.toFixed(1)} m</b></div>
+          <div class="lp-kv"><span>Lebar</span><b>${dims.width.toFixed(1)} m</b></div>
+          <div class="lp-kv"><span>Tinggi</span><b>${dims.height.toFixed(1)} m</b></div>
+          <div class="lp-kv"><span>Max Payload</span><b>${s.vehicle.weight.toLocaleString('id-ID')} kg</b></div>
+          <div class="lp-kv"><span>Kapasitas Volume</span><b>${s.vehicle.volume} m³</b></div>
+        </div>
+        <div class="lp-card">
+          <div class="lp-card-hdr"><i class="fa-solid fa-boxes-stacked"></i> Load Summary</div>
+          <div class="lp-big-stat"><span>Total Weight</span><b>${s.totalWeight.toLocaleString('id-ID')} kg</b></div>
+          <div class="lp-big-stat"><span>Total Volume</span><b>${s.totalVolume.toFixed(2)} m³</b></div>
+          <div class="lp-util-row"><span style="font-size:11px;color:var(--g500)">Utilization (Volume)</span><span class="lp-util-val" style="color:${loadBarClass(s.utilVolume)==='over'?'#dc2626':'#16a34a'}">${s.utilVolume.toFixed(0)}%</span></div>
+          <div class="load-bar-track"><div class="load-bar-fill ${loadBarClass(s.utilVolume)}" style="width:${Math.min(s.utilVolume,100)}%"></div></div>
+          <div class="lp-util-row"><span style="font-size:11px;color:var(--g500)">Utilization (Weight)</span><span class="lp-util-val" style="color:${loadBarClass(s.utilWeight)==='over'?'#dc2626':'#16a34a'}">${s.utilWeight.toFixed(0)}%</span></div>
+          <div class="load-bar-track"><div class="load-bar-fill ${loadBarClass(s.utilWeight)}" style="width:${Math.min(s.utilWeight,100)}%"></div></div>
+          <div style="margin-top:10px"><span class="lp-status-pill"><i class="fa-solid fa-circle-check"></i> Optimized</span></div>
+        </div>
+      </div>
+
+      <div class="lp-truck-card">
+        <div class="lp-view-toggle">
+          <button class="lp-view-btn ${!isTop?'active':''}" onclick="setLoadPlanView('side')" title="Side View"><i class="fa-solid fa-truck"></i></button>
+          <button class="lp-view-btn ${isTop?'active':''}" onclick="setLoadPlanView('top')" title="Top View"><i class="fa-solid fa-table-cells"></i></button>
+        </div>
+        <div class="lp-truck-stage">
+          <div class="lp-truck-visual${isTop?' top':''}">
+            <div class="lp-cab"></div>
+            <div class="lp-trailer">${cargoRowsHtml}</div>
+            <div class="lp-wheel" style="left:26px"></div>
+            <div class="lp-wheel" style="left:150px"></div>
+            <div class="lp-wheel" style="left:${76 + (dims.length>4?340:260)}px"></div>
+            <span class="lp-cab-tag">DEPAN (kabin)</span>
+            <span class="lp-door-tag">PINTU — stop pertama</span>
+          </div>
+        </div>
+        <div class="lp-dims-labels"><span>Panjang ${dims.length.toFixed(1)} m</span><span>Lebar ${dims.width.toFixed(1)} m</span><span>Tinggi ${dims.height.toFixed(1)} m</span></div>
+        <div class="lp-legend">${legend}</div>
+        <div style="font-size:10.5px;color:var(--g400);text-align:center;margin-top:8px;max-width:420px">
+          ${orderedByRoute
+            ? 'Urutan muat = kebalikan urutan Route Optimization: stop terakhir dimuat lebih dulu (dekat kabin), stop pertama dimuat terakhir (dekat pintu).'
+            : 'Belum ada Route Plan — urutan muat memakai urutan DO apa adanya. Jalankan Route Optimization untuk urutan muat berbasis rute.'}
+        </div>
+      </div>
+
+      <div class="lp-col-right">
+        <div class="lp-card" style="flex:1">
+          <div class="lp-card-hdr"><i class="fa-solid fa-list-ol"></i> Loading Sequence</div>
+          ${seqHtml}
+          <div class="lp-kv" style="margin-top:8px"><span>Total Baris</span><b>${totalRows}</b></div>
+          <div class="lp-kv"><span>Total DO</span><b>${s.items.length}</b></div>
+          <div class="lp-kv"><span>Total Weight</span><b>${s.totalWeight.toLocaleString('id-ID')} kg</b></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="lp-bottom-row">
+      <div class="lp-card">
+        <div class="lp-card-hdr"><i class="fa-solid fa-cube"></i> Space Utilization</div>
+        <div class="lp-donut-row">
+          <div>
+            <div class="lp-donut" style="background:conic-gradient(#3b6fd4 ${lengthUtil}%, var(--g150) 0)"><div class="lp-donut-inner">${lengthUtil.toFixed(0)}%</div></div>
+            <div class="lp-donut-label">Length</div>
+          </div>
+          <div>
+            <div class="lp-donut" style="background:conic-gradient(#d9534f ${widthUtil}%, var(--g150) 0)"><div class="lp-donut-inner">${widthUtil.toFixed(0)}%</div></div>
+            <div class="lp-donut-label">Width</div>
+          </div>
+          <div>
+            <div class="lp-donut" style="background:conic-gradient(#8a5fc7 ${heightUtil}%, var(--g150) 0)"><div class="lp-donut-inner">${heightUtil.toFixed(0)}%</div></div>
+            <div class="lp-donut-label">Height</div>
+          </div>
+        </div>
+        <div class="lp-util-row" style="margin-top:10px"><span style="font-size:11px;color:var(--g500)">Volume Utilization</span><span class="lp-util-val" style="font-size:15px;color:#16a34a">${s.utilVolume.toFixed(0)}%</span></div>
+        <div style="font-size:10.5px;color:var(--g400)">Used Volume ${s.totalVolume.toFixed(1)} m³ / ${s.effVolume.toFixed(1)} m³ efektif</div>
+      </div>
+
+      <div class="lp-card">
+        <div class="lp-card-hdr"><i class="fa-solid fa-scale-balanced"></i> Weight Distribution</div>
+        <div class="lp-axle-row">
+          <div class="lp-axle-hdr"><span>Front Axle</span><b>${frontWeight.toLocaleString('id-ID')} kg</b></div>
+          <div class="load-bar-track"><div class="load-bar-fill ${frontWeight>frontLimit?'over':'ok'}" style="width:${Math.min(frontWeight/frontLimit*100,100)}%"></div></div>
+          <div class="lp-axle-limit">Limit ${frontLimit.toLocaleString('id-ID')} kg</div>
+        </div>
+        <div class="lp-axle-row">
+          <div class="lp-axle-hdr"><span>Rear Axle</span><b>${rearWeight.toLocaleString('id-ID')} kg</b></div>
+          <div class="load-bar-track"><div class="load-bar-fill ${rearWeight>rearLimit?'over':'ok'}" style="width:${Math.min(rearWeight/rearLimit*100,100)}%"></div></div>
+          <div class="lp-axle-limit">Limit ${rearLimit.toLocaleString('id-ID')} kg</div>
+        </div>
+        <div class="lp-compliance ${compliant?'':'warn'}"><i class="fa-solid ${compliant?'fa-circle-check':'fa-triangle-exclamation'}"></i> ${compliant ? 'Axle Load Compliance: Within Legal Limits' : 'Axle Load Melebihi Limit — Perlu Redistribusi'}</div>
+      </div>
+
+      <div class="lp-card">
+        <div class="lp-card-hdr"><i class="fa-solid fa-clipboard-list"></i> Load Plan Details</div>
+        <div class="lp-kv"><span>Total DO</span><b>${s.items.length}</b></div>
+        <div class="lp-kv"><span>Total Weight</span><b>${s.totalWeight.toLocaleString('id-ID')} kg</b></div>
+        <div class="lp-kv"><span>Total Volume</span><b>${s.totalVolume.toFixed(2)} m³</b></div>
+        <div class="lp-kv"><span>Avg Weight / DO</span><b>${avgWeightPerDo} kg</b></div>
+        <div class="lp-kv"><span>Load Length Used</span><b>${loadLengthUsed.toFixed(2)} m</b></div>
+        <div class="lp-kv"><span>Shipment</span><b>${s.id}</b></div>
+        <div class="lp-kv"><span>Equipment</span><b>${escapeHtml(s.vehicle.label)}</b></div>
+        <div class="lp-kv"><span>Plan Date</span><b>${fmtPlanDate(new Date())}</b></div>
+      </div>
+
+      <div class="lp-card">
+        <div class="lp-card-hdr"><i class="fa-solid fa-images"></i> Views</div>
+        <div class="lp-thumb-grid">
+          <div class="lp-thumb"><div class="lp-thumb-strip">${rows.map(r=>`<span style="background:${r.color}"></span>`).join('')}</div></div>
+          <div class="lp-thumb">Top View</div>
+          <div class="lp-thumb">Left View</div>
+          <div class="lp-thumb">Right View</div>
+        </div>
+      </div>
+    </div>
+  `;
+  document.getElementById('lpModalBody').innerHTML = html;
+}
+
+// ══════════════════════════════════════════════════════════════
 // RENDERING
 // ══════════════════════════════════════════════════════════════
 function renderFleetSummary(){
@@ -1152,9 +1467,14 @@ function renderShipmentDetail(){
       <div class="load-metric-row"><span>Weight</span><span>${s.totalWeight} / ${s.effWeight.toFixed(0)} kg efektif (${s.utilWeight.toFixed(0)}%)</span></div>
       <div class="load-bar-track"><div class="load-bar-fill ${loadBarClass(s.utilWeight)}" style="width:${Math.min(s.utilWeight,100)}%"></div></div>
       <div class="binding-note">Armada ter-pilih otomatis: <b>${escapeHtml(s.vehicle.label)}</b> (${s.vehicle.volume} m³ / ${s.vehicle.weight} kg nominal, α ${(s.effVolume/s.vehicle.volume*100).toFixed(0)}%) → Load Factor <b>${s.loadFactor.toFixed(0)}%</b> — binding constraint: <b>${s.binding === 'volume' ? 'Volume' : 'Weight'}</b></div>
-      <button class="btn ${plan ? 'btn-outline' : 'btn-primary'} btn-sm" style="width:100%;justify-content:center" onclick="runRouteOptimizationStage('${s.id}')">
-        <i class="fa-solid fa-route"></i> ${plan ? 'Jalankan Ulang Route Optimization' : 'Jalankan Route Optimization'}
-      </button>
+      <div style="display:flex;gap:8px">
+        <button class="btn ${plan ? 'btn-outline' : 'btn-primary'} btn-sm" style="flex:1;justify-content:center" onclick="runRouteOptimizationStage('${s.id}')">
+          <i class="fa-solid fa-route"></i> ${plan ? 'Jalankan Ulang Route Optimization' : 'Jalankan Route Optimization'}
+        </button>
+        <button class="btn btn-outline btn-sm" style="flex:1;justify-content:center" onclick="openLoadPlanModal('${s.id}')">
+          <i class="fa-solid fa-cube"></i> Lihat Load Plan 3D
+        </button>
+      </div>
     </div>`;
 
   if (plan){
