@@ -79,20 +79,33 @@ insert into public.staging_bay_coverage (staging_bay_id, shipping_point_id) valu
   ('d0000000-0000-0000-0000-000000000002', 'sp-depo-bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'),
   ('d0000000-0000-0000-0000-000000000003', 'sp-depo-bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb');
 
+-- ── Additional Distribution Centers ── (app-monitoring.html's driver roster
+-- references 6 DCs — Solo/Bandung/Bogor/Tasikmalaya/Semarang/Sukabumi — only
+-- 2 of which (Solo, Bandung) overlap with shipping-point.html's 3. Treating
+-- "DC Solo"/"DC Bandung" as the same real places already seeded above, and
+-- adding the other 4 so the driver roster below has somewhere real to point.
+insert into public.distribution_centers (code, name, status) values
+  ('1108', 'PARAMA DC BOGOR', 'active'),
+  ('1112', 'PARAMA DC TASIKMALAYA', 'active'),
+  ('1207', 'PARAMA DC SEMARANG', 'active'),
+  ('1208', 'PARAMA DC SUKABUMI', 'active');
+
 -- ── Drivers (roster reused across App Monitoring / Feature Config) ──
+-- dc_name here matches app-monitoring.html's actual DEVICES[i].dcId mapping
+-- (DC Solo/Bandung -> the PARAMA-prefixed rows already seeded above).
 insert into public.drivers (employee_id, full_name, dc_id)
 select v.employee_id, v.full_name, dc.id
 from (values
-  ('EMP1001', 'Citra Mulyono',           'PARAMA DC MATARAM'),
+  ('EMP1001', 'Citra Mulyono',           'PARAMA DC SOLO'),
   ('EMP1002', 'M. Fadhli Salam',         'PARAMA DC BANDUNG'),
-  ('EMP1003', 'M. Iqbal Kurniawan',      'PARAMA DC SOLO'),
-  ('EMP1004', 'Tri Febrianto',           'PARAMA DC MATARAM'),
-  ('EMP1005', 'Farraz Nanang Fauzan',    'PARAMA DC BANDUNG'),
-  ('EMP1006', 'Alamsyah Satrio Aji',     'PARAMA DC SOLO'),
-  ('EMP1007', 'Abdullah Harmaen',        'PARAMA DC MATARAM'),
-  ('EMP1008', 'Tio Sugiatna',            'PARAMA DC BANDUNG'),
+  ('EMP1003', 'M. Iqbal Kurniawan',      'PARAMA DC BOGOR'),
+  ('EMP1004', 'Tri Febrianto',           'PARAMA DC TASIKMALAYA'),
+  ('EMP1005', 'Farraz Nanang Fauzan',    'PARAMA DC SOLO'),
+  ('EMP1006', 'Alamsyah Satrio Aji',     'PARAMA DC SEMARANG'),
+  ('EMP1007', 'Abdullah Harmaen',        'PARAMA DC BANDUNG'),
+  ('EMP1008', 'Tio Sugiatna',            'PARAMA DC SUKABUMI'),
   ('EMP1009', 'Wahono Prasetyo',         'PARAMA DC SOLO'),
-  ('EMP1010', 'Asep Kurnia',             'PARAMA DC MATARAM')
+  ('EMP1010', 'Asep Kurnia',             'PARAMA DC BOGOR')
 ) as v(employee_id, full_name, dc_name)
 join public.distribution_centers dc on dc.name = v.dc_name;
 
@@ -112,3 +125,23 @@ from (values
   ('EMP1010', 'OPPO',    'OPPO A17',              'OPPO',    'Android 12', 31, '3.4.0', 2)
 ) as v(employee_id, brand, model, manufacturer, os, sdk_int, app_version, days_ago)
 join public.drivers d on d.employee_id = v.employee_id;
+
+-- ── Version history (per device, shown in App Monitoring's "Riwayat Update
+-- Versi" detail — illustrative install history ending at each device's
+-- current app_version above) ──
+insert into public.device_version_history (device_id, version, installed_at, method)
+select dev.id, v.version, (now() - (v.days_ago || ' days')::interval)::date, v.method
+from (values
+  ('EMP1001', '3.2.0', 96, 'Play Store'), ('EMP1001', '3.4.0', 30, 'Play Store'),
+  ('EMP1002', '3.2.0', 90, 'Play Store'), ('EMP1002', '3.4.0', 25, 'Play Store'),
+  ('EMP1003', '3.1.0', 120, 'Play Store'), ('EMP1003', '3.3.0', 45, 'Play Store'),
+  ('EMP1004', '2.8.0', 200, 'Manual APK'), ('EMP1004', '2.9.5', 110, 'Play Store'),
+  ('EMP1005', '3.2.0', 88, 'Play Store'), ('EMP1005', '3.4.0', 28, 'Play Store'),
+  ('EMP1006', '3.2.0', 80, 'Play Store'), ('EMP1006', '3.4.0', 20, 'Play Store'),
+  ('EMP1007', '3.1.0', 100, 'Play Store'), ('EMP1007', '3.3.0', 40, 'Play Store'),
+  ('EMP1008', '2.9.5', 150, 'Play Store'), ('EMP1008', '3.1.0', 60, 'Play Store'),
+  ('EMP1009', '3.2.0', 92, 'Play Store'), ('EMP1009', '3.4.0', 32, 'Play Store'),
+  ('EMP1010', '3.2.0', 85, 'Play Store'), ('EMP1010', '3.4.0', 22, 'Play Store')
+) as v(employee_id, version, days_ago, method)
+join public.drivers d on d.employee_id = v.employee_id
+join public.devices dev on dev.driver_id = d.id;

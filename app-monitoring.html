@@ -184,6 +184,8 @@ table.history-table tr:last-child td{border-bottom:none}
 </head>
 <body>
 <script src="/auth-guard.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="/supabase-client.js"></script>
 
 <!-- TOPBAR -->
 <header class="topbar">
@@ -382,7 +384,7 @@ table.history-table tr:last-child td{border-bottom:none}
       <div class="modal-close" onclick="closeDetailModal()"><i class="fa-solid fa-xmark"></i></div>
     </div>
     <div class="modal-body" id="detailModalBody"></div>
-    <div class="modal-foot">
+    <div class="modal-foot" id="detailModalFoot">
       <button class="btn btn-outline" onclick="closeDetailModal()">Tutup</button>
     </div>
   </div>
@@ -400,7 +402,10 @@ function escapeHtml(str){
 }
 
 // ── REFERENCE DATA ── (reuses the same driver roster used across History Tracking / Feature Config)
-const DCS=[
+// MOCK_* below are the fallback/demo data, used only when Supabase isn't
+// configured (getSupabaseClient() resolves to null) or a fetch fails — see
+// loadAppMonitoringData(). DCS/DEVICES are the active working data.
+const MOCK_DCS=[
   {id:'dc-solo',name:'DC Solo'},
   {id:'dc-bandung',name:'DC Bandung'},
   {id:'dc-bogor',name:'DC Bogor'},
@@ -408,6 +413,7 @@ const DCS=[
   {id:'dc-semarang',name:'DC Semarang'},
   {id:'dc-sukabumi',name:'DC Sukabumi'},
 ];
+let DCS=[], DEVICES=[];
 
 // today = 2026-07-28 per session context; lastActive stored as days-ago for stability across runs.
 const TODAY=new Date('2026-07-28T09:00:00');
@@ -423,7 +429,7 @@ function fmtDateTime(d){
   return d.toISOString().slice(0,16).replace('T',' ');
 }
 
-const DEVICES=[
+const MOCK_DEVICES=[
   {id:'drv1',name:'Citra Mulyono',employeeId:'EMP1001',dcId:'dc-solo',
    model:'Samsung SM-S937B',os:'Android 16',
    brand:'Samsung',manufacturer:'Samsung',sdkInt:36,
@@ -489,6 +495,77 @@ const DEVICES=[
 let searchTerm='', dcFilterVal='', activityFilterVal='';
 
 function isInactive(daysAgo){ return daysAgo>7; }
+// Real Supabase records carry an actual lastActiveAt timestamp; MOCK_DEVICES
+// records don't (they only carry a fixed lastActiveDaysAgo, reconstructed
+// against the frozen TODAY anchor so the static demo never silently drifts).
+function resolveLastActiveDate(d){ return d.lastActiveAt || dateDaysAgo(d.lastActiveDaysAgo); }
+
+// Fetches Distribution Centers + Drivers + their Device (embedded via
+// PostgREST's drivers -> devices FK relationship) from Supabase and reshapes
+// them into the same flat DEVICES-row shape the rest of this page already
+// expects, so every render function below is unchanged. Falls back to
+// MOCK_DCS/MOCK_DEVICES if Supabase isn't configured or the fetch fails.
+// Version history is NOT fetched here — it's lazy-loaded per device only
+// when its Detail modal is opened (see openDetailModal).
+async function loadAppMonitoringData(){
+  const client = await getSupabaseClient();
+  if (!client){
+    DCS = MOCK_DCS;
+    DEVICES = MOCK_DEVICES.map(d => ({ ...d, history: d.history.slice() }));
+    return;
+  }
+  try {
+    const [dcRes, driverRes] = await Promise.all([
+      client.from('distribution_centers').select('*').order('name'),
+      client.from('drivers').select('id, employee_id, full_name, dc_id, devices(*)'),
+    ]);
+    if (dcRes.error) throw dcRes.error;
+    if (driverRes.error) throw driverRes.error;
+
+    DCS = dcRes.data.map(dc => ({ id: dc.id, name: dc.name }));
+    DEVICES = driverRes.data
+      .filter(d => d.devices && (Array.isArray(d.devices) ? d.devices.length : true))
+      .map(d => {
+        const dev = Array.isArray(d.devices) ? d.devices[0] : d.devices;
+        const lastActiveAt = dev.last_active_at ? new Date(dev.last_active_at) : null;
+        const lastActiveDaysAgo = lastActiveAt ? Math.floor((Date.now() - lastActiveAt.getTime()) / 86400000) : null;
+        return {
+          id: d.id, deviceId: dev.id,
+          name: d.full_name, employeeId: d.employee_id, dcId: d.dc_id,
+          model: dev.model, os: dev.os, brand: dev.brand, manufacturer: dev.manufacturer, sdkInt: dev.sdk_int,
+          appVersion: dev.app_version,
+          lastActiveAt, lastActiveDaysAgo,
+          history: null, // lazy-loaded on modal open
+        };
+      });
+  } catch (e) {
+    console.error('[shipgo] Failed to load App Monitoring data from Supabase — falling back to demo data:', e);
+    DCS = MOCK_DCS;
+    DEVICES = MOCK_DEVICES.map(d => ({ ...d, history: d.history.slice() }));
+    showToast('Gagal memuat data dari Supabase — menampilkan data contoh.', true);
+  }
+}
+
+// Lazily fetches (and caches on the record) a device's version history from
+// device_version_history. Returns [] in demo mode or on failure.
+async function loadDeviceHistory(d){
+  if (d.history !== null) return d.history;
+  const client = await getSupabaseClient();
+  if (!client || !d.deviceId){ d.history = []; return d.history; }
+  try {
+    const { data, error } = await client
+      .from('device_version_history')
+      .select('version, installed_at')
+      .eq('device_id', d.deviceId)
+      .order('installed_at', { ascending: true });
+    if (error) throw error;
+    d.history = data.map(h => ({ version: h.version, date: new Date(h.installed_at) }));
+  } catch (e) {
+    console.error('[shipgo] Failed to load device history:', e);
+    d.history = [];
+  }
+  return d.history;
+}
 
 // ── STAT CARDS ──
 function renderStatGrid(){
@@ -541,22 +618,42 @@ function renderDeviceTable(){
       <td><span class="dc-pill">${escapeHtml(dc?dc.name:d.dcId)}</span></td>
       <td><div class="device-model">${escapeHtml(d.model)}</div><div class="device-os">${escapeHtml(d.os)}</div></td>
       <td><span class="ver-num">v${escapeHtml(d.appVersion)}</span></td>
-      <td><div class="last-active ${inactive?'stale':''}">${lastActiveLabel}</div><div class="last-active-sub">${fmtDate(dateDaysAgo(d.lastActiveDaysAgo))}</div></td>
+      <td><div class="last-active ${inactive?'stale':''}">${lastActiveLabel}</div><div class="last-active-sub">${fmtDate(resolveLastActiveDate(d))}</div></td>
       <td><button class="btn btn-outline btn-sm" onclick="openDetailModal('${d.id}')"><i class="fa-solid fa-circle-info"></i> Detail</button></td>
     </tr>`;
   }).join('');
 }
 
 // ── DETAIL MODAL ──
-function openDetailModal(deviceId){
+let editingDeviceId=null;
+
+async function openDetailModal(deviceId){
   const d=DEVICES.find(x=>x.id===deviceId);
   if(!d) return;
+  document.getElementById('detailModal').classList.add('show');
+  renderDetailModal(d, true); // show immediately with a loading row for history
+  await loadDeviceHistory(d);
+  renderDetailModal(d, false);
+}
+
+function renderDetailModal(d, historyLoading){
   const dc=DCS.find(x=>x.id===d.dcId);
   const inactive=isInactive(d.lastActiveDaysAgo);
   const lastActiveLabel=d.lastActiveDaysAgo===0?'Hari ini':d.lastActiveDaysAgo===1?'Kemarin':`${d.lastActiveDaysAgo} hari lalu`;
+  const editing = editingDeviceId===d.id;
 
-  const historyRows=d.history.slice().reverse().map(h=>`
-    <tr><td><span class="ver-num">v${escapeHtml(h.version)}</span></td><td>${fmtDate(h.date)}</td></tr>`).join('');
+  const historyRows = historyLoading
+    ? `<tr><td colspan="2" style="text-align:center;color:var(--g400);padding:14px">Memuat riwayat...</td></tr>`
+    : (d.history.length
+        ? d.history.slice().reverse().map(h=>`<tr><td><span class="ver-num">v${escapeHtml(h.version)}</span></td><td>${fmtDate(h.date)}</td></tr>`).join('')
+        : `<tr><td colspan="2" style="text-align:center;color:var(--g400);padding:14px">Belum ada riwayat.</td></tr>`);
+
+  const shippingPointField = editing
+    ? `<select class="filter-input" id="editDcSelect" style="width:100%">${DCS.map(x=>`<option value="${x.id}" ${x.id===d.dcId?'selected':''}>${escapeHtml(x.name)}</option>`).join('')}</select>`
+    : `<div class="detail-field-value">${escapeHtml(dc?dc.name:d.dcId)}</div>`;
+  const appVersionField = editing
+    ? `<input class="filter-input" id="editAppVersionInput" type="text" value="${escapeHtml(d.appVersion)}" style="width:100%">`
+    : `<div class="detail-field-value">v${escapeHtml(d.appVersion)}</div>`;
 
   document.getElementById('detailModalBody').innerHTML=`
     <div class="detail-hdr-row">
@@ -569,9 +666,9 @@ function openDetailModal(deviceId){
       <div><div class="detail-field-label">Device</div><div class="detail-field-value">${escapeHtml(d.model)}</div></div>
       <div><div class="detail-field-label">OS</div><div class="detail-field-value">${escapeHtml(d.os)}</div></div>
       <div><div class="detail-field-label">Manufacturer</div><div class="detail-field-value">${escapeHtml(d.manufacturer)}</div></div>
-      <div><div class="detail-field-label">Shipping Point</div><div class="detail-field-value">${escapeHtml(dc?dc.name:d.dcId)}</div></div>
-      <div><div class="detail-field-label">App Version</div><div class="detail-field-value">v${escapeHtml(d.appVersion)}</div></div>
-      <div><div class="detail-field-label">Last Active</div><div class="detail-field-value" style="${inactive?'color:#b91c1c':''}">${lastActiveLabel} — ${fmtDateTime(dateDaysAgo(d.lastActiveDaysAgo))}</div></div>
+      <div><div class="detail-field-label">Shipping Point</div>${shippingPointField}</div>
+      <div><div class="detail-field-label">App Version</div>${appVersionField}</div>
+      <div><div class="detail-field-label">Last Active</div><div class="detail-field-value" style="${inactive?'color:#b91c1c':''}">${lastActiveLabel} — ${fmtDateTime(resolveLastActiveDate(d))}</div></div>
     </div>
 
     <div class="section-label">Riwayat Update Versi</div>
@@ -580,9 +677,55 @@ function openDetailModal(deviceId){
       <tbody>${historyRows}</tbody>
     </table>
   `;
-  document.getElementById('detailModal').classList.add('show');
+
+  document.getElementById('detailModalFoot').innerHTML = editing
+    ? `<button class="btn btn-outline" onclick="toggleEditMode('${d.id}')">Batal</button>
+       <button class="btn btn-primary" onclick="saveDeviceEdits('${d.id}')"><i class="fa-solid fa-floppy-disk"></i> Simpan</button>`
+    : `<button class="btn btn-outline" onclick="closeDetailModal()">Tutup</button>
+       <button class="btn btn-primary" onclick="toggleEditMode('${d.id}')"><i class="fa-solid fa-pen"></i> Edit</button>`;
 }
-function closeDetailModal(){ document.getElementById('detailModal').classList.remove('show'); }
+
+function toggleEditMode(deviceId){
+  editingDeviceId = editingDeviceId===deviceId ? null : deviceId;
+  const d=DEVICES.find(x=>x.id===deviceId);
+  if (d) renderDetailModal(d, false);
+}
+
+async function saveDeviceEdits(deviceId){
+  const d=DEVICES.find(x=>x.id===deviceId);
+  if(!d) return;
+  const newDcId = document.getElementById('editDcSelect').value;
+  const newAppVersion = document.getElementById('editAppVersionInput').value.trim();
+  if (!newAppVersion){ showToast('App Version tidak boleh kosong.', true); return; }
+
+  const client = await getSupabaseClient();
+  if (client){
+    try {
+      const [driverRes, deviceRes] = await Promise.all([
+        client.from('drivers').update({ dc_id: newDcId }).eq('id', d.id),
+        d.deviceId ? client.from('devices').update({ app_version: newAppVersion }).eq('id', d.deviceId) : Promise.resolve({ error: null }),
+      ]);
+      if (driverRes.error) throw driverRes.error;
+      if (deviceRes.error) throw deviceRes.error;
+    } catch (e) {
+      console.error('[shipgo] Failed to save device edits:', e);
+      showToast('Gagal menyimpan perubahan ke server. Coba lagi.', true);
+      return;
+    }
+  }
+
+  d.dcId = newDcId;
+  d.appVersion = newAppVersion;
+  editingDeviceId = null;
+  renderDeviceTable();
+  renderDetailModal(d, false);
+  showToast(`Data ${d.name} berhasil disimpan.`);
+}
+
+function closeDetailModal(){
+  document.getElementById('detailModal').classList.remove('show');
+  editingDeviceId=null;
+}
 
 // ── EXPORT ──
 function toggleExportMenu(){ document.getElementById('exportMenu').classList.toggle('open'); }
@@ -597,7 +740,7 @@ function buildExportRows(){
       driver:d.name,employeeId:d.employeeId,dc:dc?dc.name:d.dcId,
       device:d.model,os:d.os,sdkInt:d.sdkInt,manufacturer:d.manufacturer,
       appVersion:d.appVersion,
-      lastActive:fmtDate(dateDaysAgo(d.lastActiveDaysAgo)),
+      lastActive:fmtDate(resolveLastActiveDate(d)),
     };
   });
 }
@@ -654,8 +797,14 @@ function renderAll(){
   renderDeviceTable();
 }
 
-initDcFilter();
-renderAll();
+async function bootstrap(){
+  document.getElementById('deviceTbody').innerHTML =
+    `<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--g400)">Memuat data Device Driver...</td></tr>`;
+  await loadAppMonitoringData();
+  initDcFilter();
+  renderAll();
+}
+bootstrap();
 </script>
 </body>
 </html>
