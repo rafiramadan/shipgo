@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lacak Pesanan — ShipGo</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --v600:#4f46e5;--v700:#4338ca;--v800:#3730a3;--v50:#eef2ff;--v100:#e0e7ff;
+  --go:#16a34a;--go-bg:#dcfce7;--amber:#d97706;--amber-bg:#fef3c7;--red:#dc2626;
+  --g50:#f8fafc;--g100:#f1f5f9;--g200:#e2e8f0;--g300:#cbd5e1;--g400:#94a3b8;
+  --g500:#64748b;--g600:#475569;--g700:#334155;--g900:#0f172a;
+  --r:10px;--r2:16px;--sh:0 1px 3px rgba(15,23,42,.06);--shl:0 12px 32px rgba(15,23,42,.12);
+}
+html,body{font-family:'Inter',sans-serif;background:var(--g100);color:var(--g900);min-height:100%}
+body{display:flex;flex-direction:column;align-items:center;padding:0 0 40px}
+.page{width:100%;max-width:520px;display:flex;flex-direction:column;min-height:100vh}
+
+/* header */
+.tr-header{display:flex;align-items:center;gap:10px;padding:18px 20px;background:#fff;border-bottom:1px solid var(--g200);position:sticky;top:0;z-index:10}
+.tr-logo-icon{width:34px;height:34px;border-radius:9px;background:var(--v700);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.tr-logo-icon i{color:#fff;font-size:15px}
+.tr-logo-text{font-size:15px;font-weight:800;color:var(--g900);letter-spacing:-.2px}
+.tr-logo-sub{font-size:10.5px;color:var(--g400);font-weight:600}
+
+main{flex:1;padding:20px 16px 8px;display:flex;flex-direction:column;gap:16px}
+
+/* footer */
+.tr-footer{padding:18px 20px 28px;text-align:center;font-size:10.5px;color:var(--g400);line-height:1.6}
+.tr-footer a{color:var(--v600);text-decoration:none;font-weight:600}
+
+/* ── cards ── */
+.card{background:#fff;border:1px solid var(--g200);border-radius:var(--r2);padding:18px;box-shadow:var(--sh)}
+.card-hdr{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;color:var(--g700);margin-bottom:12px;text-transform:uppercase;letter-spacing:.3px}
+.card-hdr i{color:var(--v600)}
+
+/* ── search box ── */
+.search-box{display:flex;gap:8px}
+.search-box input{flex:1;border:1.5px solid var(--g200);border-radius:var(--r);padding:12px 14px;font-size:14px;font-family:inherit;outline:none}
+.search-box input:focus{border-color:var(--v600)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:12px 18px;border-radius:var(--r);font-size:13.5px;font-weight:700;cursor:pointer;border:none;font-family:inherit;transition:all .15s;white-space:nowrap}
+.btn-primary{background:var(--v700);color:#fff}
+.btn-primary:hover{background:var(--v800)}
+.btn-outline{background:#fff;color:var(--v700);border:1.5px solid var(--v100)}
+.btn-outline:hover{background:var(--v50)}
+.btn-wa{background:#25D366;color:#fff}
+.btn-wa:hover{background:#1fb959}
+.btn-block{width:100%}
+.err-msg{color:var(--red);font-size:12px;margin-top:8px;display:none}
+.err-msg.show{display:block}
+
+/* ── hero / intro ── */
+.hero{text-align:center;padding:8px 6px 4px}
+.hero h1{font-size:19px;font-weight:800;color:var(--g900);margin-bottom:6px}
+.hero p{font-size:13px;color:var(--g500);line-height:1.6}
+
+/* ── whatsapp phone mockup ── */
+.wa-phone{background:#e5ddd5;border-radius:22px;padding:10px;box-shadow:var(--shl);border:6px solid #1f2937}
+.wa-topbar{background:#075E54;color:#fff;padding:10px 12px;border-radius:10px 10px 0 0;display:flex;align-items:center;gap:10px}
+.wa-avatar{width:32px;height:32px;border-radius:50%;background:var(--v600);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.wa-avatar i{color:#fff;font-size:14px}
+.wa-name{font-size:13px;font-weight:700;display:flex;align-items:center;gap:4px}
+.wa-name i{color:#53bdeb;font-size:11px}
+.wa-status{font-size:10.5px;color:#d9fdd3}
+.wa-body{background:#e5ddd5;padding:14px 10px;border-radius:0 0 10px 10px;min-height:120px}
+.wa-bubble{background:#fff;border-radius:0 8px 8px 8px;padding:10px 12px 18px;font-size:12.5px;line-height:1.65;color:#111;position:relative;box-shadow:0 1px 1px rgba(0,0,0,.08);max-width:100%}
+.wa-bubble b{font-weight:700}
+.wa-link{color:#0b57d0;text-decoration:underline;word-break:break-all;display:block;margin-top:6px;cursor:pointer}
+.wa-time{position:absolute;right:10px;bottom:6px;font-size:9.5px;color:#8696a0;display:flex;align-items:center;gap:3px}
+.wa-time i{font-size:9px;color:#53bdeb}
+
+/* ── demo picker ── */
+.demo-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}
+.demo-chip{border:1.5px solid var(--g200);background:#fff;border-radius:10px;padding:10px;cursor:pointer;text-align:left;transition:all .15s}
+.demo-chip:hover{border-color:var(--v600);background:var(--v50)}
+.demo-chip .dc-do{font-family:'SFMono-Regular',Consolas,monospace;font-size:10.5px;font-weight:700;color:var(--g900)}
+.demo-chip .dc-status{font-size:10px;font-weight:700;margin-top:4px;display:inline-block;padding:2px 7px;border-radius:8px}
+
+/* ── order summary ── */
+.order-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}
+.order-no{font-size:11px;color:var(--g400);font-weight:600}
+.order-do{font-family:'SFMono-Regular',Consolas,monospace;font-size:16px;font-weight:800;color:var(--g900)}
+.status-badge{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;padding:5px 12px;border-radius:20px;white-space:nowrap}
+.status-badge.created,.status-badge.planned{background:var(--g100);color:var(--g600)}
+.status-badge.open{background:var(--amber-bg);color:var(--amber)}
+.status-badge.in_progress{background:var(--v100);color:var(--v700)}
+.status-badge.done{background:var(--go-bg);color:var(--go)}
+.order-kv{display:flex;justify-content:space-between;font-size:12.5px;padding:7px 0;border-top:1px solid var(--g100)}
+.order-kv span:first-child{color:var(--g500)}
+.order-kv b{color:var(--g900);text-align:right;max-width:60%}
+
+/* ── stepper ── */
+.stepper{display:flex;flex-direction:column}
+.step{display:flex;gap:12px;position:relative;padding-bottom:22px}
+.step:last-child{padding-bottom:0}
+.step-dot{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;background:var(--g200);color:var(--g400);z-index:1}
+.step.done .step-dot{background:var(--go);color:#fff}
+.step.current .step-dot{background:var(--v600);color:#fff;box-shadow:0 0 0 4px var(--v100)}
+.step-line{position:absolute;left:13px;top:26px;bottom:0;width:2px;background:var(--g200)}
+.step.done .step-line{background:var(--go)}
+.step-body{flex:1;padding-top:2px}
+.step-label{font-size:13px;font-weight:700;color:var(--g400)}
+.step.done .step-label,.step.current .step-label{color:var(--g900)}
+.step-time{font-size:11px;color:var(--g400);margin-top:2px}
+
+/* ── map / driver ── */
+.tr-map{height:220px;border-radius:12px;overflow:hidden;border:1px solid var(--g200)}
+.eta-strip{display:flex;align-items:center;gap:10px;background:var(--v50);border-radius:10px;padding:10px 12px;margin-top:10px}
+.eta-strip i{color:var(--v700)}
+.eta-strip b{color:var(--v800);font-size:14px}
+.driver-row{display:flex;align-items:center;gap:12px;margin-top:14px;padding-top:14px;border-top:1px solid var(--g100)}
+.driver-avatar{width:44px;height:44px;border-radius:50%;background:var(--v100);color:var(--v700);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex-shrink:0}
+.driver-info{flex:1}
+.driver-name{font-size:13px;font-weight:700;color:var(--g900)}
+.driver-meta{font-size:11.5px;color:var(--g500)}
+
+/* ── POD ── */
+.pod-box{background:var(--go-bg);border-radius:12px;padding:14px;display:flex;gap:12px;align-items:flex-start}
+.pod-box i{color:var(--go);font-size:20px;margin-top:2px}
+.pod-title{font-weight:700;color:#166534;font-size:13px}
+.pod-meta{font-size:11.5px;color:#166534;margin-top:3px;line-height:1.6}
+
+.help-row{display:flex;align-items:center;gap:10px}
+.spinner{width:26px;height:26px;border-radius:50%;border:3px solid var(--v100);border-top-color:var(--v600);animation:spin 0.8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.back-link{font-size:12px;color:var(--v600);font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;margin-bottom:4px}
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="tr-header">
+    <div class="tr-logo-icon"><i class="fa-solid fa-map-location-dot"></i></div>
+    <div>
+      <div class="tr-logo-text">ShipGo</div>
+      <div class="tr-logo-sub">Lacak Pesanan</div>
+    </div>
+  </header>
+
+  <main id="app"></main>
+
+  <div class="tr-footer">
+    PT Parama Global Inspira — halaman ini dapat diakses tanpa login.<br>
+    Butuh bantuan? <a href="https://wa.me/6281200000000" target="_blank" rel="noopener">Hubungi CS via WhatsApp</a>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+function escapeHtml(str){
+  const d=document.createElement('div');
+  d.textContent=str==null?'':String(str);
+  return d.innerHTML;
+}
+const MONTH_ABBR_ID = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+function fmtDateTime(date){
+  if (!date) return '—';
+  return `${date.getDate()} ${MONTH_ABBR_ID[date.getMonth()]} ${date.getFullYear()}, ${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}`;
+}
+function hoursAgo(h){ return new Date(Date.now() - h*3600*1000); }
+function hoursFromNow(h){ return new Date(Date.now() + h*3600*1000); }
+
+// ══════════════════════════════════════════════════════════════
+// NOMOR RESI — the public tracking identifier.
+//
+// DO numbers are SAP's own sequential/incremental keys (e.g. PM30124522,
+// PM30124523, ...) — fine internally, but unsafe as a public lookup key:
+// anyone who receives one tracking link could just increment the number
+// and see other customers' shipments. The resi is generated once per DO,
+// independently of it, from a non-sequential alphabet (letters+digits,
+// excluding easily-confused 0/O and 1/I) — high enough entropy that
+// guessing one from another isn't practical. It's what the tracking page
+// looks up by and what goes in the WhatsApp link; the DO number is still
+// shown on the order card for the customer's own reference (it matches
+// their invoice/SAP paperwork), but it never doubles as a credential.
+//
+// In a real backend this mapping (resi -> DO) is created and stored server
+// side the moment a DO is confirmed, and the lookup endpoint should still
+// rate-limit / not leak whether a *guessed* resi exists vs. is just wrong.
+// ══════════════════════════════════════════════════════════════
+const RESI_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no 0/O, 1/I
+function generateResiNumber(){
+  const group = () => Array.from({ length: 4 }, () => RESI_ALPHABET[Math.floor(Math.random() * RESI_ALPHABET.length)]).join('');
+  return `SG-${group()}-${group()}`;
+}
+
+const STATUS_LABEL = { created:'Pesanan Diterima', planned:'Diproses & Dijadwalkan', open:'Siap Dikirim', in_progress:'Dalam Pengiriman', done:'Terkirim' };
+const STATUS_ORDER = ['created','planned','open','in_progress','done'];
+
+function buildTimeline(order){
+  const stamps = order._stamps;
+  return STATUS_ORDER.map((key, i) => ({
+    key,
+    label: STATUS_LABEL[key],
+    at: stamps[key] || null,
+    done: STATUS_ORDER.indexOf(order.status) > i || (STATUS_ORDER.indexOf(order.status) === i && order.status === 'done'),
+    current: key === order.status,
+  }));
+}
+
+const MOCK_ORDERS = {
+  'SG-9X4K-7QM2': {
+    resi: 'SG-9X4K-7QM2',
+    orderNo: 'SO-2026-00456', doNo: 'PM30124522',
+    shipTo: 'Toko Cantik Abadi Sukoharjo',
+    address: 'Jl. Raya Sukoharjo No. 45, Kec. Sukoharjo, Jawa Tengah 57521',
+    itemSummary: '5 koli · 78 kg',
+    rddAt: hoursFromNow(2),
+    status: 'in_progress',
+    _stamps: { created: hoursAgo(30), planned: hoursAgo(20), open: hoursAgo(3), in_progress: hoursAgo(1) },
+    driver: { name: 'Citra Mulyono', vehicle: 'Box Truck', plate: 'AD 8821 GB', phoneMasked: '+62 813-xxxx-2210' },
+    origin: { lat: -7.5563, lng: 110.8281 },
+    dest: { lat: -7.6879, lng: 110.8386 },
+    etaMinutes: 24,
+  },
+  'SG-B3RT-88LN': {
+    resi: 'SG-B3RT-88LN',
+    orderNo: 'SO-2026-00461', doNo: 'PM30124600',
+    shipTo: 'Apotek Sumber Rejeki Klaten',
+    address: 'Jl. Pemuda No. 12, Klaten Tengah, Jawa Tengah 57411',
+    itemSummary: '2 koli · 31 kg',
+    rddAt: hoursAgo(3),
+    status: 'done',
+    _stamps: { created: hoursAgo(48), planned: hoursAgo(36), open: hoursAgo(20), in_progress: hoursAgo(6), done: hoursAgo(3) },
+    driver: { name: 'Wahono Prasetyo', vehicle: 'Engkel', plate: 'AD 1187 FE', phoneMasked: '+62 812-xxxx-7741' },
+    pod: { deliveredAt: hoursAgo(3), receivedBy: 'Ibu Sari (Kasir)' },
+  },
+  'SG-QW2E-5ZXC': {
+    resi: 'SG-QW2E-5ZXC',
+    orderNo: 'SO-2026-00449', doNo: 'PM30124480',
+    shipTo: 'Minimarket Berkah Jaya Karanganyar',
+    address: 'Jl. Lawu No. 88, Karanganyar, Jawa Tengah 57716',
+    itemSummary: '8 koli · 132 kg',
+    rddAt: hoursFromNow(20),
+    status: 'planned',
+    _stamps: { created: hoursAgo(6), planned: hoursAgo(1) },
+  },
+  'SG-4MKP-T9YV': {
+    resi: 'SG-4MKP-T9YV',
+    orderNo: 'SO-2026-00441', doNo: 'PM30124455',
+    shipTo: 'Griya Kosmetik Rejeki Baru Boyolali',
+    address: 'Jl. Pandanaran No. 5, Boyolali, Jawa Tengah 57311',
+    itemSummary: '4 koli · 55 kg',
+    rddAt: hoursFromNow(10),
+    status: 'open',
+    _stamps: { created: hoursAgo(14), planned: hoursAgo(9), open: hoursAgo(1) },
+  },
+};
+
+const STATUS_CHIP_STYLE = { created:'background:var(--g100);color:var(--g600)', planned:'background:var(--g100);color:var(--g600)', open:'background:var(--amber-bg);color:var(--amber)', in_progress:'background:var(--v100);color:var(--v700)', done:'background:var(--go-bg);color:var(--go)' };
+
+let liveMap = null, liveMarker = null, moveTimer = null;
+
+// Accepts "SG-9X4K-7QM2", "sg 9x4k 7qm2", or "SG9X4K7QM2" as the same resi —
+// customers retype/copy these imperfectly, so lookup shouldn't be strict
+// about dashes, spaces, or case.
+function normalizeResi(str){
+  return (str || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+}
+const RESI_LOOKUP = {};
+Object.values(MOCK_ORDERS).forEach(o => { RESI_LOOKUP[normalizeResi(o.resi)] = o; });
+function findOrder(rawInput){
+  return RESI_LOOKUP[normalizeResi(rawInput)] || null;
+}
+
+function getParam(name){
+  return new URLSearchParams(window.location.search).get(name);
+}
+
+function goToResi(resi){
+  window.location.href = 'tracking.html?resi=' + encodeURIComponent(resi);
+}
+
+function renderApp(){
+  const resiParam = getParam('resi') || '';
+  const found = findOrder(resiParam);
+  const resi = resiParam.trim().toUpperCase();
+  if (found){
+    renderTrackingView(found);
+  } else if (resi){
+    renderNotFound(resi);
+  } else {
+    renderLanding();
+  }
+}
+
+function renderLanding(){
+  const app = document.getElementById('app');
+  app.innerHTML = `
+    <div class="hero">
+      <h1>Bagaimana pelanggan Anda melacak pesanan</h1>
+      <p>ShipGo mengirim notifikasi WhatsApp berisi No. Order &amp; No. DO beserta tautan pelacakan — pelanggan membuka tautan itu dan langsung melihat status, tanpa perlu membuat akun atau login.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-hdr"><i class="fa-brands fa-whatsapp"></i> Contoh Notifikasi WhatsApp</div>
+      <div class="wa-phone">
+        <div class="wa-topbar">
+          <div class="wa-avatar"><i class="fa-solid fa-map-location-dot"></i></div>
+          <div>
+            <div class="wa-name">ShipGo Logistics <i class="fa-solid fa-circle-check"></i></div>
+            <div class="wa-status">Business Account</div>
+          </div>
+        </div>
+        <div class="wa-body">
+          <div class="wa-bubble">
+            Halo <b>Toko Cantik Abadi</b> 👋<br><br>
+            Pesanan Anda dengan No. Order <b>SO-2026-00456</b> (DO: <b>PM30124522</b>) sedang <b>Dalam Pengiriman</b>.<br><br>
+            Nomor Resi Anda: <b>SG-9X4K-7QM2</b><br>
+            Lacak posisi kurir &amp; estimasi tiba secara real-time:
+            <span class="wa-link" onclick="goToResi('SG-9X4K-7QM2')">shipgo.vercel.app/track?resi=SG-9X4K-7QM2</span>
+            <br>Terima kasih telah menggunakan ShipGo! 🚚
+            <span class="wa-time">10:42 <i class="fa-solid fa-check-double"></i></span>
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-wa btn-block" style="margin-top:12px" onclick="goToResi('SG-9X4K-7QM2')">
+        <i class="fa-solid fa-arrow-pointer"></i> Buka Tautan Seperti Pelanggan
+      </button>
+    </div>
+
+    <div class="card">
+      <div class="card-hdr"><i class="fa-solid fa-magnifying-glass"></i> Lacak Pesanan Manual</div>
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Nomor Resi, contoh: SG-9X4K-7QM2" autocomplete="off">
+        <button class="btn btn-primary" onclick="submitSearch()">Lacak</button>
+      </div>
+      <div class="err-msg" id="searchErr">Nomor Resi tidak ditemukan. Coba salah satu contoh di bawah.</div>
+      <div style="font-size:10.5px;color:var(--g400);margin-top:10px;line-height:1.6"><i class="fa-solid fa-shield-halved" style="color:var(--v600)"></i> Nomor Resi unik &amp; acak per pengiriman — tidak bisa ditebak dari Nomor Order/DO SAP lain (yang berurutan).</div>
+    </div>
+
+    <div class="card">
+      <div class="card-hdr"><i class="fa-solid fa-flask"></i> Contoh Status Lain (Demo)</div>
+      <div class="demo-grid">
+        ${Object.values(MOCK_ORDERS).map(o => `
+          <div class="demo-chip" onclick="goToResi('${o.resi}')">
+            <div class="dc-do">${o.resi}</div>
+            <span class="dc-status" style="${STATUS_CHIP_STYLE[o.status]}">${STATUS_LABEL[o.status]}</span>
+          </div>`).join('')}
+      </div>
+    </div>
+  `;
+  document.getElementById('searchInput').addEventListener('keydown', e => { if (e.key === 'Enter') submitSearch(); });
+}
+
+function submitSearch(){
+  const raw = document.getElementById('searchInput').value;
+  const errEl = document.getElementById('searchErr');
+  if (!raw.trim()){
+    errEl.textContent = 'Masukkan Nomor Resi terlebih dahulu.';
+    errEl.classList.add('show');
+    return;
+  }
+  const found = findOrder(raw);
+  if (found){
+    errEl.classList.remove('show');
+    goToResi(found.resi);
+  } else {
+    errEl.textContent = 'Nomor Resi tidak ditemukan. Coba salah satu contoh di bawah.';
+    errEl.classList.add('show');
+  }
+}
+
+function renderNotFound(resi){
+  const app = document.getElementById('app');
+  app.innerHTML = `
+    <div class="card" style="text-align:center;padding:32px 20px">
+      <i class="fa-solid fa-box-open" style="font-size:34px;color:var(--g300)"></i>
+      <div style="font-size:15px;font-weight:700;margin-top:14px;color:var(--g900)">Pesanan Tidak Ditemukan</div>
+      <div style="font-size:12.5px;color:var(--g500);margin-top:6px">Nomor Resi <b>${escapeHtml(resi)}</b> tidak ditemukan. Periksa kembali tautan dari WhatsApp Anda, atau coba nomor lain.</div>
+      <button class="btn btn-outline" style="margin-top:16px" onclick="window.location.href='tracking.html'">Coba Nomor Lain</button>
+    </div>
+  `;
+}
+
+function renderTrackingView(order){
+  const app = document.getElementById('app');
+  const timeline = buildTimeline(order);
+
+  let html = `
+    <span class="back-link" onclick="window.location.href='tracking.html'"><i class="fa-solid fa-arrow-left"></i> Kembali</span>
+    <div class="card">
+      <div class="order-top">
+        <div>
+          <div class="order-no">Nomor Resi</div>
+          <div class="order-do">${escapeHtml(order.resi)}</div>
+        </div>
+        <span class="status-badge ${order.status}">${STATUS_LABEL[order.status]}</span>
+      </div>
+      <div class="order-kv"><span>No. Order</span><b>${escapeHtml(order.orderNo)}</b></div>
+      <div class="order-kv"><span>No. DO (referensi internal)</span><b>${escapeHtml(order.doNo)}</b></div>
+      <div class="order-kv"><span>Dikirim ke</span><b>${escapeHtml(order.shipTo)}</b></div>
+      <div class="order-kv"><span>Alamat</span><b>${escapeHtml(order.address)}</b></div>
+      <div class="order-kv"><span>Isi Paket</span><b>${escapeHtml(order.itemSummary)}</b></div>
+      <div class="order-kv"><span>${order.status==='done' ? 'Terkirim Pada' : 'Estimasi Tiba'}</span><b>${fmtDateTime(order.status==='done' ? order._stamps.done : order.rddAt)}</b></div>
+    </div>
+  `;
+
+  if (order.status === 'in_progress'){
+    html += `
+      <div class="card">
+        <div class="card-hdr"><i class="fa-solid fa-location-dot"></i> Posisi Kurir Saat Ini</div>
+        <div class="tr-map" id="liveMap"></div>
+        <div class="eta-strip"><i class="fa-regular fa-clock"></i> Estimasi tiba dalam <b id="etaText">${order.etaMinutes} menit</b></div>
+        <div class="driver-row">
+          <div class="driver-avatar">${escapeHtml(order.driver.name.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase())}</div>
+          <div class="driver-info">
+            <div class="driver-name">${escapeHtml(order.driver.name)}</div>
+            <div class="driver-meta">${escapeHtml(order.driver.vehicle)} · ${escapeHtml(order.driver.plate)}</div>
+          </div>
+          <a class="btn btn-wa" style="padding:9px 14px" href="https://wa.me/62${order.driver.phoneMasked.replace(/\D/g,'').slice(2)}" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp"></i></a>
+        </div>
+      </div>
+    `;
+  }
+
+  if (order.status === 'done' && order.pod){
+    html += `
+      <div class="card">
+        <div class="card-hdr"><i class="fa-solid fa-clipboard-check"></i> Bukti Pengiriman</div>
+        <div class="pod-box">
+          <i class="fa-solid fa-circle-check"></i>
+          <div>
+            <div class="pod-title">Paket telah diterima</div>
+            <div class="pod-meta">Diterima oleh: ${escapeHtml(order.pod.receivedBy)}<br>Waktu: ${fmtDateTime(order.pod.deliveredAt)}</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  html += `
+    <div class="card">
+      <div class="card-hdr"><i class="fa-solid fa-timeline"></i> Riwayat Status</div>
+      <div class="stepper">
+        ${timeline.map((t, i) => `
+          <div class="step ${t.done?'done':''} ${t.current?'current':''}">
+            ${i < timeline.length-1 ? '<div class="step-line"></div>' : ''}
+            <div class="step-dot"><i class="fa-solid ${t.done?'fa-check':(t.current?'fa-truck':'fa-circle')}" style="font-size:${t.current&&!t.done?'9px':'10px'}"></i></div>
+            <div class="step-body">
+              <div class="step-label">${escapeHtml(t.label)}</div>
+              <div class="step-time">${t.at ? fmtDateTime(t.at) : 'Menunggu'}</div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="help-row">
+        <i class="fa-brands fa-whatsapp" style="font-size:20px;color:#25D366"></i>
+        <div style="flex:1;font-size:12px;color:var(--g600)">Ada pertanyaan tentang pesanan ini?</div>
+        <a class="btn btn-wa" href="https://wa.me/6281200000000?text=${encodeURIComponent('Halo ShipGo, saya ingin bertanya tentang pesanan dengan resi '+order.resi)}" target="_blank" rel="noopener">Chat CS</a>
+      </div>
+    </div>
+  `;
+
+  app.innerHTML = html;
+
+  if (order.status === 'in_progress'){
+    initLiveMap(order);
+  }
+}
+
+function initLiveMap(order){
+  if (liveMap) { liveMap.remove(); liveMap = null; }
+  if (moveTimer) { clearInterval(moveTimer); moveTimer = null; }
+
+  const el = document.getElementById('liveMap');
+  if (!el) return;
+  liveMap = L.map(el, { zoomControl: false, attributionControl: false }).setView([order.origin.lat, order.origin.lng], 12);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(liveMap);
+
+  L.marker([order.dest.lat, order.dest.lng], { icon: L.divIcon({ className:'', html:'<div style="width:26px;height:26px;border-radius:50%;background:#16a34a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.3)"><i class="fa-solid fa-flag-checkered"></i></div>', iconSize:[26,26] }) })
+    .addTo(liveMap).bindPopup(`<b>${escapeHtml(order.shipTo)}</b><br>Tujuan pengiriman`);
+
+  const line = L.polyline([[order.origin.lat, order.origin.lng],[order.dest.lat, order.dest.lng]], { color:'#4f46e5', weight:3, dashArray:'6,6' }).addTo(liveMap);
+
+  let progress = 0.35; // simulated: courier already partway there
+  const truckIcon = L.divIcon({ className:'', html:'<div style="width:28px;height:28px;border-radius:50%;background:#4338ca;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;border:2px solid #fff;box-shadow:0 1px 6px rgba(0,0,0,.35)"><i class="fa-solid fa-truck"></i></div>', iconSize:[28,28] });
+  const lerp = (a,b,t) => a + (b-a)*t;
+  const posAt = t => [lerp(order.origin.lat, order.dest.lat, t), lerp(order.origin.lng, order.dest.lng, t)];
+  liveMarker = L.marker(posAt(progress), { icon: truckIcon }).addTo(liveMap).bindPopup('Posisi kurir saat ini (simulasi)');
+
+  liveMap.fitBounds(line.getBounds(), { padding: [30,30] });
+
+  let etaMin = order.etaMinutes;
+  moveTimer = setInterval(() => {
+    progress = Math.min(0.98, progress + 0.02);
+    liveMarker.setLatLng(posAt(progress));
+    etaMin = Math.max(1, Math.round(order.etaMinutes * (1 - progress) / (1 - 0.35)));
+    const etaEl = document.getElementById('etaText');
+    if (etaEl) etaEl.textContent = etaMin + ' menit';
+    if (progress >= 0.98) clearInterval(moveTimer);
+  }, 2500);
+}
+
+renderApp();
+window.addEventListener('popstate', renderApp);
+</script>
+</body>
+</html>
