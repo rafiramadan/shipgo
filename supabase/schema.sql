@@ -132,9 +132,16 @@ create table public.device_version_history (
 );
 
 -- ── Row Level Security ──
--- Prototype-stage policy: any signed-in user can read and write master data.
--- Tighten this later per role (e.g. only BCR can write coverage) once the
--- `profiles.role` values are actually enforced in the UI.
+-- Prototype-stage policy: anyone holding the anon key can read/write this
+-- master data. Scoped to the `anon` Postgres role (not `authenticated`)
+-- because ShipGo still gates access with its own PIN login + JWT cookie
+-- (middleware.js) rather than Supabase Auth — the browser's supabase-js
+-- client is never actually signed in to Supabase, so it always connects as
+-- `anon`. A policy written `to authenticated` would silently return zero
+-- rows for every query instead of erroring, which is exactly what happened
+-- here originally. Once real Supabase Auth replaces the PIN login (a later
+-- phase — see supabase/README.md), tighten these to `to authenticated` and
+-- per-role checks against `profiles.role`.
 alter table public.distribution_centers enable row level security;
 alter table public.depots enable row level security;
 alter table public.staging_bays enable row level security;
@@ -144,20 +151,20 @@ alter table public.drivers enable row level security;
 alter table public.devices enable row level security;
 alter table public.device_version_history enable row level security;
 
-create policy "Authenticated read" on public.distribution_centers for select to authenticated using (true);
-create policy "Authenticated read" on public.depots for select to authenticated using (true);
-create policy "Authenticated read" on public.staging_bays for select to authenticated using (true);
-create policy "Authenticated read" on public.staging_bay_routes for select to authenticated using (true);
-create policy "Authenticated read" on public.staging_bay_coverage for select to authenticated using (true);
-create policy "Authenticated read" on public.drivers for select to authenticated using (true);
-create policy "Authenticated read" on public.devices for select to authenticated using (true);
-create policy "Authenticated read" on public.device_version_history for select to authenticated using (true);
+create policy "Anon read" on public.distribution_centers for select to anon using (true);
+create policy "Anon read" on public.depots for select to anon using (true);
+create policy "Anon read" on public.staging_bays for select to anon using (true);
+create policy "Anon read" on public.staging_bay_routes for select to anon using (true);
+create policy "Anon read" on public.staging_bay_coverage for select to anon using (true);
+create policy "Anon read" on public.drivers for select to anon using (true);
+create policy "Anon read" on public.devices for select to anon using (true);
+create policy "Anon read" on public.device_version_history for select to anon using (true);
 
-create policy "Authenticated write" on public.distribution_centers for all to authenticated using (true) with check (true);
-create policy "Authenticated write" on public.depots for all to authenticated using (true) with check (true);
-create policy "Authenticated write" on public.staging_bays for all to authenticated using (true) with check (true);
-create policy "Authenticated write" on public.staging_bay_routes for all to authenticated using (true) with check (true);
-create policy "Authenticated write" on public.staging_bay_coverage for all to authenticated using (true) with check (true);
-create policy "Authenticated write" on public.drivers for all to authenticated using (true) with check (true);
-create policy "Authenticated write" on public.devices for all to authenticated using (true) with check (true);
-create policy "Authenticated write" on public.device_version_history for all to authenticated using (true) with check (true);
+create policy "Anon write" on public.distribution_centers for all to anon using (true) with check (true);
+create policy "Anon write" on public.depots for all to anon using (true) with check (true);
+create policy "Anon write" on public.staging_bays for all to anon using (true) with check (true);
+create policy "Anon write" on public.staging_bay_routes for all to anon using (true) with check (true);
+create policy "Anon write" on public.staging_bay_coverage for all to anon using (true) with check (true);
+create policy "Anon write" on public.drivers for all to anon using (true) with check (true);
+create policy "Anon write" on public.devices for all to anon using (true) with check (true);
+create policy "Anon write" on public.device_version_history for all to anon using (true) with check (true);
