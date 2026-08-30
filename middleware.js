@@ -25,8 +25,14 @@ export const config = {
     '/app-monitoring.html',
     '/driver-app-version',
     '/driver-app-version.html',
+    '/planning-optimization',
+    '/planning-optimization.html',
   ],
 };
+
+// customer/tracking.html is deliberately NOT in this matcher — it's the
+// public, no-login order-tracking page opened from a WhatsApp link, so it
+// must stay reachable without a session.
 
 export default async function middleware(request) {
   const token = parseCookie(request.headers.get('cookie'), SESSION_COOKIE);

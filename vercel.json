@@ -11,7 +11,9 @@
     { "source": "/config", "destination": "/feature-config.html" },
     { "source": "/shipping-point", "destination": "/shipping-point.html" },
     { "source": "/app-monitoring", "destination": "/app-monitoring.html" },
-    { "source": "/driver-app-version", "destination": "/driver-app-version.html" }
+    { "source": "/driver-app-version", "destination": "/driver-app-version.html" },
+    { "source": "/planning-optimization", "destination": "/planning-optimization.html" },
+    { "source": "/track", "destination": "/customer/tracking.html" }
   ],
   "headers": [
     {
