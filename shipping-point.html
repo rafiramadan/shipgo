@@ -203,6 +203,8 @@ table.drv-table tbody tr:hover{background:var(--g50)}
 </head>
 <body>
 <script src="/auth-guard.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="/supabase-client.js"></script>
 
 <!-- TOPBAR -->
 <header class="topbar">
@@ -484,39 +486,30 @@ function escapeHtml(str){
 }
 
 // ── REFERENCE DATA ──
+// Fallback/demo data, used only when Supabase isn't configured (getSupabaseClient()
+// resolves to null — see loadShippingPointData() below) — the page still works as a
+// demo without a live database. When Supabase IS configured, DCS/DEPOS/STAGING_BAYS/
+// COVERAGE below are populated from the real tables in supabase/schema.sql instead.
+//
 // Distribution Centers (Plant / DC). Full DC master list lives in User Management's
 // Location Scope — this page focuses on a subset that has real coverage configured.
-const DCS=[
+const MOCK_DCS=[
   {id:'dc-mataram',code:'1336',name:'PARAMA DC MATARAM',status:'active'},
   {id:'dc-bandung',code:'1204',name:'PARAMA DC BANDUNG',status:'active'},
   {id:'dc-solo',code:'1105',name:'PARAMA DC SOLO',status:'active'},
 ];
 
 // Depo / Cross Dock master — each depo is fed by exactly one parent DC (Scenario 2).
-const DEPOS=[
+const MOCK_DEPOS=[
   {id:'depo-prabumulih-01',name:'Depo Prabumulih 01',dcId:'dc-mataram',status:'active'},
   {id:'depo-sukabumi',name:'Depo Sukabumi',dcId:'dc-bandung',status:'active'},
 ];
-
-// Shipping Points are derived, not manually created (Scenario 1 & 2):
-// every DC gets exactly one Main Warehouse, plus one shipping point per active Depo.
-function buildShippingPoints(){
-  const pts=[];
-  DCS.forEach(dc=>{
-    pts.push({id:`sp-main-${dc.id}`,type:'main_warehouse',name:`Main Warehouse - ${dc.name}`,dcId:dc.id,status:dc.status});
-  });
-  DEPOS.forEach(depo=>{
-    pts.push({id:`sp-depo-${depo.id}`,type:'depo',name:depo.name,dcId:depo.dcId,depoId:depo.id,status:depo.status});
-  });
-  return pts;
-}
-const SHIPPING_POINTS=buildShippingPoints();
 
 // Staging Bay master — the unit of coverage assignment (Scenario 3). A bay groups one
 // or more routes/kecamatan; DC Mataram's bays happen to be single-route (matching the
 // legacy per-kecamatan platform), while DC Bandung's bays group multiple routes
 // (the target staging-bay concept) — both are the same data shape at different granularity.
-const STAGING_BAYS=[
+const MOCK_STAGING_BAYS=[
   {id:'sb-serang-cipocok',dcId:'dc-mataram',province:'Banten',city:'KOTA SERANG',name:'Cipocok Jaya',routes:[{name:'Cipocok Jaya',postalCode:'42116',lat:-6.1102,lng:106.1660}]},
   {id:'sb-serang-curug',dcId:'dc-mataram',province:'Banten',city:'KOTA SERANG',name:'Curug',routes:[{name:'Curug',postalCode:'42171',lat:-6.0651,lng:106.0938}]},
   {id:'sb-serang-kasemen',dcId:'dc-mataram',province:'Banten',city:'KOTA SERANG',name:'Kasemen',routes:[{name:'Kasemen',postalCode:'42191',lat:-6.0778,lng:106.1479}]},
@@ -548,7 +541,7 @@ const STAGING_BAYS=[
 ];
 
 // Coverage assignment — staging bay -> owning shipping point id (Scenario 4: one owner only).
-let COVERAGE={
+const MOCK_COVERAGE={
   'sb-serang-cipocok':'sp-main-dc-mataram',
   'sb-serang-curug':'sp-main-dc-mataram',
   'sb-serang-kasemen':'sp-depo-depo-prabumulih-01',
@@ -562,6 +555,66 @@ let COVERAGE={
   'sb-bandung-b':'sp-depo-depo-sukabumi',
   'sb-bandung-c':'sp-depo-depo-sukabumi',
 };
+
+// Active working data — populated by loadShippingPointData() below, either from
+// Supabase or copied from the MOCK_* fallback constants above.
+let DCS=[], DEPOS=[], STAGING_BAYS=[], COVERAGE={};
+
+// Shipping Points are derived, not manually created (Scenario 1 & 2):
+// every DC gets exactly one Main Warehouse, plus one shipping point per active Depo.
+function buildShippingPoints(){
+  const pts=[];
+  DCS.forEach(dc=>{
+    pts.push({id:`sp-main-${dc.id}`,type:'main_warehouse',name:`Main Warehouse - ${dc.name}`,dcId:dc.id,status:dc.status});
+  });
+  DEPOS.forEach(depo=>{
+    pts.push({id:`sp-depo-${depo.id}`,type:'depo',name:depo.name,dcId:depo.dcId,depoId:depo.id,status:depo.status});
+  });
+  return pts;
+}
+let SHIPPING_POINTS=[];
+
+// Fetches DCs / Depots / Staging Bays / Routes / Coverage from Supabase and reshapes
+// them into the exact same shape the rest of this page already expects (so every
+// render function below is untouched). Falls back to the MOCK_* constants if
+// Supabase isn't configured yet, or if the fetch fails for any reason.
+async function loadShippingPointData(){
+  const client = await getSupabaseClient();
+  if (!client){
+    DCS = MOCK_DCS; DEPOS = MOCK_DEPOS; STAGING_BAYS = MOCK_STAGING_BAYS; COVERAGE = { ...MOCK_COVERAGE };
+    return;
+  }
+  try {
+    const [dcRes, depoRes, bayRes, routeRes, covRes] = await Promise.all([
+      client.from('distribution_centers').select('*').order('name'),
+      client.from('depots').select('*'),
+      client.from('staging_bays').select('*'),
+      client.from('staging_bay_routes').select('*'),
+      client.from('staging_bay_coverage').select('*'),
+    ]);
+    const firstError = dcRes.error || depoRes.error || bayRes.error || routeRes.error || covRes.error;
+    if (firstError) throw firstError;
+
+    DCS = dcRes.data.map(r => ({ id:r.id, code:r.code, name:r.name, status:r.status }));
+    DEPOS = depoRes.data.map(r => ({ id:r.id, name:r.name, dcId:r.dc_id, status:r.status }));
+
+    const routesByBay = {};
+    routeRes.data.forEach(r => {
+      (routesByBay[r.staging_bay_id] ||= []).push({ name:r.name, postalCode:r.postal_code, lat:r.lat, lng:r.lng });
+    });
+    STAGING_BAYS = bayRes.data.map(b => ({
+      id:b.id, dcId:b.dc_id, province:b.province, city:b.city, name:b.name,
+      routes: routesByBay[b.id] || [],
+    }));
+
+    COVERAGE = {};
+    covRes.data.forEach(c => { COVERAGE[c.staging_bay_id] = c.shipping_point_id; });
+  } catch (e) {
+    console.error('[shipgo] Failed to load Shipping Point data from Supabase — falling back to demo data:', e);
+    DCS = MOCK_DCS; DEPOS = MOCK_DEPOS; STAGING_BAYS = MOCK_STAGING_BAYS; COVERAGE = { ...MOCK_COVERAGE };
+    showToast('Gagal memuat data dari Supabase — menampilkan data contoh.', true);
+  }
+}
 
 let currentDcId=null;
 let cityFilterVal='';
@@ -953,12 +1006,37 @@ function renderCoverageGroups(){
 }
 
 // ── COVERAGE ASSIGNMENT (Scenario 3 & 4: single dropdown owner, unique + alert on conflict) ──
-function setBayOwner(bayId,newSpId,selectEl){
+// Writes (or clears) one staging_bay_coverage row in Supabase. Returns true on
+// success — false on failure, so the caller can revert the <select> back to the
+// previous owner instead of leaving the UI showing a change that didn't save.
+async function writeCoverage(bayId, shippingPointIdOrNull){
+  const client = await getSupabaseClient();
+  if (!client) return true; // demo mode — no Supabase configured, accept the in-memory change
+  try {
+    if (shippingPointIdOrNull === null){
+      const { error } = await client.from('staging_bay_coverage').delete().eq('staging_bay_id', bayId);
+      if (error) throw error;
+    } else {
+      const { error } = await client.from('staging_bay_coverage')
+        .upsert({ staging_bay_id: bayId, shipping_point_id: shippingPointIdOrNull, assigned_at: new Date().toISOString() });
+      if (error) throw error;
+    }
+    return true;
+  } catch (e) {
+    console.error('[shipgo] Failed to save coverage change:', e);
+    showToast('Gagal menyimpan perubahan coverage ke server. Coba lagi.', true);
+    return false;
+  }
+}
+
+async function setBayOwner(bayId,newSpId,selectEl){
   const bay=STAGING_BAYS.find(b=>b.id===bayId);
   const currentOwnerId=COVERAGE[bayId]||'';
 
   if(newSpId===''){
     const prevSp=SHIPPING_POINTS.find(s=>s.id===currentOwnerId);
+    const ok = await writeCoverage(bayId, null);
+    if (!ok){ selectEl.value=currentOwnerId; return; }
     COVERAGE[bayId]=null;
     showToast(`Coverage area "${bay.name}" dilepas${prevSp?` dari ${prevSp.name}`:''}.`);
     renderCoverageGroups();
@@ -974,6 +1052,8 @@ function setBayOwner(bayId,newSpId,selectEl){
   }
 
   const sp=SHIPPING_POINTS.find(s=>s.id===newSpId);
+  const ok = await writeCoverage(bayId, newSpId);
+  if (!ok){ selectEl.value=currentOwnerId; return; }
   COVERAGE[bayId]=newSpId;
   showToast(`Coverage area "${bay.name}" berhasil ditetapkan ke ${sp.name}.`);
   renderCoverageGroups();
@@ -1056,8 +1136,15 @@ function showToast(msg,isError){
   },3600);
 }
 
-initDcFilterSelect();
-renderShippingPointList();
+async function bootstrap(){
+  document.getElementById('spTbody').innerHTML =
+    `<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--g400)">Memuat data Shipping Point...</td></tr>`;
+  await loadShippingPointData();
+  SHIPPING_POINTS = buildShippingPoints();
+  initDcFilterSelect();
+  renderShippingPointList();
+}
+bootstrap();
 </script>
 </body>
 </html>

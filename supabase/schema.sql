@@ -1,7 +1,15 @@
 -- ============================================================
--- ShipGo TMS — Supabase schema (Phase 1)
--- Covers: user profiles (Supabase Auth), Shipping Point hierarchy,
--- Staging Bay coverage, Drivers, and Device / App Monitoring data.
+-- ShipGo TMS — Supabase schema (Phase 1, revised)
+-- Covers: user profiles (Supabase Auth), Distribution Center / Depot
+-- master data, Staging Bay + route (kecamatan) coverage, Drivers,
+-- and Device / App Monitoring data.
+--
+-- Revised from the original draft after reading shipping-point.html's
+-- actual mock data: "Shipping Point" turned out to be a UI-only concept
+-- computed client-side (buildShippingPoints() — one synthetic
+-- "main warehouse" per DC, plus one per active Depot), not a stored
+-- entity, so this schema models the two REAL tables (distribution
+-- centers, depots) instead of a speculative shipping_points table.
 --
 -- Run this once in the Supabase SQL editor (Project -> SQL Editor -> New query),
 -- or via `supabase db push` if you're using the Supabase CLI.
@@ -40,42 +48,55 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
 
--- ── SHIPPING POINTS ── (Distribution Center / Depot hierarchy, L1 -> L2)
-create table public.shipping_points (
+-- ── DISTRIBUTION CENTERS ── (DCS in shipping-point.html)
+create table public.distribution_centers (
   id uuid primary key default gen_random_uuid(),
-  code text unique,               -- e.g. '1309' for [1309] DC Solo
-  name text not null,             -- e.g. 'DC Solo', 'Depo Klaten'
-  type text not null check (type in ('distribution_center', 'depot')),
-  parent_id uuid references public.shipping_points(id), -- a depot's main DC; null for a DC
+  code text unique not null,       -- e.g. '1336' for [1336] PARAMA DC MATARAM
+  name text not null,
   status text not null default 'active' check (status in ('active', 'inactive')),
   created_at timestamptz not null default now()
 );
 
--- ── STAGING BAYS ── (grouped under one Distribution Center)
+-- ── DEPOTS ── (DEPOS in shipping-point.html — cross-dock, fed by exactly one DC)
+create table public.depots (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  dc_id uuid not null references public.distribution_centers(id) on delete cascade,
+  status text not null default 'active' check (status in ('active', 'inactive')),
+  created_at timestamptz not null default now()
+);
+
+-- ── STAGING BAYS ── (unit of coverage assignment; scoped to one DC)
 create table public.staging_bays (
   id uuid primary key default gen_random_uuid(),
-  shipping_point_id uuid not null references public.shipping_points(id) on delete cascade,
-  name text not null,             -- e.g. 'Staging Bay A'
+  dc_id uuid not null references public.distribution_centers(id) on delete cascade,
+  name text not null,              -- e.g. 'Staging Bay A', or a single kecamatan name
+  province text not null,
+  city text not null,               -- KOTA/KABUPATEN — matches the UI's city filter
   created_at timestamptz not null default now()
 );
 
--- ── DISTRICTS mapped into a Staging Bay ── (route code + kecamatan)
-create table public.staging_bay_districts (
+-- ── ROUTES ── (kecamatan grouped into a Staging Bay — routes[] per bay in the mock data)
+create table public.staging_bay_routes (
   id uuid primary key default gen_random_uuid(),
   staging_bay_id uuid not null references public.staging_bays(id) on delete cascade,
-  route_code text not null,
-  kecamatan text not null,
-  city text,
+  name text not null,               -- kecamatan name
   postal_code text,
-  latitude double precision,
-  longitude double precision,
+  lat double precision,
+  lng double precision,
   created_at timestamptz not null default now()
 );
 
--- ── COVERAGE ── (which Shipping Point currently owns/serves a Staging Bay)
+-- ── COVERAGE ── (which Shipping Point owns a Staging Bay — Scenario 3 & 4: single owner)
+-- There is no "shipping_points" table: a Shipping Point is either a DC's own
+-- main warehouse or one of its Depots, exactly as buildShippingPoints()
+-- computes client-side. shipping_point_id here stores that SAME synthetic id
+-- ('sp-main-<dc id>' or 'sp-depo-<depot id>') as plain text so the client's
+-- existing id scheme needs no translation layer — simpler than a polymorphic
+-- FK for a prototype at this stage.
 create table public.staging_bay_coverage (
   staging_bay_id uuid primary key references public.staging_bays(id) on delete cascade,
-  shipping_point_id uuid references public.shipping_points(id),
+  shipping_point_id text,
   assigned_at timestamptz not null default now()
 );
 
@@ -84,7 +105,7 @@ create table public.drivers (
   id uuid primary key default gen_random_uuid(),
   employee_id text unique not null,
   full_name text not null,
-  shipping_point_id uuid references public.shipping_points(id),
+  dc_id uuid references public.distribution_centers(id),
   created_at timestamptz not null default now()
 );
 
@@ -112,27 +133,30 @@ create table public.device_version_history (
 
 -- ── Row Level Security ──
 -- Prototype-stage policy: any signed-in user can read and write master data.
--- Tighten this later per role (e.g. only BCR can write Shipping Points) once
--- the `profiles.role` values are actually enforced in the UI.
-alter table public.shipping_points enable row level security;
+-- Tighten this later per role (e.g. only BCR can write coverage) once the
+-- `profiles.role` values are actually enforced in the UI.
+alter table public.distribution_centers enable row level security;
+alter table public.depots enable row level security;
 alter table public.staging_bays enable row level security;
-alter table public.staging_bay_districts enable row level security;
+alter table public.staging_bay_routes enable row level security;
 alter table public.staging_bay_coverage enable row level security;
 alter table public.drivers enable row level security;
 alter table public.devices enable row level security;
 alter table public.device_version_history enable row level security;
 
-create policy "Authenticated read" on public.shipping_points for select to authenticated using (true);
+create policy "Authenticated read" on public.distribution_centers for select to authenticated using (true);
+create policy "Authenticated read" on public.depots for select to authenticated using (true);
 create policy "Authenticated read" on public.staging_bays for select to authenticated using (true);
-create policy "Authenticated read" on public.staging_bay_districts for select to authenticated using (true);
+create policy "Authenticated read" on public.staging_bay_routes for select to authenticated using (true);
 create policy "Authenticated read" on public.staging_bay_coverage for select to authenticated using (true);
 create policy "Authenticated read" on public.drivers for select to authenticated using (true);
 create policy "Authenticated read" on public.devices for select to authenticated using (true);
 create policy "Authenticated read" on public.device_version_history for select to authenticated using (true);
 
-create policy "Authenticated write" on public.shipping_points for all to authenticated using (true) with check (true);
+create policy "Authenticated write" on public.distribution_centers for all to authenticated using (true) with check (true);
+create policy "Authenticated write" on public.depots for all to authenticated using (true) with check (true);
 create policy "Authenticated write" on public.staging_bays for all to authenticated using (true) with check (true);
-create policy "Authenticated write" on public.staging_bay_districts for all to authenticated using (true) with check (true);
+create policy "Authenticated write" on public.staging_bay_routes for all to authenticated using (true) with check (true);
 create policy "Authenticated write" on public.staging_bay_coverage for all to authenticated using (true) with check (true);
 create policy "Authenticated write" on public.drivers for all to authenticated using (true) with check (true);
 create policy "Authenticated write" on public.devices for all to authenticated using (true) with check (true);
