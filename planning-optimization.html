@@ -175,28 +175,6 @@ table.do-table tbody tr.allocated{opacity:.45}
 .binding-note{font-size:11px;color:var(--g500);margin-bottom:12px}
 .binding-note b{color:var(--g800)}
 
-/* ── STAGING BAY CAPACITY (load building) ── */
-.bay-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
-.bay-card{border:1px solid var(--g200);border-radius:var(--r2);overflow:hidden;display:flex;flex-direction:column}
-.bay-card-hdr{padding:12px 14px;background:var(--g50);border-bottom:1px solid var(--g200);display:flex;align-items:center;gap:8px}
-.bay-card-body{padding:14px;display:flex;flex-direction:column;gap:10px;flex:1}
-.bay-stat-row{display:flex;justify-content:space-between;align-items:baseline}
-.bay-stat-value{font-size:20px;font-weight:800;color:var(--g900);font-family:'SFMono-Regular',Consolas,monospace}
-.bay-stat-value.warn{color:var(--amber)}
-.bay-stat-value.over{color:var(--red)}
-.bay-stat-sub{font-size:11px;color:var(--g500)}
-.bay-pallet-floor{display:grid;grid-template-columns:repeat(10,1fr);gap:2px;padding:8px;background:var(--g50);border-radius:8px;border:1px solid var(--g200)}
-.pallet-cell{aspect-ratio:1;border-radius:2px;background:#fff;border:1px solid var(--g200)}
-.pallet-cell.occupied{background:var(--p600);border-color:var(--p700)}
-.pallet-cell.overflow{background:var(--red);border-color:#b91c1c}
-.bay-legend{display:flex;gap:12px;font-size:10.5px;color:var(--g500);flex-wrap:wrap}
-.bay-legend span{display:inline-flex;align-items:center;gap:5px}
-.bay-legend i{width:9px;height:9px;border-radius:2px;display:inline-block}
-.bay-status-pill{margin-left:auto;font-size:11px;font-weight:700;padding:3px 10px;border-radius:12px}
-.bay-status-pill.ok{background:#dcfce7;color:#15803d}
-.bay-status-pill.warn{background:var(--amber-bg,#fef3c7);color:#b45309}
-.bay-status-pill.over{background:#fee2e2;color:#b91c1c}
-
 /* ── ROUTE PLAN ── */
 .route-card-hdr{padding:12px 14px;background:var(--g50);border-bottom:1px solid var(--g200);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .route-fit-pill{margin-left:auto;font-size:11px;font-weight:700;padding:3px 10px;border-radius:12px}
@@ -535,24 +513,10 @@ table.do-table tbody tr.allocated{opacity:.45}
       </div>
     </div>
 
-    <!-- STAGE 2: STAGING BAY CAPACITY (load building) -->
+    <!-- STAGE 2: DRAFT SHIPMENT & ROUTE PLAN (combined master-detail) -->
     <div class="panel">
       <div class="panel-hdr-row">
         <div class="panel-num">2</div>
-        <div>
-          <div class="panel-title">Staging Bay Capacity</div>
-          <div class="panel-sub">Setiap Staging Bay = ruang fisik berisi slot pallet 1×1 m, tinggi tumpuk maks. 80 cm (0,8 m³/slot). Menunjukkan seberapa penuh tiap bay dari DO pada pool aktif saat ini.</div>
-        </div>
-      </div>
-      <div class="panel-body">
-        <div class="bay-grid" id="bayCapacityGrid"></div>
-      </div>
-    </div>
-
-    <!-- STAGE 3: DRAFT SHIPMENT & ROUTE PLAN (combined master-detail) -->
-    <div class="panel">
-      <div class="panel-hdr-row">
-        <div class="panel-num">3</div>
         <div>
           <div class="panel-title">Draft Shipment &amp; Route Plan</div>
           <div class="panel-sub">Load Optimization (§8.4) membentuk shipment di sebelah kiri — klik salah satu untuk menjalankan Route Optimization (§9.4) dan melihat urutan stop beserta peta di sebelah kanan.</div>
@@ -617,49 +581,19 @@ const ORIGIN = { name: 'DC Solo', lat: -7.5563, lng: 110.8281 };
 // straight-line/Haversine distance as a stand-in). jitterKm controls how far
 // a generated DO's delivery point is scattered from its cluster's centroid,
 // roughly matching each area's real geographic spread.
-// capacityPallets = the physical Staging Bay's footprint, in 1m×1m pallet
-// positions (see PALLET_VOLUME_M3 below) — deliberately NOT sized to always
-// comfortably fit the default simulation, so the Staging Bay Capacity panel
-// has a real mix of comfortable/tight/over-capacity bays to show, the same
-// way Cluster G is deliberately far so the Route Tidak Fit scenario has a
-// genuine source of failures rather than a rare fluke.
 const CLUSTERS = {
-  A: { label: 'Surakarta City', share: 0.28, center: { lat: -7.5600, lng: 110.8220 }, jitterKm: 3.5, capacityPallets: 100 },
-  B: { label: 'Sukoharjo',      share: 0.15, center: { lat: -7.6879, lng: 110.8386 }, jitterKm: 6,   capacityPallets: 55 },
-  C: { label: 'Karanganyar',    share: 0.13, center: { lat: -7.6011, lng: 110.9724 }, jitterKm: 7,   capacityPallets: 45 },
-  D: { label: 'Boyolali',       share: 0.13, center: { lat: -7.5361, lng: 110.5959 }, jitterKm: 7,   capacityPallets: 35 },
-  E: { label: 'Klaten',         share: 0.13, center: { lat: -7.7061, lng: 110.6042 }, jitterKm: 7,   capacityPallets: 50 },
-  F: { label: 'Sragen',         share: 0.10, center: { lat: -7.4262, lng: 111.0215 }, jitterKm: 8,   capacityPallets: 25 },
+  A: { label: 'Surakarta City', share: 0.28, center: { lat: -7.5600, lng: 110.8220 }, jitterKm: 3.5 },
+  B: { label: 'Sukoharjo',      share: 0.15, center: { lat: -7.6879, lng: 110.8386 }, jitterKm: 6 },
+  C: { label: 'Karanganyar',    share: 0.13, center: { lat: -7.6011, lng: 110.9724 }, jitterKm: 7 },
+  D: { label: 'Boyolali',       share: 0.13, center: { lat: -7.5361, lng: 110.5959 }, jitterKm: 7 },
+  E: { label: 'Klaten',         share: 0.13, center: { lat: -7.7061, lng: 110.6042 }, jitterKm: 7 },
+  F: { label: 'Sragen',         share: 0.10, center: { lat: -7.4262, lng: 111.0215 }, jitterKm: 8 },
   // Farthest, hilliest cluster — deliberately spread wide (large jitterKm) so a
   // full shipment here reliably needs more travel time than the shift allows,
   // giving the "Route Tidak Fit" scenario (see runScenarioNotFit) a natural
   // source of genuine Time Budget Fit Test failures rather than a rare fluke.
-  G: { label: 'Wonogiri',       share: 0.08, center: { lat: -7.8014, lng: 110.9229 }, jitterKm: 15,  capacityPallets: 30 },
+  G: { label: 'Wonogiri',       share: 0.08, center: { lat: -7.8014, lng: 110.9229 }, jitterKm: 15 },
 };
-
-// Staging Bay physical unit: one pallet position is 1m × 1m footprint,
-// stacked up to 80cm high — the volumetric capacity of a single slot.
-const PALLET_FOOTPRINT_M = 1;
-const PALLET_MAX_HEIGHT_M = 0.8;
-const PALLET_VOLUME_M3 = PALLET_FOOTPRINT_M * PALLET_FOOTPRINT_M * PALLET_MAX_HEIGHT_M; // 0.8 m³
-
-// Real staging bays keep each consignment on its own pallet(s) rather than
-// mixing different DOs' goods on one pallet, so this rounds up PER DO, not
-// on the cluster's total volume — small parcels still cost a full slot.
-function palletsNeededForDo(do_){
-  return Math.max(1, Math.ceil(do_.volume / PALLET_VOLUME_M3));
-}
-
-// How many pallet slots are currently occupied per cluster, from whichever
-// DOs are in the active (batch-included) pool — every DO sits physically in
-// its Staging Bay until it's picked up, regardless of Draft Shipment status,
-// since this simulation has no explicit "dispatch" step yet.
-function computeStagingBayOccupancy(){
-  const occupied = {};
-  Object.keys(CLUSTERS).forEach(k => { occupied[k] = 0; });
-  activePool().forEach(d => { occupied[d.cluster] += palletsNeededForDo(d); });
-  return occupied;
-}
 
 // RDD is stored as a real Date (rddAt) so it displays as an actual date/time
 // rather than an abstract tag — but Route Optimization still needs to group
@@ -1468,11 +1402,6 @@ function selectShipment(id){
   renderShipmentDetail();
 }
 
-function jumpToShipment(id){
-  selectShipment(id);
-  document.getElementById('shipmentMasterDetail')?.scrollIntoView({ behavior:'smooth', block:'start' });
-}
-
 function renderShipmentMasterDetail(){
   const container = document.getElementById('shipmentMasterDetail');
   if (!draftShipments.length){
@@ -1626,66 +1555,8 @@ function renderAll(){
   renderFlowDiagram();
   renderPoolToolbar();
   renderDoPool();
-  renderBayCapacityGrid();
   renderShipmentMasterDetail();
   document.getElementById('runLoadBtn').disabled = !activePool().some(d => doStatus[d.id]==='outstanding');
-}
-
-function renderBayCapacityGrid(){
-  const occupied = computeStagingBayOccupancy();
-  const shipmentsByCluster = {};
-  draftShipments.forEach(s => { (shipmentsByCluster[s.cluster] ||= []).push(s.id); });
-
-  const html = Object.entries(CLUSTERS).map(([key, c]) => {
-    const used = occupied[key] || 0;
-    const cap = c.capacityPallets;
-    const shipmentIds = shipmentsByCluster[key] || [];
-    const pct = cap ? (used / cap * 100) : 0;
-    const cls = pct > 100 ? 'over' : (pct >= 80 ? 'warn' : 'ok');
-    const statusLabel = cls === 'over' ? 'Over Capacity' : (cls === 'warn' ? 'Hampir Penuh' : 'Tersedia');
-
-    const shownCells = Math.min(cap, 60); // cap the floor-plan grid at 60 cells so very large bays stay readable
-    const scale = cap ? shownCells / cap : 1;
-    const shownOccupied = Math.round(Math.min(used, cap) * scale);
-    const shownOverflow = used > cap ? Math.max(1, Math.round((used - cap) * scale)) : 0;
-    const cells = [];
-    for (let i = 0; i < shownOccupied; i++) cells.push('<div class="pallet-cell occupied"></div>');
-    for (let i = 0; i < shownOverflow; i++) cells.push('<div class="pallet-cell overflow"></div>');
-    for (let i = cells.length; i < shownCells; i++) cells.push('<div class="pallet-cell"></div>');
-
-    return `<div class="bay-card">
-      <div class="bay-card-hdr">
-        <span class="shipment-card-id">Staging Bay ${key}</span>
-        <span style="font-size:11px;color:var(--g500)">${escapeHtml(c.label)}</span>
-        <span class="bay-status-pill ${cls}">${statusLabel}</span>
-      </div>
-      <div class="bay-card-body">
-        <div class="bay-stat-row">
-          <div>
-            <div class="bay-stat-value ${cls}">${used} / ${cap}</div>
-            <div class="bay-stat-sub">slot pallet terpakai (${pct.toFixed(0)}%)</div>
-          </div>
-          <div style="text-align:right">
-            <div class="bay-stat-sub">1×1 m · maks. 80 cm</div>
-            <div class="bay-stat-sub">${PALLET_VOLUME_M3.toFixed(1)} m³ / slot</div>
-          </div>
-        </div>
-        <div class="load-bar-track" style="margin-bottom:0">
-          <div class="load-bar-fill ${cls === 'over' ? 'over' : (cls === 'warn' ? 'warn' : 'ok')}" style="width:${Math.min(pct,100)}%"></div>
-        </div>
-        <div class="bay-pallet-floor">${cells.join('')}</div>
-        <div class="bay-legend">
-          <span><i style="background:var(--p600)"></i> Terisi</span>
-          ${shownOverflow ? '<span><i style="background:var(--red)"></i> Melebihi kapasitas</span>' : ''}
-          <span><i style="background:#fff;border:1px solid var(--g200)"></i> Tersedia</span>
-        </div>
-        ${shipmentIds.length ? `<div class="bay-stat-sub">Draft Shipment dari bay ini:
-          ${shipmentIds.map(id => `<a href="#" onclick="jumpToShipment('${id}');return false;" style="color:var(--p600);font-weight:600">${id}</a>`).join(', ')}
-        </div>` : `<div class="bay-stat-sub">Belum ada Draft Shipment dari bay ini — jalankan Load Optimization.</div>`}
-      </div>
-    </div>`;
-  }).join('');
-  document.getElementById('bayCapacityGrid').innerHTML = html;
 }
 
 function showToast(msg){

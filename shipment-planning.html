@@ -6,6 +6,7 @@
 <title>Planning — PT Parama Global Inspira</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -219,6 +220,32 @@ table.tms tbody tr:last-child td{border-bottom:none}
 .side-actions .p-btn{flex:1;justify-content:center}
 
 #app-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--sb);color:#fff;padding:10px 20px;border-radius:10px;font-size:12px;font-weight:500;z-index:9999;transition:transform .3s ease,opacity .3s ease;opacity:0;pointer-events:none;display:flex;align-items:center;gap:8px;max-width:400px;box-shadow:0 4px 20px rgba(0,0,0,.25)}
+
+/* ── STAGING BAY CAPACITY (load building) ── */
+.sbc-panel{grid-column:1/-1;margin-top:18px}
+.sbc-head-sub{font-size:11.5px;color:var(--ink-faint);margin-top:2px;max-width:640px}
+.sbc-tabs{display:flex;gap:6px;flex-shrink:0}
+.sbc-tab{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:6px;font-size:12.5px;font-weight:600;border:1px solid var(--border);background:var(--surface);color:var(--ink-soft);font-family:var(--font)}
+.sbc-tab:hover{background:var(--bg)}
+.sbc-tab.active{background:var(--primary);border-color:var(--primary);color:#fff}
+.sbc-summary{display:flex;gap:8px;flex-wrap:wrap;padding:0 16px 14px}
+.sbc-chip{display:flex;align-items:center;gap:7px;padding:6px 10px;border-radius:8px;border:1px solid var(--border);font-size:11.5px;background:var(--surface)}
+.sbc-chip .dot{width:9px;height:9px;border-radius:3px;flex-shrink:0}
+.sbc-chip b{font-weight:700}
+.sbc-chip .cap-status{margin-left:2px;padding:1px 7px;border-radius:8px;font-weight:700;font-size:10px}
+.sbc-chip .cap-status.ok{background:#dcfce7;color:#15803d}
+.sbc-chip .cap-status.warn{background:#fef3c7;color:#b45309}
+.sbc-chip .cap-status.over{background:#fee2e2;color:#b91c1c}
+.sbc-view{padding:0 16px 16px}
+.sbc-canvas-wrap{position:relative;width:100%;height:440px;border-radius:8px;overflow:hidden;background:linear-gradient(180deg,#f3f4fb,#eef0f7);border:1px solid var(--border);cursor:grab}
+.sbc-canvas-wrap:active{cursor:grabbing}
+.sbc-canvas-wrap canvas{display:block;width:100%;height:100%}
+.sbc-hint{position:absolute;bottom:10px;left:12px;font-size:10.5px;color:var(--ink-faint);background:rgba(255,255,255,.85);padding:3px 8px;border-radius:5px;pointer-events:none}
+.sbc-map-wrap{position:relative;width:100%;height:440px;border-radius:8px;overflow:hidden;border:1px solid var(--border)}
+.sbc-legend{position:absolute;top:10px;right:10px;background:rgba(255,255,255,.95);border-radius:8px;padding:8px 10px;font-size:11px;box-shadow:0 2px 8px rgba(0,0,0,.12);z-index:500;max-height:380px;overflow-y:auto}
+.sbc-legend-row{display:flex;align-items:center;gap:6px;padding:3px 0;cursor:pointer}
+.sbc-legend-row:hover{color:var(--primary)}
+.sbc-legend-row .dot{width:9px;height:9px;border-radius:3px;flex-shrink:0}
 
 @media (max-width:1280px){ .kpi-row{grid-template-columns:repeat(3,1fr)} .content{grid-template-columns:1fr} }
 </style>
@@ -533,9 +560,37 @@ table.tms tbody tr:last-child td{border-bottom:none}
         </div>
       </div>
     </div>
+
+    <!-- Staging Bay Capacity (load building) -->
+    <div class="panel sbc-panel">
+      <div class="panel-head">
+        <div>
+          <div class="panel-title">Staging Bay Capacity — Load Building</div>
+          <div class="sbc-head-sub">Setiap Staging Bay = slot pallet fisik 1×1 m, tinggi tumpuk maksimal 80 cm (0,8 m³/slot). Menunjukkan kapasitas tiap bay dari DO yang tersebar di 7 cluster area Solo saat ini.</div>
+        </div>
+        <div class="sbc-tabs">
+          <button class="sbc-tab active" data-tab="3d" onclick="setSbcTab('3d')"><i class="fa-solid fa-cube"></i> Tampilan 3D</button>
+          <button class="sbc-tab" data-tab="map" onclick="setSbcTab('map')"><i class="fa-solid fa-map-location-dot"></i> Peta Cluster</button>
+        </div>
+      </div>
+      <div class="sbc-summary" id="sbcSummary"></div>
+      <div class="sbc-view" id="sbcView3d">
+        <div class="sbc-canvas-wrap" id="sbc3dCanvas">
+          <div class="sbc-hint">Drag untuk rotasi &middot; Scroll untuk zoom</div>
+        </div>
+      </div>
+      <div class="sbc-view" id="sbcViewMap" style="display:none">
+        <div class="sbc-map-wrap">
+          <div id="sbcMap" style="width:100%;height:100%"></div>
+          <div class="sbc-legend" id="sbcLegend"></div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
 <script>
 function toggleSidebar(){
   const collapsed=document.body.classList.toggle('sb-collapsed');
@@ -775,6 +830,295 @@ function showToast(msg){
     t.style.pointerEvents='none';
   },3200);
 }
+
+// ══════════════════════════════════════════════════════════════
+// STAGING BAY CAPACITY (load building) — a standalone simulation of
+// the same 7-cluster Solo-area DO spread used by Planning
+// Optimization. Static pages here don't share JS state, so this is
+// regenerated independently rather than read from that page.
+// ══════════════════════════════════════════════════════════════
+const SBC_ORIGIN = { lat: -7.5563, lng: 110.8281 };
+const SBC_CLUSTERS = {
+  A: { label: 'Surakarta City', color: '#4f46e5', share: 0.28, center: { lat: -7.5600, lng: 110.8220 }, jitterKm: 3.5, capacityPallets: 100 },
+  B: { label: 'Sukoharjo',      color: '#0ea5e9', share: 0.15, center: { lat: -7.6879, lng: 110.8386 }, jitterKm: 6,   capacityPallets: 55 },
+  C: { label: 'Karanganyar',    color: '#14b8a6', share: 0.13, center: { lat: -7.6011, lng: 110.9724 }, jitterKm: 7,   capacityPallets: 45 },
+  D: { label: 'Boyolali',       color: '#84cc16', share: 0.13, center: { lat: -7.5361, lng: 110.5959 }, jitterKm: 7,   capacityPallets: 35 },
+  E: { label: 'Klaten',         color: '#f59e0b', share: 0.13, center: { lat: -7.7061, lng: 110.6042 }, jitterKm: 7,   capacityPallets: 50 },
+  F: { label: 'Sragen',         color: '#ec4899', share: 0.10, center: { lat: -7.4262, lng: 111.0215 }, jitterKm: 8,   capacityPallets: 25 },
+  G: { label: 'Wonogiri',       color: '#a855f7', share: 0.08, center: { lat: -7.8014, lng: 110.9229 }, jitterKm: 15,  capacityPallets: 30 },
+};
+const SBC_PALLET_VOLUME_M3 = 1 * 1 * 0.8;
+const SBC_REF_EFF_VOLUME = 10 * 0.90; // mirrors Planning Optimization's Box Truck @ default 90% load factor
+const SBC_DO_COUNT = 300, SBC_TARGET_STOPS = 14;
+let SBC_ALL_DOS = [];
+
+function sbcWeightedPick(weights){
+  let r = Math.random();
+  for (const [value, w] of weights){ if (r < w) return value; r -= w; }
+  return weights[weights.length - 1][0];
+}
+function sbcJitterPoint(center, radiusKm){
+  const angle = Math.random() * 2 * Math.PI;
+  const dist = Math.sqrt(Math.random()) * radiusKm;
+  const dLat = (dist * Math.cos(angle)) / 111;
+  const dLng = (dist * Math.sin(angle)) / (111 * Math.cos(center.lat * Math.PI / 180));
+  return { lat: center.lat + dLat, lng: center.lng + dLng };
+}
+function sbcGenerateDos(){
+  const avgVolume = SBC_REF_EFF_VOLUME / SBC_TARGET_STOPS;
+  const clusterWeights = Object.entries(SBC_CLUSTERS).map(([key, c]) => [key, c.share]);
+  const docs = [];
+  for (let i = 1; i <= SBC_DO_COUNT; i++){
+    const cluster = sbcWeightedPick(clusterWeights);
+    const sizeFactor = 0.75 + Math.random() * 0.5;
+    const volume = Math.round(avgVolume * sizeFactor * 100) / 100;
+    const loc = sbcJitterPoint(SBC_CLUSTERS[cluster].center, SBC_CLUSTERS[cluster].jitterKm);
+    docs.push({ id: 'PM' + (30124500 + i), cluster, volume, lat: loc.lat, lng: loc.lng });
+  }
+  SBC_ALL_DOS = docs;
+}
+function sbcPalletsNeeded(do_){ return Math.max(1, Math.ceil(do_.volume / SBC_PALLET_VOLUME_M3)); }
+function sbcComputeOccupancy(){
+  const occupied = {};
+  Object.keys(SBC_CLUSTERS).forEach(k => occupied[k] = 0);
+  SBC_ALL_DOS.forEach(d => { occupied[d.cluster] += sbcPalletsNeeded(d); });
+  return occupied;
+}
+function sbcStatus(used, cap){
+  const pct = cap ? (used / cap * 100) : 0;
+  return pct > 100 ? 'over' : (pct >= 80 ? 'warn' : 'ok');
+}
+function sbcStatusLabel(cls){
+  return cls === 'over' ? 'Over Capacity' : (cls === 'warn' ? 'Hampir Penuh' : 'Tersedia');
+}
+
+function renderSbcSummary(){
+  const occupied = sbcComputeOccupancy();
+  document.getElementById('sbcSummary').innerHTML = Object.entries(SBC_CLUSTERS).map(([key, c]) => {
+    const used = occupied[key] || 0;
+    const cls = sbcStatus(used, c.capacityPallets);
+    return `<div class="sbc-chip">
+      <span class="dot" style="background:${c.color}"></span>
+      <b>Bay ${key}</b> · ${c.label}
+      <span>${used}/${c.capacityPallets}</span>
+      <span class="cap-status ${cls}">${sbcStatusLabel(cls)}</span>
+    </div>`;
+  }).join('');
+}
+
+function setSbcTab(tab){
+  document.querySelectorAll('.sbc-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.getElementById('sbcView3d').style.display = tab === '3d' ? '' : 'none';
+  document.getElementById('sbcViewMap').style.display = tab === 'map' ? '' : 'none';
+  if (tab === '3d' && !sbc3dState.inited) initSbc3D();
+  if (tab === 'map'){
+    if (!sbcMapState.inited) initSbcMap();
+    setTimeout(() => sbcMapState.map && sbcMapState.map.invalidateSize(), 50);
+  }
+}
+
+// ── 3D view (hand-rolled orbit — three@0.158 UMD ships no OrbitControls) ──
+const sbc3dState = { inited:false, renderer:null, scene:null, camera:null, target:null,
+  spherical:{ radius: 26, theta: 0.78, phi: 1.05 }, dragging:false, lastX:0, lastY:0 };
+
+function sbcMakeLabelSprite(text){
+  const c = document.createElement('canvas'); c.width = 128; c.height = 64;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = 'rgba(15,23,42,0.85)'; ctx.beginPath(); ctx.roundRect(8,8,112,48,10); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.font = 'bold 30px Inter, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(text, 64, 34);
+  const tex = new THREE.CanvasTexture(c);
+  const mat = new THREE.SpriteMaterial({ map: tex, depthTest: false });
+  const sprite = new THREE.Sprite(mat);
+  sprite.scale.set(2.6, 1.3, 1);
+  return sprite;
+}
+
+function initSbc3D(){
+  sbc3dState.inited = true;
+  const wrap = document.getElementById('sbc3dCanvas');
+  const w = wrap.clientWidth, h = wrap.clientHeight;
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(45, w/h, 0.1, 200);
+  const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
+  renderer.setSize(w, h);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  wrap.appendChild(renderer.domElement);
+
+  scene.add(new THREE.AmbientLight(0xffffff, 0.75));
+  const dir = new THREE.DirectionalLight(0xffffff, 0.9);
+  dir.position.set(8, 14, 10);
+  scene.add(dir);
+
+  const floor = new THREE.Mesh(
+    new THREE.PlaneGeometry(60, 20),
+    new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 1 })
+  );
+  floor.rotation.x = -Math.PI/2; floor.position.y = -0.01;
+  scene.add(floor);
+  const grid = new THREE.GridHelper(60, 60, 0xcbd5e1, 0xdde3ea);
+  scene.add(grid);
+
+  const keys = Object.keys(SBC_CLUSTERS);
+  const spacing = 7.5;
+  const startX = -((keys.length - 1) * spacing) / 2;
+  const occupied = sbcComputeOccupancy();
+  const statusColor = { ok: 0x22c55e, warn: 0xf59e0b, over: 0xef4444 };
+
+  keys.forEach((key, idx) => {
+    const c = SBC_CLUSTERS[key];
+    const cap = c.capacityPallets;
+    const used = occupied[key] || 0;
+    const cls = sbcStatus(used, cap);
+    const cols = Math.ceil(Math.sqrt(cap));
+    const rows = Math.ceil(cap / cols);
+    const originX = startX + idx * spacing - (cols * 0.5)/2;
+    const originZ = -(rows * 0.5)/2;
+    const group = new THREE.Group();
+
+    const baseColor = new THREE.Color(c.color);
+    const basePlate = new THREE.Mesh(
+      new THREE.BoxGeometry(cols*0.5 + 0.4, 0.06, rows*0.5 + 0.4),
+      new THREE.MeshStandardMaterial({ color: baseColor, transparent:true, opacity:0.18 })
+    );
+    basePlate.position.set(originX + (cols*0.5)/2, 0.02, originZ + (rows*0.5)/2);
+    group.add(basePlate);
+
+    const boxGeo = new THREE.BoxGeometry(0.42, 0.8, 0.42);
+    const emptyGeo = new THREE.BoxGeometry(0.42, 0.04, 0.42);
+    const occMat = new THREE.MeshStandardMaterial({ color: statusColor[cls], roughness:0.5 });
+    const overMat = new THREE.MeshStandardMaterial({ color: statusColor.over, roughness:0.5 });
+    const emptyMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness:1 });
+    const edgeMat = new THREE.LineBasicMaterial({ color: 0xcbd5e1 });
+
+    for (let i = 0; i < cap; i++){
+      const col = i % cols, row = Math.floor(i / cols);
+      const x = originX + col*0.5, z = originZ + row*0.5;
+      if (i < Math.min(used, cap)){
+        const box = new THREE.Mesh(boxGeo, occMat);
+        box.position.set(x, 0.4, z);
+        group.add(box);
+        const edges = new THREE.LineSegments(new THREE.EdgesGeometry(boxGeo), edgeMat);
+        edges.position.copy(box.position);
+        group.add(edges);
+      } else {
+        const plate = new THREE.Mesh(emptyGeo, emptyMat);
+        plate.position.set(x, 0.02, z);
+        group.add(plate);
+      }
+    }
+    // Overflow: stack a second red layer on top of the same footprint, cycling
+    // positions — makes "over capacity" visually mean double-stacked pallets.
+    const overflow = used - cap;
+    if (overflow > 0){
+      for (let i = 0; i < overflow; i++){
+        const slot = i % cap;
+        const col = slot % cols, row = Math.floor(slot / cols);
+        const x = originX + col*0.5, z = originZ + row*0.5;
+        const box = new THREE.Mesh(boxGeo, overMat);
+        box.position.set(x, 1.2, z);
+        group.add(box);
+        const edges = new THREE.LineSegments(new THREE.EdgesGeometry(boxGeo), edgeMat);
+        edges.position.copy(box.position);
+        group.add(edges);
+      }
+    }
+
+    const label = sbcMakeLabelSprite(key);
+    label.position.set(originX + (cols*0.5)/2, 2.4, originZ + (rows*0.5)/2);
+    group.add(label);
+
+    scene.add(group);
+  });
+
+  const target = new THREE.Vector3(0, 0.6, 0);
+  sbc3dState.renderer = renderer; sbc3dState.scene = scene; sbc3dState.camera = camera; sbc3dState.target = target;
+  sbcUpdateCamera();
+
+  wrap.addEventListener('pointerdown', e => { sbc3dState.dragging = true; sbc3dState.lastX = e.clientX; sbc3dState.lastY = e.clientY; });
+  window.addEventListener('pointerup', () => sbc3dState.dragging = false);
+  window.addEventListener('pointermove', e => {
+    if (!sbc3dState.dragging) return;
+    const dx = e.clientX - sbc3dState.lastX, dy = e.clientY - sbc3dState.lastY;
+    sbc3dState.lastX = e.clientX; sbc3dState.lastY = e.clientY;
+    sbc3dState.spherical.theta -= dx * 0.006;
+    sbc3dState.spherical.phi = Math.min(1.5, Math.max(0.25, sbc3dState.spherical.phi - dy * 0.006));
+    sbcUpdateCamera();
+  });
+  wrap.addEventListener('wheel', e => {
+    e.preventDefault();
+    sbc3dState.spherical.radius = Math.min(50, Math.max(10, sbc3dState.spherical.radius + e.deltaY * 0.02));
+    sbcUpdateCamera();
+  }, { passive:false });
+  window.addEventListener('resize', sbcResize3D);
+
+  function animate(){
+    requestAnimationFrame(animate);
+    renderer.render(scene, camera);
+  }
+  animate();
+}
+
+function sbcUpdateCamera(){
+  const { radius, theta, phi } = sbc3dState.spherical;
+  const cam = sbc3dState.camera, target = sbc3dState.target;
+  cam.position.set(
+    target.x + radius * Math.sin(phi) * Math.sin(theta),
+    target.y + radius * Math.cos(phi),
+    target.z + radius * Math.sin(phi) * Math.cos(theta)
+  );
+  cam.lookAt(target);
+}
+function sbcResize3D(){
+  if (!sbc3dState.renderer) return;
+  const wrap = document.getElementById('sbc3dCanvas');
+  const w = wrap.clientWidth, h = wrap.clientHeight;
+  sbc3dState.camera.aspect = w/h; sbc3dState.camera.updateProjectionMatrix();
+  sbc3dState.renderer.setSize(w, h);
+}
+
+// ── Map view ──
+const sbcMapState = { inited:false, map:null };
+function initSbcMap(){
+  sbcMapState.inited = true;
+  const map = L.map('sbcMap', { scrollWheelZoom:true }).setView([SBC_ORIGIN.lat, SBC_ORIGIN.lng], 10);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors', maxZoom: 18
+  }).addTo(map);
+
+  const occupied = sbcComputeOccupancy();
+  const bounds = [];
+  Object.entries(SBC_CLUSTERS).forEach(([key, c]) => {
+    L.circle([c.center.lat, c.center.lng], {
+      radius: c.jitterKm * 1000, color: c.color, weight: 2, fillColor: c.color, fillOpacity: 0.10
+    }).addTo(map).bindTooltip(`Staging Bay ${key} — ${c.label}`);
+    bounds.push([c.center.lat, c.center.lng]);
+  });
+
+  SBC_ALL_DOS.forEach(d => {
+    const c = SBC_CLUSTERS[d.cluster];
+    L.circleMarker([d.lat, d.lng], { radius:4, color:c.color, weight:1, fillColor:c.color, fillOpacity:0.85 })
+      .addTo(map)
+      .bindPopup(`<b>${d.id}</b><br>Staging Bay ${d.cluster} — ${c.label}<br>${d.volume} m³ (${sbcPalletsNeeded(d)} pallet)`);
+  });
+  map.fitBounds(bounds, { padding:[30,30] });
+
+  document.getElementById('sbcLegend').innerHTML = Object.entries(SBC_CLUSTERS).map(([key, c]) => {
+    const used = occupied[key] || 0;
+    const cls = sbcStatus(used, c.capacityPallets);
+    return `<div class="sbc-legend-row" onclick="sbcMapState.map.setView([${c.center.lat},${c.center.lng}], 12)">
+      <span class="dot" style="background:${c.color}"></span>
+      <b>${key}</b>&nbsp;${c.label} — ${used}/${c.capacityPallets}
+    </div>`;
+  }).join('');
+
+  sbcMapState.map = map;
+}
+
+sbcGenerateDos();
+renderSbcSummary();
+setSbcTab('3d');
 
 renderTable();
 updateLocContext();
