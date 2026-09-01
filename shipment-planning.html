@@ -1170,27 +1170,50 @@ const sbcMapState = { inited:false, map:null };
 function initSbcMap(){
   sbcMapState.inited = true;
   const map = L.map('sbcMap', { scrollWheelZoom:true }).setView([SBC_ORIGIN.lat, SBC_ORIGIN.lng], 10);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+
+  const streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap contributors', maxZoom: 18
   }).addTo(map);
+  const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Tiles &copy; Esri — Source: Esri, Maxar, Earthstar Geographics', maxZoom: 18
+  });
 
   const occupied = sbcComputeOccupancy();
   const bounds = [];
+  const overlays = {};
   Object.entries(SBC_CLUSTERS).forEach(([key, c]) => {
+    const used = occupied[key] || 0;
+    const cap = c.capacityPallets;
+    const cls = sbcStatus(used, cap);
+    const doCount = SBC_ALL_DOS.filter(d => d.cluster === key).length;
     const boundary = sbcClusterBoundary(key, c);
-    L.polygon(boundary, {
-      color: c.color, weight: 2, fillColor: c.color, fillOpacity: 0.14
-    }).addTo(map).bindTooltip(`Staging Bay ${key} — ${c.label}`);
     boundary.forEach(p => bounds.push(p));
-  });
 
-  SBC_ALL_DOS.forEach(d => {
-    const c = SBC_CLUSTERS[d.cluster];
-    L.circleMarker([d.lat, d.lng], { radius:4, color:c.color, weight:1, fillColor:c.color, fillOpacity:0.85 })
-      .addTo(map)
-      .bindPopup(`<b>${d.id}</b><br>Staging Bay ${d.cluster} — ${c.label}<br>${d.volume} m³ (${sbcPalletsNeeded(d)} pallet)`);
+    const group = L.layerGroup();
+    L.polygon(boundary, { color: c.color, weight: 2, fillColor: c.color, fillOpacity: 0.14 })
+      .addTo(group)
+      .bindTooltip(`Staging Bay ${key} — ${c.label}`)
+      .bindPopup(`<b>Staging Bay ${key} — ${c.label}</b><br>
+        Kapasitas: ${used}/${cap} pallet (${sbcStatusLabel(cls)})<br>
+        Jumlah DO: ${doCount}`);
+
+    SBC_ALL_DOS.filter(d => d.cluster === key).forEach(d => {
+      L.circleMarker([d.lat, d.lng], { radius:4, color:c.color, weight:1, fillColor:c.color, fillOpacity:0.85 })
+        .addTo(group)
+        .bindPopup(`<b>${d.id}</b><br>Staging Bay ${d.cluster} — ${c.label}<br>${d.volume} m³ (${sbcPalletsNeeded(d)} pallet)`);
+    });
+
+    group.addTo(map);
+    overlays[`<span style="color:${c.color}">●</span> Bay ${key} — ${c.label}`] = group;
   });
   map.fitBounds(bounds, { padding:[30,30] });
+
+  L.control.layers(
+    { 'Jalan (OpenStreetMap)': streetLayer, 'Satelit (Esri)': satelliteLayer },
+    overlays,
+    { collapsed: true }
+  ).addTo(map);
+  L.control.scale({ position:'bottomleft', imperial:false }).addTo(map);
 
   document.getElementById('sbcLegend').innerHTML = Object.entries(SBC_CLUSTERS).map(([key, c]) => {
     const used = occupied[key] || 0;
