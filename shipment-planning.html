@@ -951,21 +951,33 @@ function initSbc3D(){
   dir.position.set(8, 14, 10);
   scene.add(dir);
 
-  const floor = new THREE.Mesh(
-    new THREE.PlaneGeometry(60, 20),
-    new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 1 })
-  );
-  floor.rotation.x = -Math.PI/2; floor.position.y = -0.01;
-  scene.add(floor);
-  const grid = new THREE.GridHelper(60, 60, 0xcbd5e1, 0xdde3ea);
-  scene.add(grid);
-
   const keys = Object.keys(SBC_CLUSTERS);
-  const spacing = 7.5;
+  const spacing = 6.2;
   const startX = -((keys.length - 1) * spacing) / 2;
   const occupied = sbcComputeOccupancy();
   const statusColor = { ok: 0x22c55e, warn: 0xf59e0b, over: 0xef4444 };
 
+  // Layout metrics are known upfront from capacityPallets, so the floor/grid
+  // and the camera's auto-fit can both be sized to the actual content
+  // instead of a guessed constant — keeps the view proportional regardless
+  // of how many bays or how large their capacities are.
+  const maxRows = Math.max(...keys.map(k => {
+    const cols = Math.ceil(Math.sqrt(SBC_CLUSTERS[k].capacityPallets));
+    return Math.ceil(SBC_CLUSTERS[k].capacityPallets / cols);
+  }));
+  const floorWidth = keys.length * spacing + 8;
+  const floorDepth = maxRows * 0.5 + 8;
+
+  const floor = new THREE.Mesh(
+    new THREE.PlaneGeometry(floorWidth, floorDepth),
+    new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 1 })
+  );
+  floor.rotation.x = -Math.PI/2; floor.position.y = -0.01;
+  scene.add(floor);
+  const grid = new THREE.GridHelper(Math.max(floorWidth, floorDepth), Math.round(Math.max(floorWidth, floorDepth)), 0xcbd5e1, 0xdde3ea);
+  scene.add(grid);
+
+  const clusterGroups = [];
   keys.forEach((key, idx) => {
     const c = SBC_CLUSTERS[key];
     const cap = c.capacityPallets;
@@ -1030,13 +1042,24 @@ function initSbc3D(){
     group.add(label);
 
     scene.add(group);
+    clusterGroups.push(group);
   });
 
-  const target = new THREE.Vector3(0, 0.6, 0);
-  sbc3dState.renderer = renderer; sbc3dState.scene = scene; sbc3dState.camera = camera; sbc3dState.target = target;
-  sbcUpdateCamera();
+  // Auto-fit: frame the actual bounding box of all racks instead of a fixed
+  // radius, so every bay is in view by default no matter how wide the row is.
+  // Re-applied on every container resize (see sbcFitCamera) until the user
+  // manually drags/zooms — the container can report a bogus tiny width for
+  // one tick right after navigation, before the panel finishes laying out,
+  // which would otherwise bake a wildly-wrong distance in permanently.
+  const box = new THREE.Box3();
+  clusterGroups.forEach(g => box.expandByObject(g));
+  sbc3dState.bboxSize = box.getSize(new THREE.Vector3());
+  sbc3dState.bboxCenter = box.getCenter(new THREE.Vector3());
+  sbc3dState.renderer = renderer; sbc3dState.scene = scene; sbc3dState.camera = camera;
+  sbc3dState.target = new THREE.Vector3();
+  sbcFitCamera();
 
-  wrap.addEventListener('pointerdown', e => { sbc3dState.dragging = true; sbc3dState.lastX = e.clientX; sbc3dState.lastY = e.clientY; });
+  wrap.addEventListener('pointerdown', e => { sbc3dState.dragging = true; sbc3dState.userInteracted = true; sbc3dState.lastX = e.clientX; sbc3dState.lastY = e.clientY; });
   window.addEventListener('pointerup', () => sbc3dState.dragging = false);
   window.addEventListener('pointermove', e => {
     if (!sbc3dState.dragging) return;
@@ -1048,10 +1071,11 @@ function initSbc3D(){
   });
   wrap.addEventListener('wheel', e => {
     e.preventDefault();
-    sbc3dState.spherical.radius = Math.min(50, Math.max(10, sbc3dState.spherical.radius + e.deltaY * 0.02));
+    sbc3dState.userInteracted = true;
+    sbc3dState.spherical.radius = Math.min(60, Math.max(10, sbc3dState.spherical.radius + e.deltaY * 0.02));
     sbcUpdateCamera();
   }, { passive:false });
-  window.addEventListener('resize', sbcResize3D);
+  new ResizeObserver(() => sbcResize3D()).observe(wrap);
 
   function animate(){
     requestAnimationFrame(animate);
@@ -1070,12 +1094,75 @@ function sbcUpdateCamera(){
   );
   cam.lookAt(target);
 }
+function sbcFitCamera(){
+  // Exact iterative fit: grow the radius until every bounding-box corner
+  // projects inside the frustum, using Three's own projection math. A
+  // closed-form estimate (radius from FOV/aspect alone) undershoots here
+  // because the camera looks down at an oblique angle — the far edge of a
+  // wide flat scene is foreshortened differently than the near edge, which
+  // a simple "distance to target" trig approximation doesn't account for.
+  const camera = sbc3dState.camera, bsize = sbc3dState.bboxSize, bcenter = sbc3dState.bboxCenter;
+  sbc3dState.target.set(bcenter.x, 0.6, bcenter.z);
+  const halfX = bsize.x/2 + 0.6, halfZ = bsize.z/2 + 0.6, topY = 1.8;
+  const corners = [];
+  [-1,1].forEach(sx => [-1,1].forEach(sz => [0, topY].forEach(y => {
+    corners.push(new THREE.Vector3(bcenter.x + sx*halfX, y, bcenter.z + sz*halfZ));
+  })));
+  let radius = 8;
+  for (let iter = 0; iter < 40; iter++){
+    sbc3dState.spherical.radius = radius;
+    sbcUpdateCamera();
+    camera.updateMatrixWorld();
+    const maxAbs = corners.reduce((m, c) => {
+      const p = c.clone().project(camera);
+      return Math.max(m, Math.abs(p.x), Math.abs(p.y));
+    }, 0);
+    if (maxAbs <= 0.9) break;
+    radius *= 1.12;
+  }
+}
 function sbcResize3D(){
   if (!sbc3dState.renderer) return;
   const wrap = document.getElementById('sbc3dCanvas');
   const w = wrap.clientWidth, h = wrap.clientHeight;
+  if (!w || !h) return;
   sbc3dState.camera.aspect = w/h; sbc3dState.camera.updateProjectionMatrix();
   sbc3dState.renderer.setSize(w, h);
+  if (!sbc3dState.userInteracted) sbcFitCamera();
+}
+
+// ── Cluster boundary (stand-in for each Staging Bay's kecamatan outline) ──
+// A real district boundary isn't a circle, and each one is a different
+// irregular shape — this generates a deterministic (seeded by the bay's own
+// key+label, so it's stable across reloads even though the DO points inside
+// aren't) organic polygon per bay instead, so no two bays look alike.
+function sbcHashSeed(str){
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < str.length; i++){ h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return h >>> 0;
+}
+function sbcMulberry32(seed){
+  return function(){
+    seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+    let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+function sbcClusterBoundary(key, c){
+  const rand = sbcMulberry32(sbcHashSeed(key + c.label));
+  const vertexCount = 10 + Math.floor(rand() * 6); // 10–15 vertices, so shapes vary in complexity too
+  const baseRadiusKm = c.jitterKm * 1.3;
+  const radii = [];
+  for (let i = 0; i < vertexCount; i++) radii.push(baseRadiusKm * (0.6 + rand() * 0.75));
+  // average with neighbors so it reads as an organic outline, not a spiky star
+  const smoothed = radii.map((r, i) => (radii[(i-1+vertexCount)%vertexCount] + r*2 + radii[(i+1)%vertexCount]) / 4);
+  return smoothed.map((r, i) => {
+    const angle = (i / vertexCount) * 2 * Math.PI;
+    const dLat = (r * Math.cos(angle)) / 111;
+    const dLng = (r * Math.sin(angle)) / (111 * Math.cos(c.center.lat * Math.PI/180));
+    return [c.center.lat + dLat, c.center.lng + dLng];
+  });
 }
 
 // ── Map view ──
@@ -1090,10 +1177,11 @@ function initSbcMap(){
   const occupied = sbcComputeOccupancy();
   const bounds = [];
   Object.entries(SBC_CLUSTERS).forEach(([key, c]) => {
-    L.circle([c.center.lat, c.center.lng], {
-      radius: c.jitterKm * 1000, color: c.color, weight: 2, fillColor: c.color, fillOpacity: 0.10
+    const boundary = sbcClusterBoundary(key, c);
+    L.polygon(boundary, {
+      color: c.color, weight: 2, fillColor: c.color, fillOpacity: 0.14
     }).addTo(map).bindTooltip(`Staging Bay ${key} — ${c.label}`);
-    bounds.push([c.center.lat, c.center.lng]);
+    boundary.forEach(p => bounds.push(p));
   });
 
   SBC_ALL_DOS.forEach(d => {
