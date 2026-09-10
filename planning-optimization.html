@@ -148,6 +148,38 @@ table.do-table tbody tr.allocated{opacity:.45}
 .status-pill.outstanding{background:var(--g100);color:var(--g600)}
 .status-pill.allocated{background:#dcfce7;color:#15803d}
 .status-pill.returned{background:#fef3c7;color:#b45309}
+.status-pill.unassigned{background:#fee2e2;color:#b91c1c;cursor:help}
+.access-flag{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;color:#b45309;margin-left:4px}
+
+/* ── CONSTRAINT PREVIEW (FR-B11) ── */
+.constraint-row{display:flex;flex-wrap:wrap;gap:6px;padding:10px 16px;border-top:1px solid var(--g200)}
+.constraint-chip{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;background:#fff;border:1px solid var(--g200);color:var(--g700);padding:3px 9px;border-radius:12px}
+.constraint-chip .lvl{font-size:9px;font-weight:800;letter-spacing:.03em;padding:1px 5px;border-radius:6px}
+.constraint-chip .lvl.hard{background:#fee2e2;color:#b91c1c}
+.constraint-chip .lvl.objective{background:var(--p50);color:var(--p700)}
+
+/* ── PLAN SUMMARY KPI STRIP ── */
+.plan-kpi-strip{display:flex;gap:0;flex-wrap:wrap}
+.plan-kpi{flex:1;min-width:140px;padding:12px 16px;border-right:1px solid var(--g200)}
+.plan-kpi:last-child{border-right:none}
+.plan-kpi-label{font-size:10.5px;font-weight:700;color:var(--g500);text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px}
+.plan-kpi-value{font-size:18px;font-weight:800;color:var(--g900);font-family:'SFMono-Regular',Consolas,monospace}
+.plan-kpi-value.red{color:#b91c1c}
+
+/* ── UNASSIGNED / REASON CODE SUMMARY (FR-H01/H02) ── */
+.unassigned-summary{margin:0 16px 14px;border:1px solid #fecaca;background:#fef2f2;border-radius:8px;overflow:hidden}
+.unassigned-summary-hdr{padding:8px 12px;font-size:11.5px;font-weight:700;color:#b91c1c;display:flex;align-items:center;gap:6px;border-bottom:1px solid #fecaca}
+.unassigned-reason-row{padding:7px 12px;font-size:11.5px;color:#7f1d1d;border-bottom:1px solid #fee2e2;display:flex;gap:8px;align-items:flex-start}
+.unassigned-reason-row:last-child{border-bottom:none}
+.unassigned-reason-code{font-family:'SFMono-Regular',Consolas,monospace;font-weight:700;font-size:10.5px;background:#fecaca;padding:1px 6px;border-radius:5px;flex-shrink:0;white-space:nowrap}
+
+/* ── COST BREAKDOWN (FR-C01/C02) ── */
+.cost-breakdown{margin:0 14px 12px;padding:10px 12px;background:var(--g50);border:1px solid var(--g200);border-radius:8px}
+.cost-breakdown-hdr{font-size:11px;font-weight:700;color:var(--g700);margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.cost-row{display:flex;justify-content:space-between;font-size:11.5px;color:var(--g500);padding:2px 0}
+.cost-row b{color:var(--g900);font-family:'SFMono-Regular',Consolas,monospace}
+.cost-row.total{border-top:1px solid var(--g200);margin-top:4px;padding-top:6px;font-weight:700;color:var(--g900)}
+.cost-row.total b{font-size:13px}
 
 /* ── SHIPMENT MASTER-DETAIL ── */
 .shipment-master-detail{display:flex;align-items:stretch}
@@ -427,7 +459,7 @@ table.do-table tbody tr.allocated{opacity:.45}
       <div class="page-title">Planning Optimization</div>
     </div>
     <div class="hdr-spacer"></div>
-    <span class="spec-tag">SG-PLN-OPT-001</span>
+    <span class="spec-tag">SG-PLN-OPT-002 · Phase 1</span>
   </div>
 
   <div class="body-wrap">
@@ -435,6 +467,7 @@ table.do-table tbody tr.allocated{opacity:.45}
     <!-- FLOW OVERVIEW -->
     <div class="panel">
       <div class="flow-diagram" id="flowDiagram"></div>
+      <div class="plan-kpi-strip" id="planKpiStrip" style="border-top:1px solid var(--g200)"></div>
     </div>
 
     <!-- STAGE 0: CONFIG -->
@@ -480,6 +513,7 @@ table.do-table tbody tr.allocated{opacity:.45}
       <div style="padding:8px 16px 12px;font-size:11px;color:var(--g400);border-top:1px solid var(--g200)">
         Simulasi menyebar DO ke 7 cluster (Staging Bay) di sekitar DC Solo — ukuran tiap DO diacak di sekitar rata-rata yang membuat satu shipment penuh berisi kira-kira sejumlah "Target Stop / Shipment" di atas. Kendaraan tidak dipilih manual — Load Optimization otomatis memilih unit ter-pas dari armada yang tersedia di Shipping Point ini.
       </div>
+      <div class="constraint-row" id="constraintPreview"></div>
     </div>
 
     <!-- STAGE 1: DO POOL -->
@@ -508,6 +542,7 @@ table.do-table tbody tr.allocated{opacity:.45}
           <tbody id="doPoolBody"></tbody>
         </table>
       </div>
+      <div id="unassignedSummaryWrap" style="padding-top:14px"></div>
       <div style="padding:14px 16px;border-top:1px solid var(--g200)">
         <button class="btn btn-primary" id="runLoadBtn" onclick="runLoadOptimizationStage()"><i class="fa-solid fa-cubes"></i> Jalankan Load Optimization</button>
       </div>
@@ -604,6 +639,31 @@ const RDD_RANK = { today:0, h1:1, h2:2 }; // lower = more urgent
 const RDD_CLASS = { today:'urgent', h1:'soon', h2:'later' };
 const RDD_WEIGHTS = [['today',0.30], ['h1',0.40], ['h2',0.30]];
 const BATCH_WEIGHTS = [[1,0.34], [2,0.33], [3,0.33]];
+
+// SG-PLN-OPT-REQ-002 FR-B04 — receiving time window, distinct from RDD (RDD
+// is which DAY it's due; the window is which HOURS the customer accepts
+// delivery, every day). Most ship-to are effectively open all shift; a
+// modern-trade-style subset only receive in a narrow morning or afternoon
+// slot — that's what makes the window check in runRouteOptimization a real
+// constraint rather than a formality.
+// Narrow-window share is deliberately kept modest (~15% combined) — a NN +
+// 2-opt heuristic sequencer (§9.4) can reliably satisfy a minority of
+// tight-window stops per shipment (typically 1-2 out of ~14), but with
+// enough of them scattered through one shipment's stop list, satisfying
+// every window in a single continuous tour becomes genuinely infeasible
+// regardless of ordering (not a sequencing bug — a real VRPTW capacity
+// limit), which would make Time Window evictions dominate the demo instead
+// of illustrating it as one real, occasional constraint among several.
+const WINDOW_PROFILE_WEIGHTS = [['open',0.85], ['am',0.09], ['pm',0.06]];
+const WINDOW_PROFILES = {
+  open: { startMin: 7*60,        endMin: 17*60,        label:'07:00–17:00' },
+  am:   { startMin: 8*60,        endMin: 12*60,         label:'08:00–12:00' },
+  pm:   { startMin: 12*60+30,    endMin: 16*60+30,      label:'12:30–16:30' },
+};
+// FR-B06 — road/vehicle access restriction. A small share of ship-to sit on
+// streets too narrow for anything past the smallest unit (Engkel); everyone
+// else accepts any class in the fleet.
+const ACCESS_WEIGHTS = [['unrestricted',0.85], ['engkel_only',0.15]];
 const MONTH_ABBR_ID = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
 
 function buildRddDate(tier){
@@ -657,12 +717,75 @@ const STANDARD_VEHICLE = AVAILABLE_FLEET.find(v => v.id === 'v-box10');
 const REF_EFF_VOLUME = STANDARD_VEHICLE.volume * 0.90;   // Box Truck @ default α 90%
 const REF_EFF_WEIGHT = STANDARD_VEHICLE.weight * 0.90;
 
-function pickBestFitVehicle(totalVolume, totalWeight, alpha){
-  const sorted = [...AVAILABLE_FLEET].sort((a,b) => a.volume - b.volume);
-  const type = sorted.find(v => v.volume*alpha >= totalVolume && v.weight*alpha >= totalWeight) || sorted[sorted.length-1];
-  const idx = (fleetAssignCounter[type.id] = (fleetAssignCounter[type.id]||0) + 1) - 1;
-  const plate = type.plates[idx % type.plates.length];
+// maxClassIdx restricts the search to AVAILABLE_FLEET[0..maxClassIdx] — used
+// by FR-B06 road access so a bin never gets handed a vehicle bigger than its
+// tightest-restricted item allows. AVAILABLE_FLEET is declared smallest-first,
+// so "class index" doubles as a size rank.
+function pickBestFitVehicle(totalVolume, totalWeight, alpha, maxClassIdx){
+  const idx = maxClassIdx === undefined ? AVAILABLE_FLEET.length - 1 : maxClassIdx;
+  const candidates = AVAILABLE_FLEET.slice(0, idx + 1);
+  const type = candidates.find(v => v.volume*alpha >= totalVolume && v.weight*alpha >= totalWeight) || candidates[candidates.length-1];
+  const plateIdx = (fleetAssignCounter[type.id] = (fleetAssignCounter[type.id]||0) + 1) - 1;
+  const plate = type.plates[plateIdx % type.plates.length];
   return { id: type.id, label: type.label, volume: type.volume, weight: type.weight, dims: type.dims, maxRows: type.maxRows, plate };
+}
+
+// ══════════════════════════════════════════════════════════════
+// SG-PLN-OPT-REQ-002 FR-C01/C02 — COST MODEL. The objective is total cost,
+// not just feasibility. Rates are illustrative Rupiah figures pending OD-04
+// (rate card governance) — not tied to a real rate card yet.
+// ══════════════════════════════════════════════════════════════
+const COST_MODEL = {
+  fixedCostByVehicle: { 'v-engkel': 250000, 'v-box10': 350000, 'v-cdd14': 480000 },
+  costPerKm: 3500,
+  costPerHour: 45000,       // driver + helper combined
+  unassignedPenalty: 150000, // per DO left off a route — window/budget violation or road access
+};
+function fmtRupiah(n){
+  return 'Rp' + Math.round(n).toLocaleString('id-ID');
+}
+// Rough pre-route cost estimate for one cluster's bin — used only by the
+// Load Optimization consolidation pass (§8.5) to compare "keep as its own
+// shipment" vs "fold into another", before real route sequencing exists yet.
+// Distance = a round trip to the cluster centroid, plus a per-stop allowance
+// for travel between customers within that cluster (scaled off the same
+// jitterKm already used to scatter DOs around it).
+function estimateBinCost(cluster, itemCount, vehicleId, serviceTimeMin){
+  const km = 2 * haversineKm(ORIGIN, CLUSTERS[cluster].center) + itemCount * (CLUSTERS[cluster].jitterKm * 0.4);
+  const hours = (travelMinutes(km) + itemCount * serviceTimeMin) / 60;
+  return COST_MODEL.fixedCostByVehicle[vehicleId] + km * COST_MODEL.costPerKm + hours * COST_MODEL.costPerHour;
+}
+// Real, post-route cost for a shipment that has an actual Route Optimization
+// plan — authoritative once available (more accurate than estimateBinCost's
+// centroid proxy, since it uses the real sequenced distance/time). No late
+// penalty here: the window check in runRouteOptimization is a HARD
+// constraint (§9.3b), so nothing left in plan.sequence can be late by
+// construction — the cost of a window/budget violation instead shows up as
+// unassignedPenalty on the evicted DO, at the plan level (see
+// computePlanCost), not as a per-shipment line item.
+function computeShipmentCost(shipment, plan){
+  const fixed = COST_MODEL.fixedCostByVehicle[shipment.vehicle.id];
+  const distanceCost = plan.totalDistance * COST_MODEL.costPerKm;
+  const laborCost = (plan.totalTime / 60) * COST_MODEL.costPerHour;
+  const total = fixed + distanceCost + laborCost;
+  return {
+    fixed, distanceCost, laborCost, total,
+    perDrop: plan.sequence.length ? total / plan.sequence.length : total,
+    perKg: shipment.totalWeight ? total / shipment.totalWeight : total,
+  };
+}
+// Plan-wide roll-up (FR-C01's unassigned-penalty component lives here, not
+// per shipment): sum of every routed shipment's cost, plus a flat penalty
+// per DO that never made it onto a route (unassigned at Load Optimization,
+// or evicted/returned during Route Optimization).
+function computePlanCost(){
+  let routedCost = 0, routedCount = 0;
+  Object.values(routePlans).forEach(plan => {
+    if (plan.cost){ routedCost += plan.cost.total; routedCount++; }
+  });
+  const unassignedCount = ALL_DOS.filter(d => doStatus[d.id] === 'unassigned' || doStatus[d.id] === 'returned').length;
+  const unassignedPenaltyTotal = unassignedCount * COST_MODEL.unassignedPenalty;
+  return { routedCost, routedCount, unassignedCount, unassignedPenaltyTotal, total: routedCost + unassignedPenaltyTotal };
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -671,7 +794,8 @@ function pickBestFitVehicle(totalVolume, totalWeight, alpha){
 let ALL_DOS = [];                   // generated by generateSimulation()
 let LOCATIONS = {};                 // doId -> {name, lat, lng}
 let includedBatches = new Set([1, 2, 3]); // which cutoffs are included when running Load Optimization
-let doStatus = {};                  // doId -> 'outstanding' | 'allocated' | 'returned'
+let doStatus = {};                  // doId -> 'outstanding' | 'allocated' | 'returned' | 'unassigned'
+let doReason = {};                  // doId -> {code, detail} — FR-H01/H02 explainability, set whenever a DO is rejected or evicted
 let draftShipments = [];            // result of Load Optimization
 let routePlans = {};                // shipmentId -> route plan result
 let selectedShipmentId = null;      // which shipment is showing in the detail pane
@@ -680,6 +804,7 @@ let detailMap = null;               // single Leaflet map instance, reused for w
 function initState(){
   includedBatches = new Set([1, 2, 3]);
   doStatus = {};
+  doReason = {};
   ALL_DOS.forEach(d => { doStatus[d.id] = 'outstanding'; });
   draftShipments = [];
   routePlans = {};
@@ -742,7 +867,15 @@ function generateSimulation(doCount, targetStops){
     const rddAt = buildRddDate(rdd);
     const batch = weightedPick(BATCH_WEIGHTS);
     const shipTo = buildShipToName(cluster);
-    docs.push({ id, volume, weight, cluster, rdd, rddAt, batch, shipTo });
+    const windowKey = weightedPick(WINDOW_PROFILE_WEIGHTS);
+    const win = WINDOW_PROFILES[windowKey];
+    const accessKey = weightedPick(ACCESS_WEIGHTS);
+    const maxVehicleClassIdx = accessKey === 'engkel_only' ? 0 : AVAILABLE_FLEET.length - 1;
+    docs.push({
+      id, volume, weight, cluster, rdd, rddAt, batch, shipTo,
+      windowProfile: windowKey, windowStartMin: win.startMin, windowEndMin: win.endMin,
+      maxVehicleClassIdx, accessRestricted: accessKey === 'engkel_only',
+    });
     const loc = jitterPoint(CLUSTERS[cluster].center, CLUSTERS[cluster].jitterKm);
     locations[id] = { name: CLUSTERS[cluster].label, lat: loc.lat, lng: loc.lng };
   }
@@ -774,13 +907,18 @@ const AVG_SPEED_KMH = 25; // illustrative urban average, configurable in a real 
 function travelMinutes(km){ return (km / AVG_SPEED_KMH) * 60; }
 
 // ══════════════════════════════════════════════════════════════
-// §8 LOAD OPTIMIZATION — Cluster-Constrained First-Fit Decreasing
+// §8 LOAD OPTIMIZATION — Cluster-Constrained First-Fit Decreasing,
+// road-access-aware (FR-B06), with a cost-based consolidation pass (§8.5,
+// FR-C01/C02) on top of the packing result.
 // ══════════════════════════════════════════════════════════════
-function runLoadOptimization(dos, alpha){
+function runLoadOptimization(dos, alpha, serviceTimeMin){
   // Fit Test packs against the standard reference capacity (§8.4) — the
   // actual vehicle each shipment ends up with is decided per-bin, below.
   const effVol = STANDARD_VEHICLE.volume * alpha;
   const effWeight = STANDARD_VEHICLE.weight * alpha;
+  const maxClassIdx = AVAILABLE_FLEET.length - 1;
+  const standardIdx = AVAILABLE_FLEET.findIndex(v => v.id === STANDARD_VEHICLE.id);
+  const unassigned = []; // { do, code, detail } — FR-H01/H02
 
   const byCluster = {};
   dos.forEach(d => { (byCluster[d.cluster] ||= []).push(d); });
@@ -788,29 +926,60 @@ function runLoadOptimization(dos, alpha){
   const shipments = [];
   let counter = 1;
   Object.entries(byCluster).forEach(([cluster, list]) => {
-    const sorted = [...list].sort((a,b) => b.volume - a.volume); // FFD: descending volume
+    // FFD: descending volume, but road-access-restricted DOs go first. A bin's
+    // capacity ceiling can only shrink (never grow back) once a restricted DO
+    // joins it, so packing restricted DOs while bins are still empty lets them
+    // consolidate into a few efficient small-vehicle bins; packing them last
+    // would instead find every bin already grown too large to accept them,
+    // forcing one nearly-empty small bin per restricted DO.
+    const sorted = [...list].sort((a,b) => (a.maxVehicleClassIdx - b.maxVehicleClassIdx) || (b.volume - a.volume));
     const bins = [];
     sorted.forEach(d => {
+      // FR-B06: does this DO even fit alone within the largest vehicle its
+      // own road access allows? If not, no bin can ever legally hold it —
+      // reject up front with a reason rather than let FFD quietly place it
+      // somewhere that violates the restriction.
+      const ownAllowed = AVAILABLE_FLEET[d.maxVehicleClassIdx];
+      if (d.volume > ownAllowed.volume*alpha || d.weight > ownAllowed.weight*alpha){
+        const biggest = AVAILABLE_FLEET[maxClassIdx];
+        const wouldFitUnrestricted = d.volume <= biggest.volume*alpha && d.weight <= biggest.weight*alpha;
+        unassigned.push({ do: d,
+          code: wouldFitUnrestricted ? 'ROAD_ACCESS' : 'NO_CAPACITY',
+          detail: wouldFitUnrestricted
+            ? `Volume ${d.volume.toFixed(1)} m³ / ${d.weight} kg butuh kendaraan lebih besar dari ${ownAllowed.label}, tapi akses lokasi dibatasi maks. ${ownAllowed.label}`
+            : `Volume ${d.volume.toFixed(1)} m³ / ${d.weight} kg melebihi kapasitas kendaraan terbesar yang tersedia (${biggest.label}, ${(biggest.volume*alpha).toFixed(1)} m³ efektif)`,
+        });
+        return;
+      }
       let placed = false;
       for (const bin of bins){
-        if (bin.totalVolume + d.volume <= effVol && bin.totalWeight + d.weight <= effWeight){
+        // A bin's capacity ceiling is normally the standard reference — but
+        // shrinks to the tightest road-access class among its items once
+        // any item in it is restricted, so a bin can never end up needing a
+        // vehicle bigger than every item inside it is actually allowed on.
+        const candidateClassIdx = Math.min(bin.minAllowedClassIdx, d.maxVehicleClassIdx);
+        const ceiling = candidateClassIdx < standardIdx ? AVAILABLE_FLEET[candidateClassIdx] : STANDARD_VEHICLE;
+        const ceilVol = ceiling.volume * alpha, ceilWeight = ceiling.weight * alpha;
+        if (bin.totalVolume + d.volume <= ceilVol && bin.totalWeight + d.weight <= ceilWeight){
           bin.items.push(d);
           bin.totalVolume += d.volume;
           bin.totalWeight += d.weight;
+          bin.minAllowedClassIdx = candidateClassIdx;
           placed = true;
           break;
         }
       }
       if (!placed){
-        bins.push({ items:[d], totalVolume:d.volume, totalWeight:d.weight, cluster });
+        bins.push({ items:[d], totalVolume:d.volume, totalWeight:d.weight, cluster, minAllowedClassIdx: d.maxVehicleClassIdx });
       }
     });
     bins.forEach(bin => {
       bin.id = 'SHP-' + String(counter++).padStart(3,'0');
       // Right-size to whichever fleet unit actually fits this bin's totals
       // (§8.4's packing used the standard reference; the real assignment
-      // reads from the Shipping Point's available fleet, not a manual pick).
-      bin.vehicle = pickBestFitVehicle(bin.totalVolume, bin.totalWeight, alpha);
+      // reads from the Shipping Point's available fleet, not a manual pick),
+      // restricted to what its items' road access actually allows.
+      bin.vehicle = pickBestFitVehicle(bin.totalVolume, bin.totalWeight, alpha, bin.minAllowedClassIdx);
       bin.effVolume = bin.vehicle.volume * alpha;
       bin.effWeight = bin.vehicle.weight * alpha;
       bin.utilVolume = bin.totalVolume / bin.effVolume * 100;
@@ -820,7 +989,64 @@ function runLoadOptimization(dos, alpha){
       shipments.push(bin);
     });
   });
-  return shipments;
+
+  const merges = consolidateForCost(shipments, alpha, serviceTimeMin);
+  return { shipments, unassigned, merges };
+}
+
+// §8.5 — cost-based consolidation (FR-C01/C02, AC-01's spirit): repeatedly
+// takes the least-utilized ("thin") shipment and, if folding it into some
+// other same-cluster shipment is cheaper overall (fixed-cost saved from one
+// fewer vehicle, against the extra distance+labor of a busier route) than
+// keeping it separate, merges them. Bounded to at most one merge attempt per
+// existing shipment so it can never loop unbounded.
+function consolidateForCost(shipments, alpha, serviceTimeMin){
+  const merges = [];
+  const THIN_THRESHOLD = 45; // % load factor — below this, worth reconsidering
+  let guard = 0;
+  let didMerge = true;
+  while (didMerge && guard < shipments.length){
+    guard++;
+    didMerge = false;
+    const thin = shipments.filter(s => s.loadFactor < THIN_THRESHOLD).sort((a,b) => a.loadFactor - b.loadFactor)[0];
+    if (!thin) break;
+
+    let best = null, bestSavings = 0;
+    shipments.forEach(other => {
+      if (other === thin || other.cluster !== thin.cluster) return;
+      const mergedClassIdx = Math.min(thin.minAllowedClassIdx, other.minAllowedClassIdx);
+      const mergedVol = thin.totalVolume + other.totalVolume;
+      const mergedWeight = thin.totalWeight + other.totalWeight;
+      const candidates = AVAILABLE_FLEET.slice(0, mergedClassIdx + 1);
+      const fitsAny = candidates.some(v => v.volume*alpha >= mergedVol && v.weight*alpha >= mergedWeight);
+      if (!fitsAny) return;
+
+      const mergedVehicle = pickBestFitVehicle(mergedVol, mergedWeight, alpha, mergedClassIdx);
+      const itemCount = thin.items.length + other.items.length;
+      const costBefore = estimateBinCost(thin.cluster, thin.items.length, thin.vehicle.id, serviceTimeMin)
+                        + estimateBinCost(other.cluster, other.items.length, other.vehicle.id, serviceTimeMin);
+      const costAfter = estimateBinCost(other.cluster, itemCount, mergedVehicle.id, serviceTimeMin);
+      const savings = costBefore - costAfter;
+      if (savings > bestSavings + 1){ bestSavings = savings; best = { other, mergedVehicle, mergedClassIdx, mergedVol, mergedWeight }; }
+    });
+
+    if (best){
+      const { other, mergedVehicle, mergedClassIdx, mergedVol, mergedWeight } = best;
+      other.items = other.items.concat(thin.items);
+      other.totalVolume = mergedVol; other.totalWeight = mergedWeight;
+      other.minAllowedClassIdx = mergedClassIdx;
+      other.vehicle = mergedVehicle;
+      other.effVolume = mergedVehicle.volume * alpha; other.effWeight = mergedVehicle.weight * alpha;
+      other.utilVolume = other.totalVolume / other.effVolume * 100;
+      other.utilWeight = other.totalWeight / other.effWeight * 100;
+      other.loadFactor = Math.max(other.utilVolume, other.utilWeight);
+      other.binding = other.utilVolume >= other.utilWeight ? 'volume' : 'weight';
+      merges.push({ from: thin.id, into: other.id, saved: bestSavings });
+      shipments.splice(shipments.indexOf(thin), 1);
+      didMerge = true;
+    }
+  }
+  return merges;
 }
 
 function runLoadOptimizationStage(){
@@ -830,16 +1056,23 @@ function runLoadOptimizationStage(){
     return;
   }
   const alpha = Number(document.getElementById('alphaInput').value) / 100;
+  const serviceTime = Number(document.getElementById('serviceTimeInput').value);
 
   fleetAssignCounter = {}; // fresh plate cycling for this run
-  draftShipments = runLoadOptimization(eligible, alpha);
-  draftShipments.forEach(s => s.items.forEach(d => { doStatus[d.id] = 'allocated'; }));
+  const result = runLoadOptimization(eligible, alpha, serviceTime);
+  draftShipments = result.shipments;
+  draftShipments.forEach(s => s.items.forEach(d => { doStatus[d.id] = 'allocated'; delete doReason[d.id]; }));
+  result.unassigned.forEach(u => { doStatus[u.do.id] = 'unassigned'; doReason[u.do.id] = { code: u.code, detail: u.detail }; });
   routePlans = {}; // invalidate previous route plans on re-run
   selectedShipmentId = draftShipments[0]?.id || null;
 
   const batchLabels = BATCHES.filter(b => includedBatches.has(b.key)).map(b => b.label).join(', ');
   renderAll();
-  showToast(`Load Optimization selesai — ${draftShipments.length} Draft Shipment terbentuk dari ${eligible.length} DO (batch: ${batchLabels}).`);
+  const mergeMsg = result.merges.length
+    ? ` · ${result.merges.length} shipment digabung untuk hemat biaya (~${fmtRupiah(result.merges.reduce((a,m)=>a+m.saved,0))}).`
+    : '';
+  const unassignedMsg = result.unassigned.length ? ` · ${result.unassigned.length} DO tidak dapat di-assign — lihat alasan di Panel 1.` : '';
+  showToast(`Load Optimization selesai — ${draftShipments.length} Draft Shipment terbentuk dari ${eligible.length} DO (batch: ${batchLabels}).${mergeMsg}${unassignedMsg}`);
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -860,47 +1093,85 @@ function totalTimeForSequence(seq, serviceTime){
   return { legs, totalDistance: dist, totalTime: total };
 }
 
-function nearestNeighborWithinTier(tierDos, startPoint){
+// §9.4 step 3, urgency-aware (FR-B04): pure nearest-distance construction
+// has no idea a stop's receiving window is about to close, so it can easily
+// leave a tight-window stop for late in the tour just because it's a bit
+// farther away right now. Candidates whose window has little slack left (if
+// visited next) get a penalty added to their distance score, biasing
+// selection toward them before they become infeasible — candidates with
+// plenty of slack (the common "open all shift" case) are unaffected, so
+// this never distorts the original distance-driven behavior for them.
+function nearestNeighborWithinTier(tierDos, startPoint, elapsedMin, shiftStartMin, serviceTime){
   const remaining = [...tierDos];
   const seq = [];
-  let cursor = startPoint;
+  let cursor = startPoint, elapsed = elapsedMin || 0;
   while (remaining.length){
-    let bestIdx = 0, bestDist = Infinity;
+    let bestIdx = 0, bestScore = Infinity, bestKm = 0;
     remaining.forEach((d, idx) => {
       const km = haversineKm(cursor, LOCATIONS[d.id]);
-      if (km < bestDist){ bestDist = km; bestIdx = idx; }
+      let score = km;
+      if (shiftStartMin !== undefined){
+        const arrival = shiftStartMin + elapsed + travelMinutes(km);
+        const slackMin = d.windowEndMin - arrival; // time left before its window shuts, if visited now
+        if (slackMin < 180) score += (180 - slackMin) * 0.5; // under 3h slack — start prioritizing
+      }
+      if (score < bestScore){ bestScore = score; bestIdx = idx; bestKm = km; }
     });
     const next = remaining.splice(bestIdx,1)[0];
     seq.push(next);
     cursor = LOCATIONS[next.id];
+    elapsed += travelMinutes(bestKm) + (serviceTime || 0);
   }
   return seq;
 }
 
-// 2-opt improvement, restricted to reordering within one RDD tier only,
-// so RDD priority ordering between tiers is never disturbed (§9.4 step 5).
-function twoOptWithinTier(tierSeq, startPoint){
+// 2-opt improvement, restricted to reordering within one RDD tier only, so
+// RDD priority ordering between tiers is never disturbed (§9.4 step 5).
+// §9.3b (FR-B04): scoring also counts each candidate ordering's receiving-
+// window violations, weighted far above distance — a plain distance-only
+// 2-opt (the original §9.4 design) never considers windows while ordering
+// stops, so a tight-window stop visited late gets evicted later even when a
+// different, only-slightly-longer ordering would have reached it in time.
+// Distance still breaks ties among orderings with the same violation count,
+// so this never fights the original travel-minimizing objective for no reason.
+function twoOptWithinTier(tierSeq, startPoint, elapsedMin, shiftStartMin, serviceTime){
   if (tierSeq.length < 3) return tierSeq;
-  let improved = true;
   let seq = [...tierSeq];
-  const routeLen = (arr) => {
-    let cursor = startPoint, d = 0;
-    arr.forEach(s => { d += haversineKm(cursor, LOCATIONS[s.id]); cursor = LOCATIONS[s.id]; });
-    return d;
+  const score = (arr) => {
+    let cursor = startPoint, dist = 0, elapsed = elapsedMin, violations = 0;
+    arr.forEach(s => {
+      const km = haversineKm(cursor, LOCATIONS[s.id]);
+      const arrivalMin = shiftStartMin + elapsed + travelMinutes(km);
+      if (arrivalMin < s.windowStartMin || arrivalMin > s.windowEndMin) violations++;
+      dist += km;
+      elapsed += travelMinutes(km) + serviceTime;
+      cursor = LOCATIONS[s.id];
+    });
+    return violations * 100000 + dist; // violations dominate; distance breaks ties
   };
-  let guard = 0;
+  let bestScore = score(seq);
+  let improved = true, guard = 0;
   while (improved && guard < 50){
     improved = false; guard++;
     for (let i=0;i<seq.length-1;i++){
       for (let j=i+1;j<seq.length;j++){
         const candidate = [...seq.slice(0,i), ...seq.slice(i,j+1).reverse(), ...seq.slice(j+1)];
-        if (routeLen(candidate) < routeLen(seq) - 0.001){
-          seq = candidate; improved = true;
+        const candScore = score(candidate);
+        if (candScore < bestScore - 0.001){
+          seq = candidate; bestScore = candScore; improved = true;
         }
       }
     }
   }
   return seq;
+}
+// Time consumed traversing one tier's sequence, starting from startPoint —
+// used to carry the correct elapsed clock time into the NEXT tier's window
+// scoring (tiers run sequentially, not each from a fresh ORIGIN departure).
+function tierElapsedMinutes(seq, startPoint, serviceTime){
+  let cursor = startPoint, elapsed = 0;
+  seq.forEach(s => { elapsed += travelMinutes(haversineKm(cursor, LOCATIONS[s.id])) + serviceTime; cursor = LOCATIONS[s.id]; });
+  return elapsed;
 }
 
 function runRouteOptimization(shipment, serviceTime, shiftStartMin, shiftEndMin){
@@ -911,33 +1182,72 @@ function runRouteOptimization(shipment, serviceTime, shiftStartMin, shiftEndMin)
 
   let sequence = [];
   let cursor = ORIGIN;
+  let elapsedMin = 0;
   tierKeys.forEach(tier => {
-    let tierSeq = nearestNeighborWithinTier(tiers[tier], cursor);
-    tierSeq = twoOptWithinTier(tierSeq, cursor);
+    let tierSeq = nearestNeighborWithinTier(tiers[tier], cursor, elapsedMin, shiftStartMin, serviceTime);
+    tierSeq = twoOptWithinTier(tierSeq, cursor, elapsedMin, shiftStartMin, serviceTime);
     sequence = sequence.concat(tierSeq);
-    if (tierSeq.length) cursor = LOCATIONS[tierSeq[tierSeq.length-1].id];
+    if (tierSeq.length){
+      elapsedMin += tierElapsedMinutes(tierSeq, cursor, serviceTime);
+      cursor = LOCATIONS[tierSeq[tierSeq.length-1].id];
+    }
   });
+
+  // §9.3b (FR-B04): does any stop's planned arrival fall outside its own
+  // receiving window? Returns the index of the first violator, or -1.
+  function findWindowViolation(seq, legs){
+    for (let idx = 0; idx < seq.length; idx++){
+      const arrivalMin = shiftStartMin + (legs[idx].cumulative - legs[idx].minutes);
+      if (arrivalMin < seq[idx].windowStartMin || arrivalMin > seq[idx].windowEndMin) return idx;
+    }
+    return -1;
+  }
 
   const timeBudget = shiftEndMin - shiftStartMin;
   let evicted = [];
+  const evictionReasons = {}; // doId -> {code, detail}, FR-H01/H02
   let calc = totalTimeForSequence(sequence, serviceTime);
-  // Captured before eviction: whether the ORIGINAL full assignment fit as-is.
-  // (The eviction loop below always drives the final sequence back under
-  // budget, so checking calc.totalTime<=timeBudget AFTER the loop would be
-  // true by construction — it can never report "not fit".)
-  const fitsWithoutEviction = calc.totalTime <= timeBudget;
+  // Captured before eviction: whether the ORIGINAL full assignment fit as-is
+  // — both the Time Budget (§9.3) and every stop's receiving window (§9.3b).
+  // (The eviction loop below always drives the final sequence back to
+  // feasible, so checking these AFTER the loop would be true by
+  // construction — it can never report "not fit".)
+  const fitsWithoutEviction = calc.totalTime <= timeBudget && findWindowViolation(sequence, calc.legs) === -1;
 
-  // §9.3: if over budget, evict the stop with the greatest travel-time
-  // contribution, preferring the loosest RDD tier first, and recompute.
-  while (calc.totalTime > timeBudget && sequence.length > 0){
-    let worstIdx = 0, worstScore = -Infinity;
-    calc.legs.forEach((leg, idx) => {
-      const looseness = RDD_RANK[sequence[idx].rdd]; // higher = looser RDD
-      const score = leg.minutes + looseness * 1000; // prioritize loosest RDD, then largest leg
-      if (score > worstScore){ worstScore = score; worstIdx = idx; }
-    });
-    evicted.push(sequence[worstIdx]);
-    sequence.splice(worstIdx, 1);
+  // §9.3/§9.3b: while any stop violates its receiving window (hard
+  // constraint, checked first) or the sequence is over the Time Budget,
+  // evict the worst offender and recompute. Window violations are evicted
+  // before budget overruns since a stop that literally cannot be reached in
+  // time is infeasible regardless of total duration.
+  let guard = 0;
+  while (sequence.length > 0 && guard < 200){
+    guard++;
+    const winIdx = findWindowViolation(sequence, calc.legs);
+    const overBudget = calc.totalTime > timeBudget;
+    if (winIdx === -1 && !overBudget) break;
+
+    let evictIdx, reason;
+    if (winIdx !== -1){
+      const stop = sequence[winIdx];
+      const arrivalMin = shiftStartMin + (calc.legs[winIdx].cumulative - calc.legs[winIdx].minutes);
+      evictIdx = winIdx;
+      reason = { code: 'TIME_WINDOW_INFEASIBLE',
+        detail: `Estimasi tiba ${fmtClock(0, arrivalMin)}, di luar jam terima ${fmtClock(0, stop.windowStartMin)}–${fmtClock(0, stop.windowEndMin)}` };
+    } else {
+      let worstIdx = 0, worstScore = -Infinity;
+      calc.legs.forEach((leg, idx) => {
+        const looseness = RDD_RANK[sequence[idx].rdd]; // higher = looser RDD
+        const score = leg.minutes + looseness * 1000; // prioritize loosest RDD, then largest leg
+        if (score > worstScore){ worstScore = score; worstIdx = idx; }
+      });
+      evictIdx = worstIdx;
+      reason = { code: 'EXCEEDS_DRIVER_HOURS',
+        detail: `Total durasi trip ${fmtMin(calc.totalTime)} melebihi Jam Kerja Driver (budget ${fmtMin(timeBudget)})` };
+    }
+    const doOut = sequence[evictIdx];
+    evicted.push(doOut);
+    evictionReasons[doOut.id] = reason;
+    sequence.splice(evictIdx, 1);
     calc = totalTimeForSequence(sequence, serviceTime);
   }
 
@@ -950,6 +1260,7 @@ function runRouteOptimization(shipment, serviceTime, shiftStartMin, shiftEndMin)
     timeBudget,
     fits: fitsWithoutEviction,
     evicted,
+    evictionReasons,
   };
 }
 
@@ -966,13 +1277,14 @@ function runRouteOptimizationStage(shipmentId){
   const shiftEnd = parseTimeToMinutes(document.getElementById('shiftEnd').value);
 
   const plan = runRouteOptimization(shipment, serviceTime, shiftStart, shiftEnd);
-  plan.evicted.forEach(d => { doStatus[d.id] = 'returned'; });
+  plan.evicted.forEach(d => { doStatus[d.id] = 'returned'; doReason[d.id] = plan.evictionReasons[d.id]; });
+  plan.cost = computeShipmentCost(shipment, plan);
   routePlans[shipmentId] = plan;
 
   renderAll();
   const msg = plan.evicted.length
-    ? `Route Optimization untuk ${shipmentId} selesai — ${plan.evicted.length} DO dikeluarkan (melebihi Time Budget) dan dikembalikan ke pool.`
-    : `Route Optimization untuk ${shipmentId} selesai — seluruh stop muat dalam Time Budget.`;
+    ? `Route Optimization untuk ${shipmentId} selesai — ${plan.evicted.length} DO dikeluarkan (melebihi Time Budget/Time Window) dan dikembalikan ke pool.`
+    : `Route Optimization untuk ${shipmentId} selesai — seluruh stop muat dalam Time Budget dan Time Window (estimasi biaya ${fmtRupiah(plan.cost.total)}).`;
   showToast(msg);
 }
 
@@ -988,15 +1300,17 @@ function runRouteOptimizationForAll(){
   let totalEvicted = 0;
   draftShipments.forEach(shipment => {
     const plan = runRouteOptimization(shipment, serviceTime, shiftStart, shiftEnd);
-    plan.evicted.forEach(d => { doStatus[d.id] = 'returned'; });
+    plan.evicted.forEach(d => { doStatus[d.id] = 'returned'; doReason[d.id] = plan.evictionReasons[d.id]; });
+    plan.cost = computeShipmentCost(shipment, plan);
     routePlans[shipment.id] = plan;
     totalEvicted += plan.evicted.length;
   });
 
   renderAll();
+  const totalCost = Object.values(routePlans).reduce((a,p) => a + (p.cost ? p.cost.total : 0), 0);
   const msg = totalEvicted
-    ? `Route Optimization dijalankan untuk ${draftShipments.length} shipment — ${totalEvicted} DO dikeluarkan (melebihi Time Budget) dan dikembalikan ke pool.`
-    : `Route Optimization dijalankan untuk ${draftShipments.length} shipment — seluruh stop muat dalam Time Budget.`;
+    ? `Route Optimization dijalankan untuk ${draftShipments.length} shipment — ${totalEvicted} DO dikeluarkan (melebihi Time Budget/Time Window) dan dikembalikan ke pool.`
+    : `Route Optimization dijalankan untuk ${draftShipments.length} shipment — seluruh stop muat dalam Time Budget dan Time Window (total estimasi biaya ${fmtRupiah(totalCost)}).`;
   showToast(msg);
 }
 
@@ -1025,12 +1339,15 @@ function runScenarioNotFit(){
     if (!eligible.length) continue;
 
     fleetAssignCounter = {};
-    draftShipments = runLoadOptimization(eligible, alpha);
-    draftShipments.forEach(s => s.items.forEach(d => { doStatus[d.id] = 'allocated'; }));
+    const result = runLoadOptimization(eligible, alpha, serviceTime);
+    draftShipments = result.shipments;
+    draftShipments.forEach(s => s.items.forEach(d => { doStatus[d.id] = 'allocated'; delete doReason[d.id]; }));
+    result.unassigned.forEach(u => { doStatus[u.do.id] = 'unassigned'; doReason[u.do.id] = { code: u.code, detail: u.detail }; });
     routePlans = {};
     draftShipments.forEach(shipment => {
       const plan = runRouteOptimization(shipment, serviceTime, shiftStart, shiftEnd);
-      plan.evicted.forEach(d => { doStatus[d.id] = 'returned'; });
+      plan.evicted.forEach(d => { doStatus[d.id] = 'returned'; doReason[d.id] = plan.evictionReasons[d.id]; });
+      plan.cost = computeShipmentCost(shipment, plan);
       routePlans[shipment.id] = plan;
       if (!plan.fits && !foundId) foundId = shipment.id;
     });
@@ -1040,10 +1357,11 @@ function runScenarioNotFit(){
     selectedShipmentId = foundId;
     renderAll();
     const plan = routePlans[foundId];
-    showToast(`Skenario Route Tidak Fit: ${foundId} melebihi Time Budget sebelum eviction — ${plan.evicted.length} DO dikeluarkan agar sisa rute muat dalam ${fmtMin(plan.timeBudget)}.`);
+    const reasonCodes = [...new Set(plan.evicted.map(d => plan.evictionReasons[d.id].code))].join(' / ');
+    showToast(`Skenario Route Tidak Fit: ${foundId} tidak fit sebelum eviction (${reasonCodes}) — ${plan.evicted.length} DO dikeluarkan agar sisa rute muat dalam ${fmtMin(plan.timeBudget)} dan jam terima masing-masing.`);
   } else {
     renderAll();
-    showToast(`Tidak ditemukan shipment yang melebihi Time Budget setelah ${MAX_ATTEMPTS} percobaan simulasi ulang. Coba perkecil Jam Kerja Driver atau perbesar Target Stop / Shipment.`);
+    showToast(`Tidak ditemukan shipment yang melebihi Time Budget/Time Window setelah ${MAX_ATTEMPTS} percobaan simulasi ulang. Coba perkecil Jam Kerja Driver atau perbesar Target Stop / Shipment.`);
   }
 }
 
@@ -1070,6 +1388,7 @@ function takeOutStop(shipmentId, doId){
   // manual take-out (Deviation 1) doesn't retroactively change.
 
   doStatus[doId] = 'returned';
+  doReason[doId] = { code: 'MANUAL_TAKE_OUT', detail: 'Dikeluarkan manual saat Pickup (Deviation 1, §11.2) — bukan penolakan engine.' };
   renderAll();
   showToast(`Deviation 1: ${doId} di-take-out dari ${shipmentId} saat Pickup — dikembalikan ke pool, stop berikutnya maju mengisi posisi (§11.2).`);
 }
@@ -1318,6 +1637,39 @@ function clusterPill(cluster){
   return `<span class="cluster-pill">${cluster} · ${escapeHtml(CLUSTERS[cluster].label)}</span>`;
 }
 
+// FR-B11 — constraint preview: what's active and its enforcement level,
+// before running anything. Levels aren't user-configurable yet (that's
+// FR-B01/B02's planning_profile editor, Phase 1 but not this pass) — this
+// is read-only transparency over what the engine already enforces below.
+function renderConstraintPreview(){
+  const chips = [
+    ['Kapasitas Kendaraan (Volume/Berat)', 'hard'],
+    ['Jam Kerja Driver', 'hard'],
+    ['Time Window Penerimaan', 'hard'],
+    ['Road/Vehicle Access', 'hard'],
+    ['Objective: Biaya Total', 'objective'],
+  ];
+  document.getElementById('constraintPreview').innerHTML =
+    `<span style="font-size:10.5px;font-weight:700;color:var(--g500);text-transform:uppercase;letter-spacing:.3px;align-self:center;margin-right:2px">Constraint Aktif:</span>` +
+    chips.map(([label, lvl]) => `<span class="constraint-chip">${escapeHtml(label)} <span class="lvl ${lvl}">${lvl.toUpperCase()}</span></span>`).join('');
+}
+
+// Plan-level KPI strip (FR-C01 transparency + FR-J02-style summary): total
+// shipments/cost/unassigned at a glance, updated every render.
+function renderPlanSummary(){
+  const planCost = computePlanCost();
+  const allocated = ALL_DOS.filter(d => doStatus[d.id] === 'allocated').length;
+  const kpis = [
+    ['Draft Shipment', draftShipments.length],
+    ['DO Ter-assign', allocated],
+    ['Estimasi Biaya Plan', planCost.routedCount ? fmtRupiah(planCost.total) : '—', planCost.routedCount ? '' : 'red'],
+    ['DO Belum Ter-assign', planCost.unassignedCount, planCost.unassignedCount ? 'red' : ''],
+  ];
+  document.getElementById('planKpiStrip').innerHTML = kpis.map(([label, value, cls]) =>
+    `<div class="plan-kpi"><div class="plan-kpi-label">${escapeHtml(label)}</div><div class="plan-kpi-value ${cls||''}">${value}</div></div>`
+  ).join('');
+}
+
 function renderFlowDiagram(){
   const stages = [
     { label:'Outstanding DO Pool', on: true },
@@ -1369,19 +1721,52 @@ function renderDoPool(){
     groupDos.forEach(d => {
       const status = doStatus[d.id];
       const rowCls = [status === 'allocated' ? 'allocated' : '', included ? '' : 'excluded-row'].filter(Boolean).join(' ');
-      const statusLabel = { outstanding:'Outstanding', allocated:'Allocated', returned:'Returned to Pool' }[status];
+      const statusLabel = { outstanding:'Outstanding', allocated:'Allocated', returned:'Returned to Pool', unassigned:'Unassigned' }[status];
+      const reason = doReason[d.id];
+      const reasonTitle = reason ? `${reason.code}: ${reason.detail}` : '';
+      const accessFlag = d.accessRestricted ? `<span class="access-flag" title="Akses lokasi dibatasi maks. Engkel"><i class="fa-solid fa-ban"></i> Engkel</span>` : '';
       rows.push(`<tr class="${rowCls}">
         <td class="do-id">${d.id}</td>
-        <td>${escapeHtml(d.shipTo)}</td>
+        <td>${escapeHtml(d.shipTo)}${accessFlag}</td>
         <td>${d.volume.toFixed(1)}</td>
         <td>${d.weight}</td>
         <td>${clusterPill(d.cluster)}</td>
         <td><span class="rdd-pill ${RDD_CLASS[d.rdd]}">${fmtRddDate(d.rddAt)}</span></td>
-        <td><span class="status-pill ${status}">${statusLabel}</span></td>
+        <td><span class="status-pill ${status}" ${reasonTitle ? `title="${escapeHtml(reasonTitle)}"` : ''}>${statusLabel}</span></td>
       </tr>`);
     });
   });
   document.getElementById('doPoolBody').innerHTML = rows.join('');
+  renderUnassignedSummary();
+}
+
+// FR-H01/H02 — explainability: every DO that isn't on a route (rejected at
+// Load Optimization, or evicted during Route Optimization) is grouped here
+// by reason code with its actionable detail, instead of silently sitting in
+// the pool with no explanation.
+function renderUnassignedSummary(){
+  const wrap = document.getElementById('unassignedSummaryWrap');
+  const withReason = ALL_DOS.filter(d => doReason[d.id] && (doStatus[d.id] === 'unassigned' || doStatus[d.id] === 'returned'));
+  if (!withReason.length){ wrap.innerHTML = ''; return; }
+
+  const byCode = {};
+  withReason.forEach(d => { (byCode[doReason[d.id].code] ||= []).push(d); });
+  const codeLabel = {
+    NO_CAPACITY: 'Tidak Ada Kapasitas',
+    ROAD_ACCESS: 'Akses Jalan Terbatas',
+    EXCEEDS_DRIVER_HOURS: 'Melebihi Jam Kerja Driver',
+    TIME_WINDOW_INFEASIBLE: 'Time Window Tidak Terpenuhi',
+    MANUAL_TAKE_OUT: 'Dikeluarkan Manual',
+  };
+
+  wrap.innerHTML = `<div class="unassigned-summary">
+    <div class="unassigned-summary-hdr"><i class="fa-solid fa-circle-exclamation"></i> ${withReason.length} DO belum ter-assign ke route — alasan per reason code</div>
+    ${Object.entries(byCode).map(([code, list]) => `
+      <div class="unassigned-reason-row">
+        <span class="unassigned-reason-code">${code}</span>
+        <span><b>${list.length} DO</b> (${list.slice(0,4).map(d=>d.id).join(', ')}${list.length>4?', …':''}) — ${codeLabel[code]||code}. Contoh: ${escapeHtml(doReason[list[0].id].detail)}</span>
+      </div>`).join('')}
+  </div>`;
 }
 
 function loadBarClass(pct){ return pct > 100 ? 'over' : (pct >= 90 ? 'warn' : 'ok'); }
@@ -1483,10 +1868,19 @@ function renderShipmentDetail(){
       <div class="route-card-hdr">
         <span class="rdd-pill later"><i class="fa-solid fa-route"></i> ${plan.totalDistance.toFixed(1)} km</span>
         <span class="rdd-pill later"><i class="fa-regular fa-clock"></i> ${fmtMin(plan.totalTime)} / Budget ${fmtMin(plan.timeBudget)}</span>
-        <span class="route-fit-pill ${plan.fits ? 'fit' : 'evicted'}">${plan.fits ? 'Time Budget Fit ✓' : 'Tidak Fit — Perlu Evict'}</span>
+        <span class="route-fit-pill ${plan.fits ? 'fit' : 'evicted'}">${plan.fits ? 'Constraint Fit ✓' : 'Tidak Fit — Perlu Evict'}</span>
       </div>
       ${plan.evicted.length ? `<div class="eviction-note"><i class="fa-solid fa-triangle-exclamation" style="margin-top:1px"></i>
-        <span>${plan.evicted.map(d=>d.id).join(', ')} melebihi Time Budget (§9.3) — dikeluarkan dari route ini, dikembalikan ke Outstanding pool untuk batch/driver berikutnya.</span>
+        <span>${plan.evicted.map(d => `<b>${d.id}</b> (${plan.evictionReasons[d.id].code})`).join(', ')} — dikeluarkan dari route ini, dikembalikan ke Outstanding pool untuk batch/driver berikutnya.</span>
+      </div>` : ''}
+      ${plan.cost ? `<div class="cost-breakdown">
+        <div class="cost-breakdown-hdr"><i class="fa-solid fa-coins"></i> Estimasi Biaya (FR-C01) — objective function, bukan cuma feasibility</div>
+        <div class="cost-row"><span>Fixed Cost (${escapeHtml(s.vehicle.label)})</span><b>${fmtRupiah(plan.cost.fixed)}</b></div>
+        <div class="cost-row"><span>Jarak (${plan.totalDistance.toFixed(1)} km × ${fmtRupiah(COST_MODEL.costPerKm)}/km)</span><b>${fmtRupiah(plan.cost.distanceCost)}</b></div>
+        <div class="cost-row"><span>Tenaga Kerja (${(plan.totalTime/60).toFixed(1)} jam × ${fmtRupiah(COST_MODEL.costPerHour)}/jam)</span><b>${fmtRupiah(plan.cost.laborCost)}</b></div>
+        <div class="cost-row total"><span>Total</span><b>${fmtRupiah(plan.cost.total)}</b></div>
+        <div class="cost-row"><span>Biaya / Drop</span><b>${fmtRupiah(plan.cost.perDrop)}</b></div>
+        <div class="cost-row"><span>Biaya / Kg</span><b>${fmtRupiah(plan.cost.perKg)}</b></div>
       </div>` : ''}
       <div class="route-body">
         <div class="route-map" id="detailMap"></div>
@@ -1507,7 +1901,7 @@ function renderShipmentDetail(){
                   <span class="seq-do">${d.id}</span>
                   <span class="rdd-pill ${RDD_CLASS[d.rdd]}">RDD ${fmtRddDate(d.rddAt)}</span>
                 </div>
-                <div class="seq-meta">${escapeHtml(d.shipTo)} · ${LOCATIONS[d.id].name} · ${leg.km.toFixed(1)} km · tiba ~${fmtClock(shiftStart, leg.cumulative - leg.minutes + travelMinutes(leg.km))} · selesai bongkar ~${fmtClock(shiftStart, leg.cumulative)}</div>
+                <div class="seq-meta">${escapeHtml(d.shipTo)} · ${LOCATIONS[d.id].name} · ${leg.km.toFixed(1)} km · tiba ~${fmtClock(shiftStart, leg.cumulative - leg.minutes + travelMinutes(leg.km))} · selesai bongkar ~${fmtClock(shiftStart, leg.cumulative)} · jendela ${fmtClock(0,d.windowStartMin)}–${fmtClock(0,d.windowEndMin)}${d.accessRestricted ? ' · <span class="access-flag" style="margin-left:0"><i class="fa-solid fa-ban"></i> Engkel</span>' : ''}</div>
               </div>
               <div class="seq-actions">
                 <button class="btn btn-danger-ghost btn-xs" onclick="takeOutStop('${s.id}','${d.id}')" title="Simulasikan Deviation 1 — take out saat Pickup">
@@ -1553,6 +1947,7 @@ function renderShipmentDetail(){
 
 function renderAll(){
   renderFlowDiagram();
+  renderPlanSummary();
   renderPoolToolbar();
   renderDoPool();
   renderShipmentMasterDetail();
@@ -1579,6 +1974,7 @@ function showToast(msg){
 }
 
 renderFleetSummary();
+renderConstraintPreview();
 generateSimulation(300, 14);
 initState();
 renderAll();
