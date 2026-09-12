@@ -102,76 +102,83 @@ body.sb-collapsed .sb-top{justify-content:center}
 .btn-danger-ghost:hover{background:#fee2e2}
 .btn:disabled{opacity:.5;cursor:not-allowed}
 
-/* ── BODY ── */
-.body-wrap{flex:1;overflow-y:auto;padding:18px 24px 40px}
+/* ── BODY / WORKSPACE SHELL (Locus/FarEye-style map-centric layout) ── */
+.body-wrap{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;padding:0}
 .spec-tag{font-family:'SFMono-Regular',Consolas,monospace;font-size:10.5px;font-weight:600;color:var(--p700);background:var(--p50);border:1px solid var(--p200);padding:2px 8px;border-radius:20px}
-
-.panel{background:#fff;border:1px solid var(--g200);border-radius:var(--r2);box-shadow:var(--sh);margin-bottom:18px}
-.panel-hdr-row{padding:14px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--g200)}
-.panel-num{width:24px;height:24px;border-radius:50%;background:var(--p700);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.panel-title{font-size:14px;font-weight:700;color:var(--g900)}
-.panel-sub{font-size:11px;color:var(--g400);margin-top:2px}
-.panel-body{padding:16px}
-
-/* ── CONFIG BAR ── */
-.config-bar{display:flex;gap:16px;flex-wrap:wrap;padding:14px 16px;background:var(--g50);border-bottom:1px solid var(--g200)}
-.config-item{display:flex;flex-direction:column;gap:5px}
-.config-item label{font-size:10.5px;font-weight:700;color:var(--g500);text-transform:uppercase;letter-spacing:.3px}
+.panel{background:#fff;border:1px solid var(--g200);border-radius:var(--r2);box-shadow:var(--sh)}
 .filter-select,.filter-input{border:1px solid var(--g200);border-radius:var(--r);padding:6px 26px 6px 10px;font-size:12px;color:var(--g700);background:#fff;outline:none;font-family:var(--font);cursor:pointer;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%2364748b' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center}
 .filter-input{cursor:text;padding:6px 10px;background-image:none;width:80px}
 .filter-input:focus,.filter-select:focus{border-color:var(--p400)}
 
-/* ── BATCH GROUPS ── */
-.pool-toolbar{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--g200);flex-wrap:wrap}
-.pool-summary{margin-left:auto;font-size:12px;color:var(--g500)}
-.pool-summary b{color:var(--g900);font-family:'SFMono-Regular',Consolas,monospace}
-tr.do-group-row td{background:var(--g50);padding:8px 16px;border-bottom:1px solid var(--g200)}
-tr.do-group-row.excluded td{opacity:.55}
-.do-group-check{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;font-weight:700;color:var(--g700)}
-.do-group-check input{cursor:pointer}
-.do-group-count{font-weight:500;color:var(--g400);margin-left:2px}
-tr.excluded-row td{opacity:.4}
+.ws-topbar{flex-shrink:0;padding:14px 20px 16px;background:#fff;border-bottom:1px solid var(--g200)}
+.ws-topbar-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.kpi-cards{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+@media (max-width:1100px){.kpi-cards{grid-template-columns:repeat(3,1fr)}}
+.kpi-card{background:var(--g50);border:1px solid var(--g200);border-radius:var(--r2);padding:11px 13px;display:flex;align-items:center;gap:10px}
+.kpi-card-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;color:#fff}
+.kpi-card-label{font-size:10px;font-weight:700;color:var(--g500);text-transform:uppercase;letter-spacing:.3px}
+.kpi-card-value{font-size:17px;font-weight:800;color:var(--g900);font-family:'SFMono-Regular',Consolas,monospace;margin-top:1px}
 
-/* ── DO POOL TABLE ── */
-table.do-table{width:100%;border-collapse:collapse;font-size:12.5px}
-table.do-table thead th{text-align:left;font-size:11px;font-weight:600;color:var(--g400);padding:9px 16px;border-bottom:1px solid var(--g200);background:var(--g50);white-space:nowrap}
-table.do-table tbody td{padding:9px 16px;border-bottom:1px solid var(--g100);vertical-align:middle}
-table.do-table tbody tr:last-child td{border-bottom:none}
-table.do-table tbody tr.allocated{opacity:.45}
-.do-id{font-family:'SFMono-Regular',Consolas,monospace;font-weight:700;color:var(--g900)}
-.cluster-pill{display:inline-flex;align-items:center;font-size:11px;font-weight:600;background:var(--p50);color:var(--p700);padding:2px 9px;border-radius:12px}
-.rdd-pill{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:2px 9px;border-radius:12px}
-.rdd-pill.urgent{background:#fee2e2;color:#b91c1c}
-.rdd-pill.soon{background:#fef3c7;color:#b45309}
-.rdd-pill.later{background:#dcfce7;color:#15803d}
-.status-pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:2px 9px;border-radius:12px}
-.status-pill.outstanding{background:var(--g100);color:var(--g600)}
-.status-pill.allocated{background:#dcfce7;color:#15803d}
-.status-pill.returned{background:#fef3c7;color:#b45309}
-.status-pill.unassigned{background:#fee2e2;color:#b91c1c;cursor:help}
-.access-flag{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;color:#b45309;margin-left:4px}
+.ws-grid{flex:1;min-height:0;display:grid;grid-template-columns:300px 1fr 360px;overflow:hidden}
+@media (max-width:1100px){.ws-grid{grid-template-columns:260px 1fr 320px}}
+.ws-left{border-right:1px solid var(--g200);display:flex;flex-direction:column;min-height:0;background:#fff}
+.ws-tabs{flex-shrink:0;display:flex;border-bottom:1px solid var(--g200)}
+.ws-tab{flex:1;padding:11px 8px;text-align:center;font-size:12px;font-weight:700;color:var(--g500);background:transparent;border:none;border-bottom:2px solid transparent;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:6px}
+.ws-tab.active{color:var(--p700);border-bottom-color:var(--p700)}
+.ws-tab-count{background:var(--g100);color:var(--g600);font-size:10px;font-weight:700;padding:1px 6px;border-radius:8px}
+.ws-tab.active .ws-tab-count{background:var(--p100);color:var(--p700)}
+.ws-tab-body{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column}
+
+.ws-map-wrap{position:relative;min-height:0;background:var(--g100)}
+.ws-map{width:100%;height:100%}
+.map-legend{position:absolute;bottom:12px;left:12px;background:rgba(255,255,255,.96);border-radius:8px;padding:8px 10px;font-size:10.5px;box-shadow:0 2px 10px rgba(0,0,0,.12);z-index:500;max-width:190px}
+.map-legend-row{display:flex;align-items:center;gap:6px;padding:2px 0;color:var(--g600)}
+.map-legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.map-empty-hint{position:absolute;top:12px;left:50%;transform:translateX(-50%);background:rgba(15,23,42,.85);color:#fff;font-size:11.5px;padding:7px 14px;border-radius:20px;z-index:500;white-space:nowrap}
+
+.ws-detail{border-left:1px solid var(--g200);overflow-y:auto;min-height:0;background:#fff}
+@media (max-width:900px){.ws-grid{grid-template-columns:1fr}.ws-left,.ws-detail{display:none}}
+
+/* ── ROUTE CARD (left list) ── */
+.route-card{display:flex;gap:9px;padding:11px 12px;border-bottom:1px solid var(--g100);cursor:pointer}
+.route-card:hover{background:var(--g50)}
+.route-card.selected{background:var(--p50);box-shadow:inset 3px 0 0 var(--p700)}
+.route-color-dot{width:10px;height:10px;border-radius:3px;margin-top:3px;flex-shrink:0}
+.route-card-body{flex:1;min-width:0}
+.route-card-top{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.route-card-id{font-weight:700;font-size:12.5px;color:var(--g900);font-family:'SFMono-Regular',Consolas,monospace}
+.route-card-meta{font-size:11px;color:var(--g500);margin-top:3px}
+.route-card-foot{display:flex;align-items:center;gap:8px;margin-top:7px}
+.route-mini-bar{flex:1;height:5px;border-radius:4px;background:var(--g100);overflow:hidden}
+.route-mini-bar-fill{height:100%;border-radius:4px}
+.route-card-cost{font-size:11px;font-weight:700;color:var(--g700);font-family:'SFMono-Regular',Consolas,monospace;white-space:nowrap}
+
+/* ── OUTSTANDING PANE (left list, DO tab) ── */
+.batch-chip-row{display:flex;gap:6px;flex-wrap:wrap;padding:10px 12px;border-bottom:1px solid var(--g100);flex-shrink:0}
+.batch-chip{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:4px 9px;border-radius:14px;border:1px solid var(--g200);background:#fff;color:var(--g600);cursor:pointer}
+.batch-chip.on{background:var(--p50);border-color:var(--p200);color:var(--p700)}
+.do-row{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--g100);font-size:11.5px}
+.do-row.dim{opacity:.4}
+.do-row-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.do-row-body{flex:1;min-width:0}
+.do-row-id{font-family:'SFMono-Regular',Consolas,monospace;font-weight:700;color:var(--g900);font-size:11.5px}
+.do-row-ship{color:var(--g500);font-size:10.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.do-row-meta{font-size:10px;color:var(--g400);white-space:nowrap;flex-shrink:0}
+.ws-pane-sticky-foot{flex-shrink:0;padding:12px;border-top:1px solid var(--g200);background:#fff}
 
 /* ── CONSTRAINT PREVIEW (FR-B11) ── */
-.constraint-row{display:flex;flex-wrap:wrap;gap:6px;padding:10px 16px;border-top:1px solid var(--g200)}
+.constraint-row{display:flex;flex-wrap:wrap;gap:6px}
 .constraint-chip{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;background:#fff;border:1px solid var(--g200);color:var(--g700);padding:3px 9px;border-radius:12px}
 .constraint-chip .lvl{font-size:9px;font-weight:800;letter-spacing:.03em;padding:1px 5px;border-radius:6px}
 .constraint-chip .lvl.hard{background:#fee2e2;color:#b91c1c}
 .constraint-chip .lvl.objective{background:var(--p50);color:var(--p700)}
 
-/* ── PLAN SUMMARY KPI STRIP ── */
-.plan-kpi-strip{display:flex;gap:0;flex-wrap:wrap}
-.plan-kpi{flex:1;min-width:140px;padding:12px 16px;border-right:1px solid var(--g200)}
-.plan-kpi:last-child{border-right:none}
-.plan-kpi-label{font-size:10.5px;font-weight:700;color:var(--g500);text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px}
-.plan-kpi-value{font-size:18px;font-weight:800;color:var(--g900);font-family:'SFMono-Regular',Consolas,monospace}
-.plan-kpi-value.red{color:#b91c1c}
-
 /* ── UNASSIGNED / REASON CODE SUMMARY (FR-H01/H02) ── */
-.unassigned-summary{margin:0 16px 14px;border:1px solid #fecaca;background:#fef2f2;border-radius:8px;overflow:hidden}
-.unassigned-summary-hdr{padding:8px 12px;font-size:11.5px;font-weight:700;color:#b91c1c;display:flex;align-items:center;gap:6px;border-bottom:1px solid #fecaca}
-.unassigned-reason-row{padding:7px 12px;font-size:11.5px;color:#7f1d1d;border-bottom:1px solid #fee2e2;display:flex;gap:8px;align-items:flex-start}
+.unassigned-summary{margin:10px 12px;border:1px solid #fecaca;background:#fef2f2;border-radius:8px;overflow:hidden;flex-shrink:0}
+.unassigned-summary-hdr{padding:8px 10px;font-size:11px;font-weight:700;color:#b91c1c;display:flex;align-items:center;gap:6px;border-bottom:1px solid #fecaca}
+.unassigned-reason-row{padding:7px 10px;font-size:10.8px;color:#7f1d1d;border-bottom:1px solid #fee2e2;display:flex;flex-direction:column;gap:2px}
 .unassigned-reason-row:last-child{border-bottom:none}
-.unassigned-reason-code{font-family:'SFMono-Regular',Consolas,monospace;font-weight:700;font-size:10.5px;background:#fecaca;padding:1px 6px;border-radius:5px;flex-shrink:0;white-space:nowrap}
+.unassigned-reason-code{font-family:'SFMono-Regular',Consolas,monospace;font-weight:700;font-size:10px;background:#fecaca;padding:1px 6px;border-radius:5px;align-self:flex-start}
 
 /* ── COST BREAKDOWN (FR-C01/C02) ── */
 .cost-breakdown{margin:0 14px 12px;padding:10px 12px;background:var(--g50);border:1px solid var(--g200);border-radius:8px}
@@ -181,19 +188,8 @@ table.do-table tbody tr.allocated{opacity:.45}
 .cost-row.total{border-top:1px solid var(--g200);margin-top:4px;padding-top:6px;font-weight:700;color:var(--g900)}
 .cost-row.total b{font-size:13px}
 
-/* ── SHIPMENT MASTER-DETAIL ── */
-.shipment-master-detail{display:flex;align-items:stretch}
-.shipment-list-col{width:340px;flex-shrink:0;border-right:1px solid var(--g200);overflow-y:auto;max-height:680px}
-.shipment-detail-col{flex:1;min-width:0;overflow-y:auto;max-height:680px}
-@media (max-width:860px){.shipment-master-detail{flex-direction:column}.shipment-list-col{width:100%;border-right:none;border-bottom:1px solid var(--g200);max-height:280px}}
-.shipment-row{display:flex;flex-direction:column;gap:5px;padding:12px 14px;border-bottom:1px solid var(--g100);cursor:pointer;transition:background .12s}
-.shipment-row:hover{background:var(--g50)}
-.shipment-row.selected{background:var(--p50);box-shadow:inset 3px 0 0 var(--p700)}
-.shipment-row-top{display:flex;align-items:center;gap:8px}
-.shipment-row-meta{font-size:11px;color:var(--g500);display:flex;gap:10px;flex-wrap:wrap}
-.shipment-row-badges{display:flex;gap:6px;flex-wrap:wrap}
-
-.shipment-card-hdr{padding:12px 14px;background:var(--g50);border-bottom:1px solid var(--g200);display:flex;align-items:center;gap:8px}
+/* ── SHIPMENT DETAIL PANEL ── */
+.shipment-card-hdr{padding:14px;background:var(--g50);border-bottom:1px solid var(--g200);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .shipment-card-id{font-weight:700;font-size:13px;color:var(--g900)}
 .shipment-card-body{padding:14px}
 .do-chip-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
@@ -207,16 +203,11 @@ table.do-table tbody tr.allocated{opacity:.45}
 .binding-note{font-size:11px;color:var(--g500);margin-bottom:12px}
 .binding-note b{color:var(--g800)}
 
-/* ── ROUTE PLAN ── */
 .route-card-hdr{padding:12px 14px;background:var(--g50);border-bottom:1px solid var(--g200);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .route-fit-pill{margin-left:auto;font-size:11px;font-weight:700;padding:3px 10px;border-radius:12px}
 .route-fit-pill.fit{background:#dcfce7;color:#15803d}
 .route-fit-pill.evicted{background:#fef3c7;color:#b45309}
-.route-body{display:grid;grid-template-columns:1.1fr 1fr;gap:0;border-bottom:1px solid var(--g200)}
-@media (max-width:900px){.route-body{grid-template-columns:1fr}}
-.route-map{height:300px;border-right:1px solid var(--g200)}
-@media (max-width:900px){.route-map{border-right:none;border-bottom:1px solid var(--g200)}}
-.route-seq{padding:12px 14px;max-height:380px;overflow-y:auto}
+.route-seq{padding:12px 14px}
 .seq-stop{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--g100)}
 .seq-stop:last-child{border-bottom:none}
 .seq-num{width:22px;height:22px;border-radius:50%;background:var(--p700);color:#fff;font-size:10.5px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
@@ -231,15 +222,34 @@ table.do-table tbody tr.allocated{opacity:.45}
 .summary-item{font-size:11px;color:var(--g500)}
 .summary-item b{color:var(--g900);font-family:'SFMono-Regular',Consolas,monospace;font-weight:700}
 
+.cluster-pill{display:inline-flex;align-items:center;font-size:11px;font-weight:600;background:var(--p50);color:var(--p700);padding:2px 9px;border-radius:12px}
+.rdd-pill{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:2px 9px;border-radius:12px}
+.rdd-pill.urgent{background:#fee2e2;color:#b91c1c}
+.rdd-pill.soon{background:#fef3c7;color:#b45309}
+.rdd-pill.later{background:#dcfce7;color:#15803d}
+.status-pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:2px 9px;border-radius:12px}
+.status-pill.outstanding{background:var(--g100);color:var(--g600)}
+.status-pill.allocated{background:#dcfce7;color:#15803d}
+.status-pill.returned{background:#fef3c7;color:#b45309}
+.status-pill.unassigned{background:#fee2e2;color:#b91c1c;cursor:help}
+.access-flag{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;color:#b45309;margin-left:4px}
+
 .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;gap:10px}
 .empty-state i{font-size:32px;color:var(--p200)}
 .empty-title{font-size:14px;font-weight:600;color:var(--g700)}
 .empty-sub{font-size:11.5px;color:var(--g400);text-align:center;line-height:1.6;max-width:340px}
 
-.flow-diagram{display:flex;align-items:center;gap:6px;padding:16px;flex-wrap:wrap;font-size:11.5px;color:var(--g600)}
-.flow-node{background:var(--g50);border:1px solid var(--g200);border-radius:20px;padding:6px 14px;font-weight:600;white-space:nowrap}
-.flow-node.on{background:var(--p700);color:#fff;border-color:var(--p700)}
-.flow-arrow{color:var(--g300)}
+/* ── SETTINGS DRAWER ── */
+.settings-overlay{position:fixed;inset:0;background:rgba(15,23,42,.4);z-index:4000;display:none;justify-content:flex-end}
+.settings-overlay.open{display:flex}
+.settings-drawer{width:380px;max-width:92vw;background:#fff;height:100%;box-shadow:-8px 0 30px rgba(0,0,0,.15);display:flex;flex-direction:column}
+.settings-hdr{padding:16px 18px;border-bottom:1px solid var(--g200);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.settings-title{font-size:14px;font-weight:700;color:var(--g900)}
+.settings-body{flex:1;overflow-y:auto;padding:16px 18px;display:flex;flex-direction:column;gap:16px}
+.settings-group label{font-size:10.5px;font-weight:700;color:var(--g500);text-transform:uppercase;letter-spacing:.3px;display:block;margin-bottom:6px}
+.settings-group .filter-input{width:100%}
+.settings-row-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.settings-foot{flex-shrink:0;padding:14px 18px;border-top:1px solid var(--g200);display:flex;gap:8px}
 
 #app-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--sb);color:#fff;padding:10px 20px;border-radius:10px;font-size:12px;font-weight:500;z-index:9999;transition:transform .3s ease,opacity .3s ease;opacity:0;pointer-events:none;display:flex;align-items:center;gap:8px;max-width:440px;box-shadow:0 4px 20px rgba(0,0,0,.25)}
 
@@ -458,118 +468,105 @@ table.do-table tbody tr.allocated{opacity:.45}
       <div class="page-breadcrumb">Order Management</div>
       <div class="page-title">Planning Optimization</div>
     </div>
-    <div class="hdr-spacer"></div>
-    <span class="spec-tag">SG-PLN-OPT-002 · Phase 1</span>
   </div>
 
   <div class="body-wrap">
 
-    <!-- FLOW OVERVIEW -->
-    <div class="panel">
-      <div class="flow-diagram" id="flowDiagram"></div>
-      <div class="plan-kpi-strip" id="planKpiStrip" style="border-top:1px solid var(--g200)"></div>
+    <!-- TOP BAR: primary actions + KPI cards -->
+    <div class="ws-topbar">
+      <div class="ws-topbar-row">
+        <button class="btn btn-primary" id="btnRunFull" onclick="runFullOptimization()"><i class="fa-solid fa-wand-magic-sparkles"></i> Optimalkan Muat &amp; Rute</button>
+        <button class="btn btn-danger-ghost btn-sm" onclick="runScenarioNotFit()" title="Cari/buat shipment yang butuh eviction"><i class="fa-solid fa-triangle-exclamation"></i> Skenario: Route Tidak Fit</button>
+        <div class="hdr-spacer"></div>
+        <button class="btn btn-outline btn-sm" onclick="openSettingsDrawer()"><i class="fa-solid fa-sliders"></i> Pengaturan</button>
+      </div>
+      <div class="kpi-cards" id="kpiCards"></div>
     </div>
 
-    <!-- STAGE 0: CONFIG -->
-    <div class="panel">
-      <div class="config-bar">
-        <div class="config-item">
-          <label>Armada Tersedia (Shipping Point: DC Solo)</label>
-          <div id="fleetSummary" style="display:flex;gap:6px;flex-wrap:wrap;padding-top:5px"></div>
+    <!-- WORKSPACE: left list | map | detail -->
+    <div class="ws-grid">
+      <div class="ws-left">
+        <div class="ws-tabs">
+          <button class="ws-tab active" data-tab="routes" onclick="setWsTab('routes')">Rute <span class="ws-tab-count" id="wsTabRoutesCount">0</span></button>
+          <button class="ws-tab" data-tab="outstanding" onclick="setWsTab('outstanding')">Outstanding <span class="ws-tab-count" id="wsTabOutstandingCount">0</span></button>
         </div>
-        <div class="config-item">
+        <div class="ws-tab-body" id="wsRoutesPane"></div>
+        <div class="ws-tab-body" id="wsOutstandingPane" style="display:none"></div>
+      </div>
+
+      <div class="ws-map-wrap">
+        <div id="overviewMap" class="ws-map"></div>
+        <div class="map-legend" id="mapLegend"></div>
+        <div class="map-empty-hint" id="mapEmptyHint" style="display:none"></div>
+      </div>
+
+      <div class="ws-detail" id="wsDetail">
+        <div class="empty-state" style="padding-top:60px">
+          <i class="fa-solid fa-route"></i>
+          <div class="empty-title">Pilih rute</div>
+          <div class="empty-sub">Klik salah satu kartu rute di kiri, atau titik/garis di peta, untuk melihat detail dan menjalankan Route Optimization.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- SETTINGS DRAWER -->
+<div class="settings-overlay" id="settingsOverlay" onclick="if(event.target===this) closeSettingsDrawer()">
+  <div class="settings-drawer">
+    <div class="settings-hdr">
+      <div>
+        <div class="settings-title">Pengaturan Simulasi</div>
+        <span class="spec-tag">SG-PLN-OPT-002 · Phase 1</span>
+      </div>
+      <button class="lp-close-btn" onclick="closeSettingsDrawer()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="settings-body">
+      <div class="settings-group">
+        <label>Armada Tersedia (Shipping Point: DC Solo)</label>
+        <div id="fleetSummary" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+      </div>
+      <div class="settings-row-2">
+        <div class="settings-group">
           <label>Safety Factor (α)</label>
           <input class="filter-input" type="number" id="alphaInput" value="90" min="50" max="100" step="1">
         </div>
-        <div class="config-item">
-          <label>Jam Kerja Driver</label>
-          <div style="display:flex;gap:6px;align-items:center">
-            <input class="filter-input" type="text" id="shiftStart" value="07:00" style="width:60px">
-            <span style="color:var(--g400)">–</span>
-            <input class="filter-input" type="text" id="shiftEnd" value="17:00" style="width:60px">
-          </div>
-        </div>
-        <div class="config-item">
+        <div class="settings-group">
           <label>Service Time / Stop</label>
           <input class="filter-input" type="number" id="serviceTimeInput" value="30" min="5" max="120" step="5">
         </div>
-        <div class="config-item">
-          <label>Jumlah DO (Simulasi)</label>
-          <input class="filter-input" type="number" id="doCountInput" value="300" min="50" max="1000" step="50" style="width:76px">
-        </div>
-        <div class="config-item">
-          <label>Target Stop / Shipment</label>
-          <input class="filter-input" type="number" id="targetStopsInput" value="14" min="8" max="22" step="1" style="width:64px">
-        </div>
-        <div class="config-item" style="justify-content:flex-end">
-          <label>&nbsp;</label>
-          <button class="btn btn-primary btn-sm" onclick="generateSimulationFromInputs()"><i class="fa-solid fa-shuffle"></i> Generate Simulasi</button>
-        </div>
-        <div class="config-item" style="justify-content:flex-end">
-          <label>&nbsp;</label>
-          <button class="btn btn-outline btn-sm" onclick="resetSimulation()"><i class="fa-solid fa-rotate-left"></i> Reset Simulasi</button>
+      </div>
+      <div class="settings-group">
+        <label>Jam Kerja Driver</label>
+        <div style="display:flex;gap:6px;align-items:center">
+          <input class="filter-input" type="text" id="shiftStart" value="07:00" style="width:100%">
+          <span style="color:var(--g400)">–</span>
+          <input class="filter-input" type="text" id="shiftEnd" value="17:00" style="width:100%">
         </div>
       </div>
-      <div style="padding:8px 16px 12px;font-size:11px;color:var(--g400);border-top:1px solid var(--g200)">
+      <div class="settings-row-2">
+        <div class="settings-group">
+          <label>Jumlah DO (Simulasi)</label>
+          <input class="filter-input" type="number" id="doCountInput" value="300" min="50" max="1000" step="50">
+        </div>
+        <div class="settings-group">
+          <label>Target Stop / Shipment</label>
+          <input class="filter-input" type="number" id="targetStopsInput" value="14" min="8" max="22" step="1">
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--g400);line-height:1.6">
         Simulasi menyebar DO ke 7 cluster (Staging Bay) di sekitar DC Solo — ukuran tiap DO diacak di sekitar rata-rata yang membuat satu shipment penuh berisi kira-kira sejumlah "Target Stop / Shipment" di atas. Kendaraan tidak dipilih manual — Load Optimization otomatis memilih unit ter-pas dari armada yang tersedia di Shipping Point ini.
       </div>
-      <div class="constraint-row" id="constraintPreview"></div>
-    </div>
-
-    <!-- STAGE 1: DO POOL -->
-    <div class="panel">
-      <div class="panel-hdr-row">
-        <div class="panel-num">1</div>
-        <div>
-          <div class="panel-title">Outstanding DO Pool</div>
-          <div class="panel-sub">Batch Planning (§7) — DO dikelompokkan berdasarkan cutoff waktunya. Load Optimization dapat dijalankan atas satu batch atau seluruh batch sekaligus.</div>
-        </div>
-      </div>
-      <div class="pool-toolbar" id="poolToolbar"></div>
-      <div style="overflow:auto;max-height:420px">
-        <table class="do-table">
-          <thead>
-            <tr>
-              <th>No. DO</th>
-              <th>Ship To</th>
-              <th>Volume (m³)</th>
-              <th>Weight (kg)</th>
-              <th>Cluster</th>
-              <th>RDD</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody id="doPoolBody"></tbody>
-        </table>
-      </div>
-      <div id="unassignedSummaryWrap" style="padding-top:14px"></div>
-      <div style="padding:14px 16px;border-top:1px solid var(--g200)">
-        <button class="btn btn-primary" id="runLoadBtn" onclick="runLoadOptimizationStage()"><i class="fa-solid fa-cubes"></i> Jalankan Load Optimization</button>
+      <div class="settings-group">
+        <label>Constraint Aktif</label>
+        <div class="constraint-row" id="constraintPreview"></div>
       </div>
     </div>
-
-    <!-- STAGE 2: DRAFT SHIPMENT & ROUTE PLAN (combined master-detail) -->
-    <div class="panel">
-      <div class="panel-hdr-row">
-        <div class="panel-num">2</div>
-        <div>
-          <div class="panel-title">Draft Shipment &amp; Route Plan</div>
-          <div class="panel-sub">Load Optimization (§8.4) membentuk shipment di sebelah kiri — klik salah satu untuk menjalankan Route Optimization (§9.4) dan melihat urutan stop beserta peta di sebelah kanan.</div>
-        </div>
-        <div style="margin-left:auto;display:flex;gap:8px">
-          <button class="btn btn-danger-ghost btn-sm" onclick="runScenarioNotFit()" title="Cari/buat shipment yang butuh eviction karena melebihi Time Budget"><i class="fa-solid fa-triangle-exclamation"></i> Skenario: Route Tidak Fit</button>
-          <button class="btn btn-outline btn-sm" onclick="runRouteOptimizationForAll()"><i class="fa-solid fa-route"></i> Jalankan Route Optimization — Semua Shipment</button>
-        </div>
-      </div>
-      <div class="shipment-master-detail" id="shipmentMasterDetail">
-        <div class="empty-state">
-          <i class="fa-solid fa-boxes-stacked"></i>
-          <div class="empty-title">Belum ada Draft Shipment</div>
-          <div class="empty-sub">Jalankan Load Optimization dari Panel 1 untuk membentuk Draft Shipment.</div>
-        </div>
-      </div>
+    <div class="settings-foot">
+      <button class="btn btn-primary btn-sm" style="flex:1;justify-content:center" onclick="generateSimulationFromInputs()"><i class="fa-solid fa-shuffle"></i> Generate Simulasi</button>
+      <button class="btn btn-outline btn-sm" style="flex:1;justify-content:center" onclick="resetSimulation()"><i class="fa-solid fa-rotate-left"></i> Reset Simulasi</button>
     </div>
-
   </div>
 </div>
 
@@ -629,6 +626,14 @@ const CLUSTERS = {
   // source of genuine Time Budget Fit Test failures rather than a rare fluke.
   G: { label: 'Wonogiri',       share: 0.08, center: { lat: -7.8014, lng: 110.9229 }, jitterKm: 15 },
 };
+// Cluster colors for the overview map (before any DO is on a route) — same
+// hue set used on the Planning page's Staging Bay cluster map, for a
+// consistent color language across the two pages.
+const CLUSTER_COLORS = { A:'#4f46e5', B:'#0ea5e9', C:'#14b8a6', D:'#84cc16', E:'#f59e0b', F:'#ec4899', G:'#a855f7' };
+// Route colors, assigned to each Draft Shipment in creation order and
+// cycled (there are usually more shipments than palette colors) so every
+// route is visually distinguishable on the map and in the left list.
+const ROUTE_PALETTE = ['#4f46e5','#0ea5e9','#14b8a6','#84cc16','#f59e0b','#ec4899','#a855f7','#ef4444','#22c55e','#eab308','#06b6d4','#f97316'];
 
 // RDD is stored as a real Date (rddAt) so it displays as an actual date/time
 // rather than an abstract tag — but Route Optimization still needs to group
@@ -798,8 +803,7 @@ let doStatus = {};                  // doId -> 'outstanding' | 'allocated' | 're
 let doReason = {};                  // doId -> {code, detail} — FR-H01/H02 explainability, set whenever a DO is rejected or evicted
 let draftShipments = [];            // result of Load Optimization
 let routePlans = {};                // shipmentId -> route plan result
-let selectedShipmentId = null;      // which shipment is showing in the detail pane
-let detailMap = null;               // single Leaflet map instance, reused for whichever shipment is selected
+let selectedShipmentId = null;      // which shipment is showing in the detail panel
 
 function initState(){
   includedBatches = new Set([1, 2, 3]);
@@ -810,7 +814,6 @@ function initState(){
   routePlans = {};
   selectedShipmentId = null;
   fleetAssignCounter = {};
-  if (detailMap) { detailMap.remove(); detailMap = null; }
 }
 
 function activePool(){
@@ -1061,6 +1064,7 @@ function runLoadOptimizationStage(){
   fleetAssignCounter = {}; // fresh plate cycling for this run
   const result = runLoadOptimization(eligible, alpha, serviceTime);
   draftShipments = result.shipments;
+  draftShipments.forEach((s,i) => { s.color = ROUTE_PALETTE[i % ROUTE_PALETTE.length]; });
   draftShipments.forEach(s => s.items.forEach(d => { doStatus[d.id] = 'allocated'; delete doReason[d.id]; }));
   result.unassigned.forEach(u => { doStatus[u.do.id] = 'unassigned'; doReason[u.do.id] = { code: u.code, detail: u.detail }; });
   routePlans = {}; // invalidate previous route plans on re-run
@@ -1341,6 +1345,7 @@ function runScenarioNotFit(){
     fleetAssignCounter = {};
     const result = runLoadOptimization(eligible, alpha, serviceTime);
     draftShipments = result.shipments;
+    draftShipments.forEach((s,i) => { s.color = ROUTE_PALETTE[i % ROUTE_PALETTE.length]; });
     draftShipments.forEach(s => s.items.forEach(d => { doStatus[d.id] = 'allocated'; delete doReason[d.id]; }));
     result.unassigned.forEach(u => { doStatus[u.do.id] = 'unassigned'; doReason[u.do.id] = { code: u.code, detail: u.detail }; });
     routePlans = {};
@@ -1650,104 +1655,138 @@ function renderConstraintPreview(){
     ['Objective: Biaya Total', 'objective'],
   ];
   document.getElementById('constraintPreview').innerHTML =
-    `<span style="font-size:10.5px;font-weight:700;color:var(--g500);text-transform:uppercase;letter-spacing:.3px;align-self:center;margin-right:2px">Constraint Aktif:</span>` +
     chips.map(([label, lvl]) => `<span class="constraint-chip">${escapeHtml(label)} <span class="lvl ${lvl}">${lvl.toUpperCase()}</span></span>`).join('');
 }
 
-// Plan-level KPI strip (FR-C01 transparency + FR-J02-style summary): total
+// Top KPI cards (FR-C01 transparency + FR-J02-style summary): total
 // shipments/cost/unassigned at a glance, updated every render.
-function renderPlanSummary(){
+function renderKpiCards(){
   const planCost = computePlanCost();
   const allocated = ALL_DOS.filter(d => doStatus[d.id] === 'allocated').length;
+  const avgLoadFactor = draftShipments.length
+    ? draftShipments.reduce((a,s) => a + s.loadFactor, 0) / draftShipments.length
+    : 0;
   const kpis = [
-    ['Draft Shipment', draftShipments.length],
-    ['DO Ter-assign', allocated],
-    ['Estimasi Biaya Plan', planCost.routedCount ? fmtRupiah(planCost.total) : '—', planCost.routedCount ? '' : 'red'],
-    ['DO Belum Ter-assign', planCost.unassignedCount, planCost.unassignedCount ? 'red' : ''],
+    ['fa-boxes-stacked', 'var(--p600)', 'Draft Shipment', draftShipments.length],
+    ['fa-circle-check', 'var(--green)', 'DO Ter-assign', allocated],
+    ['fa-triangle-exclamation', 'var(--red)', 'DO Belum Ter-assign', planCost.unassignedCount],
+    ['fa-coins', '#8b5cf6', 'Estimasi Biaya Plan', planCost.routedCount ? fmtRupiah(planCost.total) : '—'],
+    ['fa-gauge-high', 'var(--amber)', 'Rata-rata Load Factor', draftShipments.length ? avgLoadFactor.toFixed(0)+'%' : '—'],
   ];
-  document.getElementById('planKpiStrip').innerHTML = kpis.map(([label, value, cls]) =>
-    `<div class="plan-kpi"><div class="plan-kpi-label">${escapeHtml(label)}</div><div class="plan-kpi-value ${cls||''}">${value}</div></div>`
-  ).join('');
-}
-
-function renderFlowDiagram(){
-  const stages = [
-    { label:'Outstanding DO Pool', on: true },
-    { label:'[1] Load Optimization', on: draftShipments.length>0 },
-    { label:'Draft Shipment + Load Factor', on: draftShipments.length>0 },
-    { label:'[2] Route Optimization', on: Object.keys(routePlans).length>0 },
-    { label:'Route Plan', on: Object.keys(routePlans).length>0 },
-    { label:'Assign ke Driver (Planned)', on: false },
-  ];
-  document.getElementById('flowDiagram').innerHTML = stages.map((s,i) =>
-    `<span class="flow-node${s.on?' on':''}">${escapeHtml(s.label)}</span>` + (i<stages.length-1 ? `<span class="flow-arrow"><i class="fa-solid fa-arrow-right"></i></span>` : '')
-  ).join('');
-}
-
-function renderPoolToolbar(){
-  const includedCount = activePool().length;
-  document.getElementById('poolToolbar').innerHTML = BATCHES.map(b => {
-    const groupCount = ALL_DOS.filter(d => d.batch === b.key).length;
-    const included = includedBatches.has(b.key);
-    return `<label class="do-group-check">
-      <input type="checkbox" ${included?'checked':''} onchange="toggleBatchIncluded(${b.key})">
-      <span>Batch ${escapeHtml(b.label)} <span class="do-group-count">(${groupCount} DO)</span></span>
-    </label>`;
-  }).join('') + `<span class="pool-summary">Pool terpilih untuk Load Optimization: <b>${includedCount}</b> / ${ALL_DOS.length} DO</span>`;
+  document.getElementById('kpiCards').innerHTML = kpis.map(([icon, color, label, value]) => `
+    <div class="kpi-card">
+      <div class="kpi-card-icon" style="background:${color}"><i class="fa-solid ${icon}"></i></div>
+      <div>
+        <div class="kpi-card-label">${escapeHtml(label)}</div>
+        <div class="kpi-card-value">${value}</div>
+      </div>
+    </div>`).join('');
 }
 
 function toggleBatchIncluded(key){
   if (includedBatches.has(key)) includedBatches.delete(key);
   else includedBatches.add(key);
-  renderPoolToolbar();
-  renderDoPool();
-  document.getElementById('runLoadBtn').disabled = !activePool().some(d => doStatus[d.id]==='outstanding');
+  renderOutstandingPane();
 }
 
-function renderDoPool(){
-  const rows = [];
-  BATCHES.forEach(b => {
-    const groupDos = ALL_DOS.filter(d => d.batch === b.key);
-    if (!groupDos.length) return;
+function setWsTab(tab){
+  document.querySelectorAll('.ws-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.getElementById('wsRoutesPane').style.display = tab === 'routes' ? '' : 'none';
+  document.getElementById('wsOutstandingPane').style.display = tab === 'outstanding' ? '' : 'none';
+}
+
+function openSettingsDrawer(){ document.getElementById('settingsOverlay').classList.add('open'); }
+function closeSettingsDrawer(){ document.getElementById('settingsOverlay').classList.remove('open'); }
+
+// ── LEFT PANEL: Rute tab ──
+function renderRoutesPane(){
+  const pane = document.getElementById('wsRoutesPane');
+  document.getElementById('wsTabRoutesCount').textContent = draftShipments.length;
+  if (!draftShipments.length){
+    pane.innerHTML = `<div class="empty-state" style="padding-top:40px">
+      <i class="fa-solid fa-boxes-stacked"></i>
+      <div class="empty-title">Belum ada rute</div>
+      <div class="empty-sub">Jalankan "Optimalkan Muat &amp; Rute" di atas, atau mulai dari tab Outstanding.</div>
+    </div>`;
+    return;
+  }
+  pane.innerHTML = draftShipments.map(s => {
+    const plan = routePlans[s.id];
+    const selected = s.id === selectedShipmentId;
+    const fitBadge = plan
+      ? `<span class="route-fit-pill ${plan.fits ? 'fit' : 'evicted'}" style="margin-left:0">${plan.fits ? 'Fit ✓' : 'Evicted'}</span>`
+      : `<span class="status-pill outstanding">Belum di-routing</span>`;
+    return `<div class="route-card${selected ? ' selected' : ''}" onclick="selectShipment('${s.id}')">
+      <span class="route-color-dot" style="background:${s.color}"></span>
+      <div class="route-card-body">
+        <div class="route-card-top">
+          <span class="route-card-id">${s.id}</span>
+          ${clusterPill(s.cluster)}
+          <span style="margin-left:auto;font-size:11px;color:var(--g500);font-weight:600">${s.items.length} DO</span>
+        </div>
+        <div class="route-card-meta">${escapeHtml(s.vehicle.label)} · ${escapeHtml(s.vehicle.plate)}</div>
+        <div class="route-card-foot">
+          <div class="route-mini-bar"><div class="route-mini-bar-fill ${loadBarClass(s.loadFactor)}" style="width:${Math.min(s.loadFactor,100)}%;background:currentColor"></div></div>
+          <span class="route-card-cost">${plan && plan.cost ? fmtRupiah(plan.cost.total) : ''}</span>
+        </div>
+        <div class="route-card-foot">${fitBadge}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── LEFT PANEL: Outstanding tab (batch filter + compact DO list + reasons) ──
+function renderOutstandingPane(){
+  const pane = document.getElementById('wsOutstandingPane');
+  // "Outstanding" here means everything not currently riding a route — the
+  // untouched pool plus anything rejected/evicted back out of one. Already-
+  // allocated DOs are represented by their Route card in the other tab
+  // instead, so they're left out here to keep this list actionable.
+  const relevantDos = ALL_DOS.filter(d => doStatus[d.id] !== 'allocated');
+  document.getElementById('wsTabOutstandingCount').textContent = relevantDos.length;
+
+  const includedCount = activePool().length;
+  const batchChips = BATCHES.map(b => {
+    const groupCount = ALL_DOS.filter(d => d.batch === b.key).length;
     const included = includedBatches.has(b.key);
-    rows.push(`<tr class="do-group-row${included?'':' excluded'}">
-      <td colspan="7">
-        <label class="do-group-check">
-          <input type="checkbox" ${included?'checked':''} onchange="toggleBatchIncluded(${b.key})">
-          <span>Batch ${escapeHtml(b.label)} <span class="do-group-count">— ${groupDos.length} DO${included?'':' · dikecualikan dari Load Optimization'}</span></span>
-        </label>
-      </td>
-    </tr>`);
-    groupDos.forEach(d => {
-      const status = doStatus[d.id];
-      const rowCls = [status === 'allocated' ? 'allocated' : '', included ? '' : 'excluded-row'].filter(Boolean).join(' ');
-      const statusLabel = { outstanding:'Outstanding', allocated:'Allocated', returned:'Returned to Pool', unassigned:'Unassigned' }[status];
-      const reason = doReason[d.id];
-      const reasonTitle = reason ? `${reason.code}: ${reason.detail}` : '';
-      const accessFlag = d.accessRestricted ? `<span class="access-flag" title="Akses lokasi dibatasi maks. Engkel"><i class="fa-solid fa-ban"></i> Engkel</span>` : '';
-      rows.push(`<tr class="${rowCls}">
-        <td class="do-id">${d.id}</td>
-        <td>${escapeHtml(d.shipTo)}${accessFlag}</td>
-        <td>${d.volume.toFixed(1)}</td>
-        <td>${d.weight}</td>
-        <td>${clusterPill(d.cluster)}</td>
-        <td><span class="rdd-pill ${RDD_CLASS[d.rdd]}">${fmtRddDate(d.rddAt)}</span></td>
-        <td><span class="status-pill ${status}" ${reasonTitle ? `title="${escapeHtml(reasonTitle)}"` : ''}>${statusLabel}</span></td>
-      </tr>`);
-    });
-  });
-  document.getElementById('doPoolBody').innerHTML = rows.join('');
-  renderUnassignedSummary();
+    return `<span class="batch-chip ${included?'on':''}" onclick="toggleBatchIncluded(${b.key})">Batch ${escapeHtml(b.label)} (${groupCount})</span>`;
+  }).join('');
+
+  const rows = relevantDos.map(d => {
+    const status = doStatus[d.id];
+    const included = includedBatches.has(d.batch);
+    const reason = doReason[d.id];
+    const reasonTitle = reason ? `${reason.code}: ${reason.detail}` : '';
+    const accessFlag = d.accessRestricted ? `<span class="access-flag" title="Akses lokasi dibatasi maks. Engkel"><i class="fa-solid fa-ban"></i></span>` : '';
+    return `<div class="do-row${included?'':' dim'}" title="${reasonTitle ? escapeHtml(reasonTitle) : ''}" onclick="focusMapOnDo('${d.id}')">
+      <span class="do-row-dot" style="background:${CLUSTER_COLORS[d.cluster]}"></span>
+      <div class="do-row-body">
+        <div class="do-row-id">${d.id} ${accessFlag}</div>
+        <div class="do-row-ship">${escapeHtml(d.shipTo)}</div>
+      </div>
+      <span class="rdd-pill ${RDD_CLASS[d.rdd]}" style="flex-shrink:0">${fmtRddDate(d.rddAt)}</span>
+      <span class="status-pill ${status}">${{outstanding:'Outstanding',allocated:'Allocated',returned:'Returned',unassigned:'Unassigned'}[status]}</span>
+    </div>`;
+  }).join('');
+
+  pane.innerHTML = `
+    <div class="batch-chip-row">${batchChips}</div>
+    <div style="flex:1;overflow-y:auto">${rows}</div>
+    ${unassignedSummaryHtml()}
+    <div class="ws-pane-sticky-foot">
+      <button class="btn btn-primary" id="runLoadBtn" style="width:100%;justify-content:center" onclick="runLoadOptimizationStage()" ${!activePool().some(d=>doStatus[d.id]==='outstanding') ? 'disabled' : ''}>
+        <i class="fa-solid fa-cubes"></i> Jalankan Load Optimization (${includedCount} DO)
+      </button>
+    </div>`;
 }
 
 // FR-H01/H02 — explainability: every DO that isn't on a route (rejected at
 // Load Optimization, or evicted during Route Optimization) is grouped here
 // by reason code with its actionable detail, instead of silently sitting in
 // the pool with no explanation.
-function renderUnassignedSummary(){
-  const wrap = document.getElementById('unassignedSummaryWrap');
+function unassignedSummaryHtml(){
   const withReason = ALL_DOS.filter(d => doReason[d.id] && (doStatus[d.id] === 'unassigned' || doStatus[d.id] === 'returned'));
-  if (!withReason.length){ wrap.innerHTML = ''; return; }
+  if (!withReason.length) return '';
 
   const byCode = {};
   withReason.forEach(d => { (byCode[doReason[d.id].code] ||= []).push(d); });
@@ -1759,12 +1798,12 @@ function renderUnassignedSummary(){
     MANUAL_TAKE_OUT: 'Dikeluarkan Manual',
   };
 
-  wrap.innerHTML = `<div class="unassigned-summary">
-    <div class="unassigned-summary-hdr"><i class="fa-solid fa-circle-exclamation"></i> ${withReason.length} DO belum ter-assign ke route — alasan per reason code</div>
+  return `<div class="unassigned-summary">
+    <div class="unassigned-summary-hdr"><i class="fa-solid fa-circle-exclamation"></i> ${withReason.length} DO belum ter-assign — alasan</div>
     ${Object.entries(byCode).map(([code, list]) => `
       <div class="unassigned-reason-row">
         <span class="unassigned-reason-code">${code}</span>
-        <span><b>${list.length} DO</b> (${list.slice(0,4).map(d=>d.id).join(', ')}${list.length>4?', …':''}) — ${codeLabel[code]||code}. Contoh: ${escapeHtml(doReason[list[0].id].detail)}</span>
+        <span><b>${list.length} DO</b> — ${codeLabel[code]||code}. Contoh: ${escapeHtml(doReason[list[0].id].detail)}</span>
       </div>`).join('')}
   </div>`;
 }
@@ -1783,63 +1822,28 @@ function fmtClock(startMin, addMin){
 
 function selectShipment(id){
   selectedShipmentId = id;
-  renderShipmentList();
-  renderShipmentDetail();
+  renderRoutesPane();
+  renderDetailPanel();
+  focusMapOnShipment(id);
 }
 
-function renderShipmentMasterDetail(){
-  const container = document.getElementById('shipmentMasterDetail');
-  if (!draftShipments.length){
-    if (detailMap) { detailMap.remove(); detailMap = null; }
-    container.innerHTML = `<div class="empty-state">
-      <i class="fa-solid fa-boxes-stacked"></i>
-      <div class="empty-title">Belum ada Draft Shipment</div>
-      <div class="empty-sub">Jalankan Load Optimization dari Panel 1 untuk membentuk Draft Shipment.</div>
+// ── DETAIL PANEL (right column) ──
+function renderDetailPanel(){
+  const col = document.getElementById('wsDetail');
+  const s = draftShipments.find(x => x.id === selectedShipmentId);
+  if (!s){
+    col.innerHTML = `<div class="empty-state" style="padding-top:60px">
+      <i class="fa-solid fa-route"></i>
+      <div class="empty-title">Pilih rute</div>
+      <div class="empty-sub">Klik salah satu kartu rute di kiri, atau titik/garis di peta, untuk melihat detail dan menjalankan Route Optimization.</div>
     </div>`;
     return;
   }
-  if (!selectedShipmentId || !draftShipments.find(s => s.id === selectedShipmentId)){
-    selectedShipmentId = draftShipments[0].id;
-  }
-  container.innerHTML = `<div class="shipment-list-col" id="shipmentListCol"></div><div class="shipment-detail-col" id="shipmentDetailCol"></div>`;
-  renderShipmentList();
-  renderShipmentDetail();
-}
-
-function renderShipmentList(){
-  const col = document.getElementById('shipmentListCol');
-  if (!col) return;
-  col.innerHTML = draftShipments.map(s => {
-    const plan = routePlans[s.id];
-    const selected = s.id === selectedShipmentId;
-    const fitBadge = plan
-      ? `<span class="route-fit-pill ${plan.fits ? 'fit' : 'evicted'}" style="margin-left:0">${plan.fits ? 'Fit ✓' : 'Evicted'}</span>`
-      : `<span class="status-pill outstanding">Belum di-routing</span>`;
-    return `<div class="shipment-row${selected ? ' selected' : ''}" onclick="selectShipment('${s.id}')">
-      <div class="shipment-row-top">
-        <span class="shipment-card-id">${s.id}</span>
-        ${clusterPill(s.cluster)}
-        <span style="margin-left:auto;font-size:11px;color:var(--g500);font-weight:600">${s.items.length} DO</span>
-      </div>
-      <div class="shipment-row-meta">
-        <span>${escapeHtml(s.vehicle.label)} · ${escapeHtml(s.vehicle.plate)}</span>
-        <span>Load Factor ${s.loadFactor.toFixed(0)}%</span>
-      </div>
-      <div class="shipment-row-badges">${fitBadge}</div>
-    </div>`;
-  }).join('');
-}
-
-function renderShipmentDetail(){
-  const col = document.getElementById('shipmentDetailCol');
-  if (!col) return;
-  if (detailMap) { detailMap.remove(); detailMap = null; }
-  const s = draftShipments.find(x => x.id === selectedShipmentId);
-  if (!s){ col.innerHTML = ''; return; }
   const plan = routePlans[s.id];
 
   let html = `
     <div class="shipment-card-hdr">
+      <span class="route-color-dot" style="background:${s.color}"></span>
       <span class="shipment-card-id">${s.id}</span>
       ${clusterPill(s.cluster)}
       <span style="font-size:11px;color:var(--g500);font-weight:600">${s.items.length} DO</span>
@@ -1882,36 +1886,33 @@ function renderShipmentDetail(){
         <div class="cost-row"><span>Biaya / Drop</span><b>${fmtRupiah(plan.cost.perDrop)}</b></div>
         <div class="cost-row"><span>Biaya / Kg</span><b>${fmtRupiah(plan.cost.perKg)}</b></div>
       </div>` : ''}
-      <div class="route-body">
-        <div class="route-map" id="detailMap"></div>
-        <div class="route-seq">
-          <div class="seq-stop">
-            <div class="seq-num origin"><i class="fa-solid fa-warehouse" style="font-size:9px"></i></div>
-            <div class="seq-info">
-              <div class="seq-title-row"><span class="seq-do">${ORIGIN.name} (Origin)</span></div>
-              <div class="seq-meta">Berangkat ${document.getElementById('shiftStart').value}</div>
-            </div>
+      <div class="route-seq">
+        <div class="seq-stop">
+          <div class="seq-num origin"><i class="fa-solid fa-warehouse" style="font-size:9px"></i></div>
+          <div class="seq-info">
+            <div class="seq-title-row"><span class="seq-do">${ORIGIN.name} (Origin)</span></div>
+            <div class="seq-meta">Berangkat ${document.getElementById('shiftStart').value}</div>
           </div>
-          ${plan.sequence.map((d, i) => {
-            const leg = plan.legs[i];
-            return `<div class="seq-stop">
-              <div class="seq-num">${i+1}</div>
-              <div class="seq-info">
-                <div class="seq-title-row">
-                  <span class="seq-do">${d.id}</span>
-                  <span class="rdd-pill ${RDD_CLASS[d.rdd]}">RDD ${fmtRddDate(d.rddAt)}</span>
-                </div>
-                <div class="seq-meta">${escapeHtml(d.shipTo)} · ${LOCATIONS[d.id].name} · ${leg.km.toFixed(1)} km · tiba ~${fmtClock(shiftStart, leg.cumulative - leg.minutes + travelMinutes(leg.km))} · selesai bongkar ~${fmtClock(shiftStart, leg.cumulative)} · jendela ${fmtClock(0,d.windowStartMin)}–${fmtClock(0,d.windowEndMin)}${d.accessRestricted ? ' · <span class="access-flag" style="margin-left:0"><i class="fa-solid fa-ban"></i> Engkel</span>' : ''}</div>
-              </div>
-              <div class="seq-actions">
-                <button class="btn btn-danger-ghost btn-xs" onclick="takeOutStop('${s.id}','${d.id}')" title="Simulasikan Deviation 1 — take out saat Pickup">
-                  <i class="fa-solid fa-xmark"></i> Take Out
-                </button>
-              </div>
-            </div>`;
-          }).join('')}
-          ${!plan.sequence.length ? `<div style="padding:20px;text-align:center;color:var(--g400);font-size:12px">Semua stop telah di-take-out dari shipment ini.</div>` : ''}
         </div>
+        ${plan.sequence.map((d, i) => {
+          const leg = plan.legs[i];
+          return `<div class="seq-stop">
+            <div class="seq-num">${i+1}</div>
+            <div class="seq-info">
+              <div class="seq-title-row">
+                <span class="seq-do">${d.id}</span>
+                <span class="rdd-pill ${RDD_CLASS[d.rdd]}">RDD ${fmtRddDate(d.rddAt)}</span>
+              </div>
+              <div class="seq-meta">${escapeHtml(d.shipTo)} · ${LOCATIONS[d.id].name} · ${leg.km.toFixed(1)} km · tiba ~${fmtClock(shiftStart, leg.cumulative - leg.minutes + travelMinutes(leg.km))} · selesai bongkar ~${fmtClock(shiftStart, leg.cumulative)} · jendela ${fmtClock(0,d.windowStartMin)}–${fmtClock(0,d.windowEndMin)}${d.accessRestricted ? ' · <span class="access-flag" style="margin-left:0"><i class="fa-solid fa-ban"></i> Engkel</span>' : ''}</div>
+            </div>
+            <div class="seq-actions">
+              <button class="btn btn-danger-ghost btn-xs" onclick="takeOutStop('${s.id}','${d.id}')" title="Simulasikan Deviation 1 — take out saat Pickup">
+                <i class="fa-solid fa-xmark"></i> Take Out
+              </button>
+            </div>
+          </div>`;
+        }).join('')}
+        ${!plan.sequence.length ? `<div style="padding:20px;text-align:center;color:var(--g400);font-size:12px">Semua stop telah di-take-out dari shipment ini.</div>` : ''}
       </div>
       <div class="summary-strip">
         <span class="summary-item">Jumlah Stop <b>${plan.sequence.length}</b></span>
@@ -1928,30 +1929,127 @@ function renderShipmentDetail(){
   }
 
   col.innerHTML = html;
+}
 
-  if (plan && plan.sequence.length){
-    const el = document.getElementById('detailMap');
-    detailMap = L.map(el, { zoomControl:false, attributionControl:false }).setView([ORIGIN.lat, ORIGIN.lng], 12);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(detailMap);
+// ── PERSISTENT OVERVIEW MAP (replaces the old per-shipment embedded map —
+// one map for the whole workspace, Locus/FarEye-style: every DO and route
+// visible at once, list selection zooms/highlights instead of opening a
+// second map) ──
+let overviewMap = null, mapDoLayer = null, mapRouteLayer = null;
+
+function initOverviewMap(){
+  overviewMap = L.map('overviewMap', { zoomControl: true }).setView([ORIGIN.lat, ORIGIN.lng], 11);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors', maxZoom: 18
+  }).addTo(overviewMap);
+  L.marker([ORIGIN.lat, ORIGIN.lng], { icon: L.divIcon({ className:'', html:'<div style="width:26px;height:26px;border-radius:50%;background:#334155;color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.3)">DC</div>', iconSize:[26,26] }) })
+    .addTo(overviewMap).bindPopup(`<b>${escapeHtml(ORIGIN.name)}</b>`);
+  mapDoLayer = L.layerGroup().addTo(overviewMap);
+  mapRouteLayer = L.layerGroup().addTo(overviewMap);
+  window.addEventListener('resize', () => overviewMap && overviewMap.invalidateSize());
+}
+
+function shipmentColorFor(doId){
+  const s = draftShipments.find(sh => sh.items.some(d => d.id === doId));
+  return s ? s.color : null;
+}
+
+function renderOverviewMap(){
+  if (!overviewMap) return;
+  mapDoLayer.clearLayers();
+  mapRouteLayer.clearLayers();
+
+  ALL_DOS.forEach(d => {
+    const loc = LOCATIONS[d.id];
+    const status = doStatus[d.id];
+    let color = CLUSTER_COLORS[d.cluster], radius = 3.5, weight = 1, fillOpacity = 0.55;
+    let ownerShipmentId = null;
+    if (status === 'allocated'){
+      const c = shipmentColorFor(d.id);
+      if (c){ color = c; ownerShipmentId = draftShipments.find(sh => sh.items.some(x => x.id === d.id))?.id; }
+      radius = 4; fillOpacity = 0.85;
+    } else if (status === 'unassigned' || status === 'returned'){
+      color = '#dc2626'; radius = 5; weight = 2; fillOpacity = 0.9;
+    }
+    const reason = doReason[d.id];
+    const marker = L.circleMarker([loc.lat, loc.lng], { radius, color, weight, fillColor: color, fillOpacity })
+      .bindPopup(`<b>${d.id}</b><br>${escapeHtml(d.shipTo)}<br>Status: ${status}${reason ? `<br><span style="color:#b91c1c">${reason.code}</span>` : ''}`);
+    if (ownerShipmentId) marker.on('click', () => selectShipment(ownerShipmentId));
+    marker.addTo(mapDoLayer);
+  });
+
+  draftShipments.forEach(s => {
+    const plan = routePlans[s.id];
+    if (!plan || !plan.sequence.length) return;
     const latlngs = [[ORIGIN.lat, ORIGIN.lng], ...plan.sequence.map(d => [LOCATIONS[d.id].lat, LOCATIONS[d.id].lng])];
-    L.polyline(latlngs, { color:'#4f46e5', weight:3, dashArray:'0' }).addTo(detailMap);
-    L.marker([ORIGIN.lat, ORIGIN.lng], { icon: L.divIcon({ className:'', html:'<div style="width:22px;height:22px;border-radius:50%;background:#334155;color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.3)">DC</div>', iconSize:[22,22] }) }).addTo(detailMap);
-    plan.sequence.forEach((d, i) => {
-      const loc = LOCATIONS[d.id];
-      L.marker([loc.lat, loc.lng], { icon: L.divIcon({ className:'', html:`<div style="width:22px;height:22px;border-radius:50%;background:#4338ca;color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.3)">${i+1}</div>`, iconSize:[22,22] }) })
-        .addTo(detailMap).bindPopup(`<b>${d.id}</b><br>${escapeHtml(d.shipTo)}<br><span style="color:#94a3b8">${loc.name} · RDD ${fmtRddDate(d.rddAt)}</span>`);
-    });
-    detailMap.fitBounds(latlngs, { padding:[24,24] });
+    const isSelected = s.id === selectedShipmentId;
+    const line = L.polyline(latlngs, { color: s.color, weight: isSelected ? 4 : 2, opacity: isSelected ? 0.95 : 0.4 });
+    line.on('click', () => selectShipment(s.id));
+    line.addTo(mapRouteLayer);
+    if (isSelected) line.bringToFront();
+  });
+
+  renderMapLegend();
+  const hint = document.getElementById('mapEmptyHint');
+  if (!draftShipments.length){
+    hint.style.display = '';
+    hint.textContent = `${ALL_DOS.length} DO outstanding — klik "Optimalkan Muat & Rute" untuk membentuk rute`;
+  } else {
+    hint.style.display = 'none';
   }
 }
 
+function renderMapLegend(){
+  const legend = document.getElementById('mapLegend');
+  if (!draftShipments.length){
+    legend.innerHTML = Object.entries(CLUSTER_COLORS).map(([key,color]) =>
+      `<div class="map-legend-row"><span class="map-legend-dot" style="background:${color}"></span> Cluster ${key} — ${escapeHtml(CLUSTERS[key].label)}</div>`
+    ).join('');
+    return;
+  }
+  legend.innerHTML = `
+    <div class="map-legend-row"><span class="map-legend-dot" style="background:#334155"></span> DC Solo (origin)</div>
+    <div class="map-legend-row"><span class="map-legend-dot" style="background:#dc2626"></span> Belum ter-assign / dikeluarkan</div>
+    <div style="margin-top:4px;color:var(--g400)">Warna lain = rute berbeda — klik untuk pilih</div>`;
+}
+
+function focusMapOnShipment(id){
+  if (!overviewMap) return;
+  const s = draftShipments.find(x => x.id === id);
+  if (!s) return;
+  const plan = routePlans[id];
+  const points = plan && plan.sequence.length
+    ? [[ORIGIN.lat, ORIGIN.lng], ...plan.sequence.map(d => [LOCATIONS[d.id].lat, LOCATIONS[d.id].lng])]
+    : s.items.map(d => [LOCATIONS[d.id].lat, LOCATIONS[d.id].lng]);
+  renderOverviewMap(); // redraw first so the selected polyline is highlighted/brought to front
+  overviewMap.fitBounds(points, { padding: [40,40], maxZoom: 14 });
+}
+
+function focusMapOnDo(doId){
+  if (!overviewMap) return;
+  const loc = LOCATIONS[doId];
+  overviewMap.setView([loc.lat, loc.lng], 14);
+}
+
 function renderAll(){
-  renderFlowDiagram();
-  renderPlanSummary();
-  renderPoolToolbar();
-  renderDoPool();
-  renderShipmentMasterDetail();
-  document.getElementById('runLoadBtn').disabled = !activePool().some(d => doStatus[d.id]==='outstanding');
+  renderKpiCards();
+  renderRoutesPane();
+  renderOutstandingPane();
+  renderDetailPanel();
+  renderOverviewMap();
+}
+
+// One-click convenience matching Locus/FarEye's single "Optimize" CTA — runs
+// Load Optimization then Route Optimization for every resulting shipment,
+// instead of forcing the two steps to be triggered manually every time.
+function runFullOptimization(){
+  const eligible = activePool().filter(d => doStatus[d.id] === 'outstanding');
+  if (!eligible.length){
+    showToast('Tidak ada DO Outstanding pada batch yang dicentang.');
+    return;
+  }
+  runLoadOptimizationStage();
+  if (draftShipments.length) runRouteOptimizationForAll();
 }
 
 function showToast(msg){
@@ -1975,6 +2073,7 @@ function showToast(msg){
 
 renderFleetSummary();
 renderConstraintPreview();
+initOverviewMap();
 generateSimulation(300, 14);
 initState();
 renderAll();
